@@ -1,0 +1,277 @@
+
+@prefix ex: <http://moschetti.org/buzz#> .
+
+@prefix ami: <http://moschetti.org/ami#> .
+
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+
+ex:actor1 a ami:Actor;
+    ami:DID "A123" ;
+    ami:name "steve" .
+
+ex:actor2 a ami:Actor;
+    ami:DID "A456" ;
+    ami:name "bob" .
+
+ex:actor3 a ami:Actor;
+    ami:DID "A77" ;
+    ami:name "Moschetti LLC" .
+
+ex:actor4 a ami:Actor;
+    ami:DID "A88" ;
+    ami:name "Oracle Corp" .
+
+
+
+ex:software1 a ami:Software;
+    ami:basename "oracle";
+    ami:vendor ex:actor4 ;
+    ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:patch 0 ];
+    ami:EOL "2025-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+
+    ami:released "2022-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+    ami:steward ex:actor1 .
+
+
+ex:software2 a ami:Software;
+    ami:basename "java";
+    ami:vendor ex:actor4 ;
+    ami:version [ a ami:Version; ami:major 8; ami:minor 2; ami:patch 3 ];
+    ami:EOL "2025-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+    ami:linksWith ( ex:software7 ex:software8 ) ;
+    ami:steward ex:actor1.
+
+ex:software3 a ami:Software;
+    ami:basename "susynct";
+    ami:vendor ex:actor3 ;
+    ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:patch 0 ];
+    ami:EOL "2027-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+    ami:released "2022-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+#    ami:corn "{\"key\": [\"foo\",12, {\"$numberDecimal\": \"12.09\"} ] }"^^ex:json  ;
+    ami:steward ex:actor2 .
+
+
+ex:software4 a ami:Software;
+    ami:basename "AMI";
+    ami:vendor "Moschetti LLC";
+    ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:patch 0 ];
+    ami:EOL "2026-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+    ami:steward ex:actor2 .
+
+ex:lib1	a		ami:Software ;
+	ami:vendor	ex:vdr1 ;
+	ami:EOL		"2024-08-02T14:00:57.478Z"^^xsd:dateTime .
+
+ex:lib2	a		ami:Software ;
+	ami:vendor	ex:vdr1 ;
+	ami:EOL		"2026-08-02T14:00:57.478Z"^^xsd:dateTime .
+
+ex:lib3	a		ami:Software ;
+	ami:vendor	ex:vdr2 ;
+	ami:EOL		"2026-02-01T12:00:00.000Z"^^xsd:dateTime .
+
+
+#
+#  Components tie together as a logical representation of a system
+#
+
+ex:myApp     a    ami:Component ;
+	     ami:connectsTo    ex:service1 .
+	     
+ex:myApp2    a    ami:Component ;
+	     ami:connectsTo    ex:service7 .
+
+
+ex:service1	a    ami:Component ;
+		ami:listensFor	[
+		ami:protocol 	ami:https ;
+		ami:auth 	ami:basic ;		
+		ex:mep1    [
+			ami:shapeIn  ex:shape1 ;
+			ami:shapeOut ex:myShape_003 ;			
+			]
+		ex:mep2    [
+			ami:shapeIn  ex:shape3 ;
+			ami:shapeOut ex:shape4 ;			
+			] 
+		] ;
+		ami:connectsTo  ex:service2 .
+
+ex:service7	a    ami:Component ;
+		ami:connectsTo    ex:db2 ;
+		ami:listensFor	[
+		  ex:mep1    [
+			ami:shapeIn  ex:myShape_001 ;
+			ami:shapeOut ex:shape2 ;			
+			]
+		] .
+
+
+#ex:service1  ami:connectsTo    ex:service2 .
+
+ex:service2  a    ami:Component ;
+	     ami:connectsTo    ex:service3 ;
+	     ami:connectsTo    ex:db1 .
+
+ex:service3  a    ami:Component ;
+	     ami:connectsTo    ex:db2 .
+
+ex:otherApp  a    ami:Component ;
+	     ami:connectsTo	 ex:serviceX .
+ex:serviceX  a    ami:Component ;
+	     ami:connectsTo    ex:db2 .
+
+
+
+ex:program1   a ami:Software ;
+	      ami:implements	ex:service1 ;
+	      ami:linksWith	ex:lib1 ;
+	      ami:linksWith	ex:lib77 .	      
+
+ex:program2   a ami:Software ;
+	      ami:implements	ex:service1 ;
+	      ami:linksWith	ex:lib2 .
+
+ex:foosvr   a ami:Software ;
+	      ami:implements	ex:service3 ;
+	      ami:linksWith	ex:lib3 .	      
+
+
+#
+#   SYSTEMS
+#
+ex:system_001	a	ami:System ;
+		ami:dept	"ABC" ;
+		ami:components  ex:myApp, ex:myApp2 .
+
+
+#
+#  Instances are actual running things:
+#
+
+ex:foosvr_001	a	ami:Instance ;
+		ami:program	     ex:foosvr ;
+		ami:pid		     73645 ;
+		ami:host	     "machine1" .
+
+
+
+ex:myShape_001 a sh:NodeShape, ami:Data ;
+
+    ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:patch 0 ];
+    
+    sh:property [
+        sh:path ex:amt ;
+        sh:datatype xsd:integer ;
+    ] ;
+    
+    sh:property [
+        sh:path ex:recentReviews ;
+        sh:node [
+            a sh:NodeShape ;
+            sh:property [
+                sh:path ex:text ;
+                sh:datatype xsd:string ;
+            ] ;
+            sh:property [
+                sh:path ex:reviewerName ;
+                sh:node [
+                    a sh:NodeShape ;
+                    sh:property [
+                        sh:path ex:first ;
+                        sh:datatype xsd:string ;
+			ex:sensitivity  2  ;
+		    ] ;
+                    sh:property [
+                        sh:path ex:last ;
+                        sh:datatype xsd:string ;
+                    ] ;
+                ] ;
+            ] ;
+            sh:property [
+                sh:path ex:reviewerID ;
+                sh:datatype xsd:string ;
+                sh:pattern "^[\\w._%+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$" ;  # Email format pattern
+            ] ;
+            sh:property [
+                sh:path ex:reviewerPhone ;
+                sh:datatype xsd:string ;
+                sh:pattern "^(\\+\\d{1,3}[- ]?)?\\d{10}$" ;  # Simple phone number pattern
+            ] ;
+            sh:property [
+                sh:path ex:reviewDate ;
+                sh:datatype xsd:dateTime ;
+            ] ;
+        ] ;
+    ] .
+
+
+ex:myShape_002 a sh:NodeShape, ami:Data ;
+    ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:patch 0 ];
+    
+    sh:property [
+        sh:path ex:id ;
+        sh:datatype xsd:string ;
+    ] ;
+
+    sh:property [
+        sh:path ex:SSN ;
+        sh:datatype xsd:string ;
+    ] .
+
+
+ex:myShape_003 a sh:NodeShape, ami:Data ;
+
+    ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:patch 0 ];
+    
+    sh:property [
+        sh:path ex:corn ;
+        sh:datatype xsd:string ;
+	ex:sensitivity 3
+    ] .
+
+
+ex:myShape_004 a sh:NodeShape, ami:Data ;
+
+    ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:patch 0 ];
+
+    sh:property [
+        sh:path ex:recentReviews ;
+        sh:node [
+            a sh:NodeShape ;
+            sh:property [
+                sh:path ex:zzoop ;
+                sh:node [
+                    a sh:NodeShape ;
+                    sh:property [
+                        sh:path ex:name ;
+                        sh:datatype xsd:string ;
+                    ] ;
+
+            	    sh:property [
+		        sh:path ex:flug ;
+			sh:node [
+			    a sh:NodeShape ;
+			    sh:property [
+			        sh:path ex:part1 ;
+				sh:datatype xsd:string ;
+			    ] ;
+			    sh:property [
+			        sh:path ex:part2 ;
+				sh:datatype xsd:string ;
+			    ] ;
+   		        ] ;
+                    ] ;
+		    sh:property [
+                        sh:path ex:last ;
+                        sh:datatype xsd:string ;
+                    ] ;
+                ] ;
+            ] ;
+        ];
+    ] .	 

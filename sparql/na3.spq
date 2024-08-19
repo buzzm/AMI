@@ -1,0 +1,19 @@
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+# ami is the model, buzz is "my data"
+# Make sure the ami5 collection _id = SCHEME has a prefixes entry
+# that matches these!
+PREFIX ami: <http://moschetti.org/ami/>
+PREFIX ex: <http://moschetti.org/buzz/>
+
+
+
+SELECT ?steward (COUNT(?software) AS ?softwareCount)
+
+WHERE {
+   ?software a ami:Software ;
+   	     ami:steward ?steward .
+}

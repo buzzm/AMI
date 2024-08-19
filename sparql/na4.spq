@@ -1,0 +1,77 @@
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+# ami is the model, buzz is "my data"
+# Make sure the ami5 collection _id = SCHEME has a prefixes entry
+# that matches these!
+PREFIX ami: <http://moschetti.org/ami/>
+PREFIX ex: <http://moschetti.org/buzz/>
+
+
+#
+#  DOWNSTREAM
+#
+
+# SELECT DISTINCT ?start ?end
+# WHERE {
+#   {
+#     ex:otherApp ex:connectsTo ?end .
+#     BIND(ex:otherApp AS ?start)
+#   }
+#   UNION
+#   {
+#     ?start ex:connectsTo ?end .
+#     FILTER EXISTS {
+#       ex:otherApp ex:connectsTo+ ?start .
+#     }
+#   }
+# }
+
+
+#
+#  UPSTREAM
+#
+SELECT DISTINCT ?endOfLifeSoftware ?start ?end
+#SELECT *
+WHERE {
+  # Find software with EOL in 2024
+  ?endOfLifeSoftware a ami:Software ;
+  		       ami:EOL ?eol .
+  FILTER (YEAR(?eol) = 2026)
+  
+  # Find implementations that link with the end-of-life software:
+  ?programs ami:linksWith ?endOfLifeSoftware ;
+     	    ami:implements ?service .
+
+  {
+  ?start ami:connectsTo ?service .
+  BIND(?service AS ?end)
+ }
+ UNION
+    {
+      ?start ami:connectsTo ?intermediate .
+      ?intermediate ami:connectsTo+ ?service .
+      BIND(?intermediate AS ?end)
+    }
+
+}
+
+
+#
+#  UPSTREAM w/target
+#
+# SELECT DISTINCT ?start ?end
+# WHERE {
+#   {
+#     ?start ami:connectsTo ?end .
+#     FILTER (?end = ex:service1)
+#   }
+#   UNION
+#   {
+#     ?start ami:connectsTo ?intermediate .
+#     ?intermediate ami:connectsTo+ ex:service1 .
+#     BIND(?intermediate AS ?end)
+#   }
+# }

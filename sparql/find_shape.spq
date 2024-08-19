@@ -1,0 +1,53 @@
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+PREFIX sh: <http://www.w3.org/ns/shacl#>
+
+# ami is the model, buzz is "my data"
+# Make sure the ami5 collection _id = SCHEME has a prefixes entry
+# that matches these!
+PREFIX ami: <http://moschetti.org/ami#>
+PREFIX ex: <http://moschetti.org/buzz#>
+
+
+
+#
+#  This will return parent shape name as it would appear as an URI in
+#  a MEP in a Component.
+#
+#SELECT DISTINCT ?component ?mep ?shape
+SELECT *
+WHERE {
+    # Step 1: Identify any property with ex:sensitivity > 2 and < 4
+    ?sensitiveProperty sh:path ?path ;
+                       ex:sensitivity ?sensitivityValue .
+    
+    FILTER(?sensitivityValue > 1 && ?sensitivityValue < 4)
+
+    # # Step 2: Trace back to the root shape
+    ?intermediateShape (sh:property|sh:node)* ?sensitiveProperty .
+
+    # Only pick classes that are actually top-level AMI Shape.  Note
+    # that all the subfields are type sh:NodeShape but they are NOT
+    # ami:Data!
+    ?shape sh:property ?intermediateShape ;
+           a ami:Data .
+
+
+    # # Step 3: Find components related to these shapes:
+    ?component ami:listensFor ?mepEntry .
+    ?mepEntry ?mep ?mepShape .
+
+    # # Check for shapeIn or shapeOut:
+    {
+         ?mepShape ami:shapeIn ?shape
+    }
+    UNION
+    {
+        ?mepShape ami:shapeOut ?shape
+    }
+    
+}
+

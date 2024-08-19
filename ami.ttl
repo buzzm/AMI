@@ -1,0 +1,238 @@
+@prefix ami: <http://moschetti.org/ami#> .
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+
+ami:Actor a rdfs:Class ;
+	  rdfs:comment """
+An Actor is someone or something that interacts with entities in AMI.  An
+Actor can be a person or an automated program; it is not a group role.
+Details of the properties of Actor are associated with the properties
+themselves.
+""" .
+
+ami:Version a rdfs:Class ;
+	  rdfs:comment """
+Version is an abstraction that allows us to more precisely manage the
+major, minor, patch, snapshot, and release date information for an entity.
+It avoids problems arising from missing (or unnecessary) data like patch
+level and hardcoding string representation like 1.3.2.
+""" .
+
+#  Versionable/owned things are Items:
+ami:Item a rdfs:Class ;
+	  rdfs:comment """
+The Item is a foundational class in AMI.  Almost all other entity type in AMI
+are subclasses of Item.
+Details of the properties of Item are associated with the properties
+themselves.
+""" .
+
+#
+#  The Core Classes
+#
+ami:Software a rdfs:Class;
+    rdfs:subClassOf ami:Item .
+ami:Hardware a rdfs:Class;
+    rdfs:subClassOf ami:Item .
+ami:Shape a rdfs:Class;
+    rdfs:subClassOf ami:Item .
+ami:Component a rdfs:Class;
+    rdfs:subClassOf ami:Item .    
+ami:Instance a rdfs:Class;
+    rdfs:subClassOf ami:Item .
+ami:System a rdfs:Class;
+    rdfs:subClassOf ami:Item .
+    
+#
+#  Common Properties
+#  In RDF, properties are defined "outside" a class and associated with one
+#  OR MORE of them using the rdfs:domain predicate.
+#  Although this seems a little awkward, esp. for those accustomed to
+#  properties and attributes being defined *inside* a class as in Java (e.g.
+#    class A { private String property1; }
+#  this approach is much more "semanticly friendly" as it creates commonality
+#  of definition and use across classes
+#
+#ami:name a rdf:Property;
+#    rdfs:domain ami:Actor, ami:System ;
+#    rdfs:range xsd:string .
+
+#  Should be in rdf or rdfs but curiously is not:
+ami:description a rdf:Property ;
+    rdfs:domain ami:System ;
+    rdfs:range xsd:string .
+
+
+
+
+#
+#  Actor Properties
+#
+ami:DID a rdf:Property;
+    rdfs:domain ami:Actor;
+    rdfs:range xsd:string.
+
+
+#
+#  Item Properties
+#
+ami:owner a rdf:Property;
+    rdfs:domain ami:Item;
+    rdfs:range ami:Actor;
+    rdfs:comment """
+owner is the administrative manager of an Item, typically a manager in
+a department.  The owner is responsible for the correct information associated
+with an Item.  The owner can also be the steward and visa versa.  The owner
+is not as important from a functional perspective as the steward.
+""" .
+
+ami:steward a rdf:Property;
+    rdfs:domain ami:Item;
+    rdfs:range ami:Actor;
+    rdfs:comment """
+steward is the operational manager of an Item, typically a developer or DBA.
+The steward is tasked with the operational update of the Item but it is the
+owner that is ultimately responsible for the correct information.
+The steward is the most important Actor engaged with an Item because it is
+assumed that they actually know how it works.
+The steward can also be the owner and visa versa.  
+""" .
+
+ami:vers a rdf:Property;
+    rdfs:domain ami:Item;
+    rdfs:range xsd:int.
+
+ami:created a rdf:Property;
+    rdfs:domain ami:Item;
+    rdfs:range xsd:dateTime.
+
+ami:createdBy a rdf:Property;
+    rdfs:domain ami:Item;
+    rdfs:range ami:Actor;
+    rdfs:comment """
+createdBy is a low-level AMI system field.  It is the Actor that actually
+created the physical Item in the AMI system. createdBy will almost always be
+a system process Actor.  For most questions, createdBy is the least important of
+the Actor ranged properties.  It is possible that createdBy can be the same
+as owner and steward.
+""" .    
+
+#
+#  Version
+#
+ami:major a rdf:Property;
+    rdfs:domain ami:Version;
+    rdfs:range xsd:int.
+ami:minor a rdf:Property;
+    rdfs:domain ami:Version;
+    rdfs:range xsd:int.
+ami:patch a rdf:Property;
+    rdfs:domain ami:Version;
+    rdfs:range xsd:int.
+ami:alpha a rdf:Property;
+    rdfs:domain ami:Version;
+    rdfs:range xsd:string.
+ami:released a rdf:Property;
+    rdfs:domain ami:Version;
+    rdfs:range xsd:dateTime.
+
+#
+#  Common properties for Software, Hardware, and Shape:
+#  
+ami:version a rdf:Property;
+    rdfs:domain ami:Software, ami:Hardware, ami:Shape ;
+    rdfs:range ami:Version.
+
+#
+#  Common properties for Software and Hardware:
+#  
+ami:basename a rdf:Property;
+    rdfs:domain ami:Software, ami:Hardware;
+    rdfs:range xsd:string.
+ami:vendor a rdf:Property;
+    rdfs:domain ami:Software, ami:Hardware;
+    rdfs:range xsd:string.
+ami:EOL a rdf:Property;
+    rdfs:domain ami:Software, ami:Hardware;
+    rdfs:range xsd:dateTime;
+    rdfs:comment """
+EOL is an acronym for "end of life."  It is a date at which a thing typically
+loses official support.  In particular, using software past EOL increases
+the risk of security vulnerabilities not being fixed and decreasing
+compatibility with other software.
+""" .    
+
+ami:linksWith rdf:type rdf:Property ;
+              rdfs:domain ami:Software ;
+              rdfs:range ami:Software ;
+              rdfs:label "links with" ;
+              rdfs:comment "Links this software with another software." .
+
+ami:implements rdf:type rdf:Property ;
+               rdfs:domain ami:Software ;
+               rdfs:range ami:Component ;
+               rdfs:label "implements" ;
+               rdfs:comment """
+Optionally indicates the component i.e. the logical interface that this software
+implements.  Typically but not exclusively, this property exists on top-level
+executables like servlet subclasses, engines like message busses, etc.
+""" .
+
+
+#
+#  Component field defs
+#
+ami:listensFor rdf:type rdf:Property ;
+               rdfs:domain ami:Component ;
+               rdfs:range rdf:List ;  # Assuming the value is a structured list
+               rdfs:label "listens for" ;
+               rdfs:comment "Defines the protocols and message exchange patterns that the component listens for." .
+
+# Define the ami:protocol property
+ami:protocol rdf:type rdf:Property ;
+             rdfs:domain rdf:List ;  # Typically part of a structured list in the listensFor property
+             rdfs:range ami:Protocol ;  # Assuming Protocol is a class
+             rdfs:label "protocol" ;
+             rdfs:comment "Specifies the protocol used by the component (e.g., HTTPS)." .
+
+# Define the ami:auth property
+ami:auth rdf:type rdf:Property ;
+         rdfs:domain rdf:List ;  # Part of the structured list in the listensFor property
+         rdfs:range ami:Auth ;  # Assuming Auth is a class
+         rdfs:label "authentication" ;
+         rdfs:comment "Specifies the authentication method used by the component (e.g., Basic)." .
+
+# Define the ami:shapeIn property
+ami:shapeIn rdf:type rdf:Property ;
+            rdfs:domain rdf:List ;  # Part of the structured list in the listensFor property
+            rdfs:range ami:Shape ;  # Shape expected as input
+            rdfs:label "shape in" ;
+            rdfs:comment "Defines the input data shape that the component expects." .
+
+# Define the ami:shapeOut property
+ami:shapeOut rdf:type rdf:Property ;
+             rdfs:domain rdf:List ;  # Part of the structured list in the listensFor property
+             rdfs:range ami:Shape ;  # Shape expected as output
+             rdfs:label "shape out" ;
+             rdfs:comment "Defines the output data shape that the component produces." .
+
+# Define the ex:mep1 and ex:mep2 properties as blank nodes within the list
+# Assuming these are part of the structured listensFor property
+
+# Define the ami:connectsTo property
+ami:connectsTo rdf:type rdf:Property ;
+               rdfs:domain ami:Component ;
+               rdfs:range ami:Component ;  # Connecting to another component/service
+               rdfs:label "connects to" ;
+               rdfs:comment "Specifies another component or service that this component connects to." .
+
+#
+#  System Properties
+#
+ami:components rdf:type rdf:Property ;
+               rdfs:domain ami:System ;
+               rdfs:range ami:Component ;  # Refers to individual Component instances
+               rdfs:comment "A component that is part of the system. Multiple instances of this property can be used for different components." .
