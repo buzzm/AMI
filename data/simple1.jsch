@@ -1,0 +1,47 @@
+{
+  "schema": "http:\/\/json-schema.org\/draft-07\/schema",
+
+  "type": "object",
+
+  "properties": {
+
+    "amt": {
+      "type": "integer"
+    },
+
+    "recentReviews": {
+      "type": "array",
+      "items": {
+
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "reviewerName": {
+	    "type": "object",
+            "properties": {
+	      "first": { "type": "string" },
+	      "last": { "type": "string" }	    	      
+	    }
+	  },
+          "reviewerID": {
+            "type": "string",
+	    "format": "email",
+	    "__sm": {
+	      "desc": "The DID of the person with final review signoff"
+	    }
+          },
+          "reviewerPhone": {
+            "type": "string",
+	    "format": "phone"
+          },
+          "reviewDate": {
+            "type": "string",
+	    "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

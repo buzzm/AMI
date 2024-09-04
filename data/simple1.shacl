@@ -1,0 +1,51 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ami: <http://moschetti.org/ami#>
+
+@prefix ex: <http://moschetti.org/buzz#>
+
+ex:MyShape
+    a sh:NodeShape ;
+    sh:property [
+        sh:path ex:amt ;
+        sh:datatype xsd:integer ;
+    ] ;
+    
+    sh:property [
+        sh:path ex:recentReviews ;
+        sh:node [
+            a sh:NodeShape ;
+            sh:property [
+                sh:path ex:text ;
+                sh:datatype xsd:string ;
+            ] ;
+            sh:property [
+                sh:path ex:reviewerName ;
+                sh:node [
+                    a sh:NodeShape ;
+                    sh:property [
+                        sh:path ex:first ;
+                        sh:datatype xsd:string ;
+                    ] ;
+                    sh:property [
+                        sh:path ex:last ;
+                        sh:datatype xsd:string ;
+                    ] ;
+                ] ;
+            ] ;
+            sh:property [
+                sh:path ex:reviewerID ;
+                sh:datatype xsd:string ;
+                sh:pattern "^[\\w._%+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$" ;  # Email format pattern
+            ] ;
+            sh:property [
+                sh:path ex:reviewerPhone ;
+                sh:datatype xsd:string ;
+                sh:pattern "^(\\+\\d{1,3}[- ]?)?\\d{10}$" ;  # Simple phone number pattern
+            ] ;
+            sh:property [
+                sh:path ex:reviewDate ;
+                sh:datatype xsd:dateTime ;
+            ] ;
+        ] ;
+    ] .

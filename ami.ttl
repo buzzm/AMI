@@ -16,60 +16,138 @@ themselves.
 ami:Version a rdfs:Class ;
 	  rdfs:comment """
 Version is an abstraction that allows us to more precisely manage the
-major, minor, patch, snapshot, and release date information for an entity.
-It avoids problems arising from missing (or unnecessary) data like patch
-level and hardcoding string representation like 1.3.2.
+version number and binary type for an entity.  For example, a single entity commonly
+known as "java" (and in fact so marked in AMI RDF as rdfs:label "java") will have many
+unique Software triples, one for each combination of version
+(e.g. 11.1, 11.3, 17.2, 21.4, etc.) and binary build types
+e.g. win32, arm64, x86_64, etc.
+The Version class allows us to better handle missing components like minor or
+patch number and avoids consumers have to parse potentially unwieldly strings like
+"java-17.0.11-SNAPSHOT-arm64".
+Note that unlike the java JVM runtime, java jar libraries are platform independent;
+therefore, the binary type for instances of jars is always simply "jar".
 """ .
 
 #  Versionable/owned things are Items:
 ami:Item a rdfs:Class ;
 	  rdfs:comment """
 The Item is a foundational class in AMI.  Almost all other entity type in AMI
-are subclasses of Item.
-Details of the properties of Item are associated with the properties
+are subclasses of Item.  Item properties are used for managability and
+system maintenance e.g. ownersip, versioning, timestamping, etc.
+More details of the properties of Item are associated with the properties
 themselves.
 """ .
+
+
 
 #
 #  The Core Classes
 #
 ami:Software a rdfs:Class;
-    rdfs:subClassOf ami:Item .
+    rdfs:subClassOf ami:Item ;
+    rdfs:comment """
+Software is any kind of unit of release of (ultimately) executable software.
+Software can be a Java .jar file, a Windows .exe program, a shared library
+like libc.so, a tomcat .war file, a python module like pandas, a database
+engine like Oracle or MongoDB, or a message bus like Kafka.
+AMI is not a software development and versioning
+platform; therefore, it is not granular to individual source code files.
+An important property of Software is "implements" which declares the Software
+to have a particular Component as its interface.
+""" .
+
 ami:Hardware a rdfs:Class;
-    rdfs:subClassOf ami:Item .
+    rdfs:subClassOf ami:Item ;
+    rdfs:comment """
+Hardware is any kind of unit of release of (ultimately) an execution platform.
+Hardware can be physical or virtual.  Hardware can be a virtual machine,
+an 8 processor on-prem server, a router, a file system, a storage device,
+or a network, for example.  We distinguish hardware from software (even though
+virtual machines are software) because common design idioms focus on different
+capabilities, scalability, costs, and support for each.
+An important property of Hardware is "implements" which declares the Software
+to have a particular Component as its interface.
+""" .
+
 ami:Shape a rdfs:Class;
-    rdfs:subClassOf ami:Item .
+    rdfs:subClassOf ami:Item ;
+    rdfs:comment """
+A Shape is the definition of an arbitrarily complex record of data.  A Shape
+can be a single scalar or a complex, multi-level assembly of structures and
+arrays.  AMI Shapes are somewhat special in that they are instances of both
+ami:Shape and the SHACL sh:NodeShape classes (e.g. multiple inheritance).
+This permits the AMI system to manage the Shapes consistently with Software
+and Hardware and other types but the overall definition framework is SHACL.
+This permits industry standard tooling to work with Shapes.
+""" .
+
 ami:Component a rdfs:Class;
-    rdfs:subClassOf ami:Item .    
+    rdfs:subClassOf ami:Item ;
+    rdfs:comment """
+A Component is an abstract description of a service that interacts with
+other components according to zero or more message exchange patterns.  A
+component does not specify software or hardware.  Components can name
+other components that they require to perform their function but do not
+name the components that connect to them; rather, they advertise their interface
+in terms of connection protocol, authentication, and data shapes consumed
+and returned.  Applications, databases, web services, message busses, load
+balancers, and bucket storage are all components.  
+""" .
+
+
+ami:System a rdfs:Class;
+    rdfs:subClassOf ami:Item ;
+    rdfs:comment """
+A System is named collection of one or more components.  It is not necessary
+for a system to define all the components upon which it depends.  A simple
+example is a system could contain a single application component.  The AMI
+engine can then use the component definitions to recursively name all
+"downstream" dependencies.  Systems also have a number of administrative
+properties to facilitate management including department and audit information.
+Business users understand the business purpose of systems, not individual
+components and certainly not software or hardware.
+""" .
+
+ami:Vendor a rdfs:Class;
+    rdfs:subClassOf ami:Item ;
+    rdfs:comment """
+A Vendor is a supplier of software, hardware, or data.  Vendors are not Actors.
+Actors are entities that interact directly with the technology whereas Vendors
+are suppliers.  Actors have entitlements require authentication; Vendors do not.
+""" .
+
 ami:Instance a rdfs:Class;
     rdfs:subClassOf ami:Item .
-ami:System a rdfs:Class;
-    rdfs:subClassOf ami:Item .
+
+
+
     
 #
 #  Common Properties
 #  In RDF, properties are defined "outside" a class and associated with one
 #  OR MORE of them using the rdfs:domain predicate.
 #  Although this seems a little awkward, esp. for those accustomed to
-#  properties and attributes being defined *inside* a class as in Java (e.g.
-#    class A { private String property1; }
-#  this approach is much more "semanticly friendly" as it creates commonality
-#  of definition and use across classes
-#
-#ami:name a rdf:Property;
-#    rdfs:domain ami:Actor, ami:System ;
-#    rdfs:range xsd:string .
+#  properties and attributes being defined *inside* a class as in Java e.g.
+#    class A {
+#        private String property1;
+#        private int property2;
+#    }
+#  the RDF approach is much more "semanticly friendly" as it creates commonality
+#  of definition and use across classes.
 
-#  Should be in rdf or rdfs but curiously is not:
-ami:description a rdf:Property ;
-    rdfs:domain ami:System ;
-    rdfs:range xsd:string .
 
 
 
 
 #
 #  Actor Properties
+#
+ami:DID a rdf:Property;
+    rdfs:domain ami:Actor;
+    rdfs:range xsd:string.
+
+#
+#  Vendor Properties
 #
 ami:DID a rdf:Property;
     rdfs:domain ami:Actor;
@@ -138,6 +216,17 @@ ami:alpha a rdf:Property;
 ami:released a rdf:Property;
     rdfs:domain ami:Version;
     rdfs:range xsd:dateTime.
+ami:bintype a rdf:Property;
+    rdfs:label "binary type" ;
+    rdfs:comment """
+"x86_64" and "jar" are two common binary file types.  Note that "python" is also
+a valid type even though technically it is not binary.""" ;
+    rdfs:domain ami:Version ;
+    rdfs:range xsd:string .
+ami:platform a rdf:Property;
+    rdfs:domain ami:Version;
+    rdfs:range xsd:string.    
+
 
 #
 #  Common properties for Software, Hardware, and Shape:
@@ -149,9 +238,7 @@ ami:version a rdf:Property;
 #
 #  Common properties for Software and Hardware:
 #  
-ami:basename a rdf:Property;
-    rdfs:domain ami:Software, ami:Hardware;
-    rdfs:range xsd:string.
+
 ami:vendor a rdf:Property;
     rdfs:domain ami:Software, ami:Hardware;
     rdfs:range xsd:string.
@@ -172,7 +259,7 @@ ami:linksWith rdf:type rdf:Property ;
               rdfs:comment "Links this software with another software." .
 
 ami:implements rdf:type rdf:Property ;
-               rdfs:domain ami:Software ;
+               rdfs:domain ami:Software , ami:Hardware ;
                rdfs:range ami:Component ;
                rdfs:label "implements" ;
                rdfs:comment """
@@ -236,3 +323,11 @@ ami:components rdf:type rdf:Property ;
                rdfs:domain ami:System ;
                rdfs:range ami:Component ;  # Refers to individual Component instances
                rdfs:comment "A component that is part of the system. Multiple instances of this property can be used for different components." .
+
+ami:dept rdf:type rdf:Property ;
+         rdfs:domain ami:System ;
+         rdfs:range xsd:string ;
+	 rdfs:label "department" ;
+         rdfs:comment """
+A department is an organizational code.  AMI places no restriction on the value.
+It is used for grouping and querying only. """ .

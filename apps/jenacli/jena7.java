@@ -50,7 +50,8 @@ public class jena7 {
 	    JenaMongoConnection mc = new JenaMongoConnection(host);
 	    JenaMongoStore ms = new JenaMongoStore(mc, "semantic");
 
-	    Model mm = JenaMongoDataset.createRDFSModel(ms, args[0]);
+	    //Model mm = JenaMongoDataset.createRDFSModel(ms, args[0]);
+	    Model mm = JenaMongoDataset.createModel(ms, args[0]);	    
 
 	    Dataset ds = DatasetFactory.create(mm);
 
@@ -81,8 +82,10 @@ public class jena7 {
 			for ( ; results.hasNext() ; )
 			    {
 				QuerySolution soln = results.nextSolution() ;
-				System.out.println(soln);
 				n++;
+				System.out.println(n);
+				System.out.println(soln);
+				processOneSolution(soln);
 			    }
 			System.out.printf("found %d\n", n);
 		    }
@@ -101,4 +104,40 @@ public class jena7 {
     }
 
 
+    private static void XXprocessOneSolution(QuerySolution soln) {
+	System.out.println(soln);
+    }
+
+    private static void pp(String varname, String type, String sval) {
+	System.out.printf("  %-20s %8s %s\n", varname, type, sval);
+    }
+	
+    private static void processOneSolution(QuerySolution soln) {
+	java.util.Iterator<String> varNames = soln.varNames();
+	while (varNames.hasNext()) {
+	    String varName = varNames.next();
+	    RDFNode node = soln.get(varName);
+
+	    if(node == null) {
+		pp(varName, "null", "");
+	    } else {
+		if (node.isURIResource()) {
+		    Resource resource = node.asResource();
+		    pp(varName, "URI", resource.getURI());
+		} else if (node.isLiteral()) {
+		    Literal literal = node.asLiteral();
+		    pp(varName, "literal", literal.getDatatype() + ":" + literal.getString());
+		} else if (node.isAnon()) {
+		    Resource anonResource = node.asResource();
+		    pp(varName, "blank", anonResource.getURI());
+		} else if (node.isResource()) {
+		    Resource resource = node.asResource();
+		    pp(varName, "resource", resource.toString());
+		} else {
+		    pp(varName, "UNK", "");
+		}
+	    }
+	}
+    }
+    
 }

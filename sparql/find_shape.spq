@@ -31,9 +31,9 @@ WHERE {
 
     # Only pick classes that are actually top-level AMI Shape.  Note
     # that all the subfields are type sh:NodeShape but they are NOT
-    # ami:Data!
+    # ami:Shape!
     ?shape sh:property ?intermediateShape ;
-           a ami:Data .
+           a ami:Shape .
 
 
     # # Step 3: Find components related to these shapes:

@@ -2,6 +2,9 @@ import subprocess
 import argparse
 import re
 
+#  com.google.guava guava 33.2.1-jre
+#  
+
 def get_mvndep(group_id, artifact_id, version):
     # Construct the Maven command
     mvn_command = [

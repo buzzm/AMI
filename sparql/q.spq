@@ -11,39 +11,48 @@ PREFIX sh: <http://www.w3.org/ns/shacl#>
 PREFIX ami: <http://moschetti.org/ami#>
 PREFIX ex: <http://moschetti.org/buzz#>
 
-SELECT DISTINCT ?endOfLifeSoftware ?programs ?start ?end
+#
+#  This will return parent shape name as it would appear as an URI in
+#  a MEP in a Component.
+#
+SELECT DISTINCT ?shape
 #SELECT *
 WHERE {
-  # Find software with EOL in 2026:
-  ?endOfLifeSoftware a ami:Software ;
-  		       ami:EOL ?eol .
-  FILTER (YEAR(?eol) = 2026)
+    # Step 1: Identify any property with ex:sensitivity > 2 and < 4
+    ?sensitiveProperty sh:path ?path ;
+                       ex:sensitivity ?sensitivityValue .
+    
+    FILTER(?sensitivityValue > 1 && ?sensitivityValue < 4)
 
-  # Neat!
-  # FILTER (?eol < (NOW() + "P1Y"^^xsd:duration))
+    # # Step 2: Trace back to the root shape
+    ?intermediateShape (sh:property|sh:node)* ?sensitiveProperty .
 
-  #
-  # Find implementations that link with the end-of-life software.
-  # The ami:implements predicate is the juice here:
-  #
-  ?programs ami:linksWith ?endOfLifeSoftware ;
-     	    ami:implements ?service .
-
-
-  {
-  ?start ami:connectsTo ?service .
-  BIND(?service AS ?end)
- } UNION {
-      ?start ami:connectsTo ?intermediate .
-      ?intermediate ami:connectsTo+ ?service .
-      BIND(?intermediate AS ?end)
-      } UNION {
-    ?service ami:connectsTo ?end .
-    BIND(?service AS ?start)
-  } UNION {
-    ?start ami:connectsTo ?end . 
-    ?service ami:connectsTo+ ?start .
-    }
+    # Only pick classes that are actually top-level AMI Shape.  Note
+    # that all the subfields are type sh:NodeShape but they are NOT
+    # ami:Shape!
+    ?shape sh:property ?intermediateShape ;
+           a ami:Shape .
 }
 
 
+
+
+
+# SELECT DISTINCT ?start ?end
+# #SELECT *
+# WHERE {
+#   # Establish target piece of software: 
+#   BIND(<http://moschetti.org/buzz#libMongo1> AS ?sw)
+    
+#   {
+#     ?start ami:linksWith ?sw .
+#     BIND(?sw AS ?end)
+#  }
+#  UNION
+#  {
+#     ?start ami:linksWith ?intermediate .
+#     ?intermediate ami:linksWith+ ?sw .
+#     BIND(?intermediate AS ?end)
+#  }
+    
+# }

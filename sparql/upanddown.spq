@@ -11,6 +11,7 @@ PREFIX sh: <http://www.w3.org/ns/shacl#>
 PREFIX ami: <http://moschetti.org/ami#>
 PREFIX ex: <http://moschetti.org/buzz#>
 
+
 SELECT DISTINCT ?endOfLifeSoftware ?programs ?start ?end
 WHERE {
   # Find software with EOL in 2026:
