@@ -17,7 +17,7 @@ SELECT DISTINCT ?start ?end
 WHERE {
 
 #  Manual setting of components
-#      BIND(<http://moschetti.org/buzz#myApp> AS ?components)
+   BIND(ex:myApp AS ?components)
 #
 
 #  All components for a system; useful!

@@ -10,49 +10,12 @@ PREFIX sh: <http://www.w3.org/ns/shacl#>
 # that matches these!
 PREFIX ami: <http://moschetti.org/ami#>
 PREFIX ex: <http://moschetti.org/buzz#>
+PREFIX exc: <http://moschetti.org/compliance#>
 
-#
-#  This will return parent shape name as it would appear as an URI in
-#  a MEP in a Component.
-#
-SELECT DISTINCT ?shape
-#SELECT *
+SELECT ?application ?owner ?name
 WHERE {
-    # Step 1: Identify any property with ex:sensitivity > 2 and < 4
-    ?sensitiveProperty sh:path ?path ;
-                       ex:sensitivity ?sensitivityValue .
-    
-    FILTER(?sensitivityValue > 1 && ?sensitivityValue < 4)
-
-    # # Step 2: Trace back to the root shape
-    ?intermediateShape (sh:property|sh:node)* ?sensitiveProperty .
-
-    # Only pick classes that are actually top-level AMI Shape.  Note
-    # that all the subfields are type sh:NodeShape but they are NOT
-    # ami:Shape!
-    ?shape sh:property ?intermediateShape ;
-           a ami:Shape .
+    ?application a ami:Software ;
+                 ami:swtype "app" ;
+                 ami:owner ?owner .
+    ?owner rdfs:label ?name .
 }
-
-
-
-
-
-# SELECT DISTINCT ?start ?end
-# #SELECT *
-# WHERE {
-#   # Establish target piece of software: 
-#   BIND(<http://moschetti.org/buzz#libMongo1> AS ?sw)
-    
-#   {
-#     ?start ami:linksWith ?sw .
-#     BIND(?sw AS ?end)
-#  }
-#  UNION
-#  {
-#     ?start ami:linksWith ?intermediate .
-#     ?intermediate ami:linksWith+ ?sw .
-#     BIND(?intermediate AS ?end)
-#  }
-    
-# }

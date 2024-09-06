@@ -112,11 +112,23 @@ def main():
     rargs = parser.parse_args()
 
 
-    print("connecting to",rargs.mongoconn,"...")
+    fnames = rargs.RDF
 
+    rdfp = lightrdf.Parser()
+
+    print("syntax checking input files...")
+    for f in fnames:
+        try:
+            for t in rdfp.parse(f, base_iri=None):
+                pass
+        except Exception as e:
+            print("error:", f, ":", e)
+            return
+    
     if rargs.nodb:
         print("nodb mode")
     else:
+        print("connecting to",rargs.mongoconn,"...")
         client = pymongo.MongoClient(rargs.mongoconn)
         db = client.get_default_database()
         coll = db[rargs.coll]
@@ -124,8 +136,6 @@ def main():
         if rargs.drop:
             print("dropping",rargs.coll) 
             coll.drop()
-
-    fnames = rargs.RDF
 
     #  Scan for prefixes!
     pfx = {}
@@ -158,8 +168,6 @@ def main():
     # Underscore is special and maps birectionally to itself:
     pfx['_'] = '_'   # smiley!  LOL
 
-    rdfp = lightrdf.Parser()
-
 
     #  ('<http://example.com/schema#myService>', '<http://example.com/schema#listensFor>', '_:riog00000001')
     #  ('_:riog00000001', '<http://example.com/schema#mep2>', '_:riog00000003')
@@ -177,7 +185,7 @@ def main():
             # Check for literal objects; lightrdf will wrap them with doublequotes
             if z2[2][0] == '"':
                 z2[2] = cvtString(z2[2])
-
+                
             if not rargs.nodb:                
                 doc = {
                     'S':z2[0],
@@ -187,6 +195,7 @@ def main():
                 coll.insert_one(doc)
 
 
+        
 
 if __name__ == "__main__":        
     main()

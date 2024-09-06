@@ -30,19 +30,22 @@ class Program():
         self.rargs = rargs
 
 
-    def ask(self, blurb,echo=True):
+    def ask(self, blurb,echo=False):
         if echo is True:
             print("ME:", blurb)
         xx = self.conversation.predict(input=blurb)
-        #print("ChatGPT:", xx)
-        print(xx)
-        print()
+        return xx
+        
 
     def init_system(self):
         ami_meta_f = "/Users/buzz/git/AMI/ami.ttl"
         with open(ami_meta_f) as fd:
             ami_meta = fd.read()
 
+        ami_raw_f = "/Users/buzz/git/AMI/ami.raw"
+        with open(ami_raw_f) as fd:
+            ami_raw = fd.read()
+            
         print("Initializing system with model %s ..." % self.rargs.model)
 
         blocks = [
@@ -51,6 +54,10 @@ This an overall design summary of the AMI System:
  *  AMI is based on RDF triples
 
  *  The main classes are Software, Hardware, Shape, Component, and System.
+
+ *  An IMPORTANT feature of AMI is how data definitions (Shape) are brought
+    together with software and hardware to present a complete view of what
+    a system of components is trying to do.
 
  *  Software has a property "linksWith" whose value is another Software instance.
     This is how recursive dependencies can be constructed.  Multiple "linksWith"
@@ -67,19 +74,45 @@ This an overall design summary of the AMI System:
     to the actual code and hardware that runs it.  Again, components do *NOT* define
     their Software; instead, Software *implements* a Component.
 
- *  A System is an administrative "starting point" for a cooperating collection of
-    Components.  A System does not have to name all the components.  Typically, the
-    "top-most" application component is named and dependent components can be derived
-    from the "connectsTo" property.  Systems are typically how the business and a
-    technical manager organize the technology footprint.
+ *  A System is a named administrative "starting point" for a cooperating collection of
+    Components e.g. the "Vacation Tracking System."  A System does not have to name
+    all the components.  Typically, the "top-most" GUI application component is named
+    and dependent components can be derived from the "connectsTo" property.  Systems
+    are how the business and a technical manager view and organize technology.
     """}
 
+
     ,{"lbl":"AMI Metadata", "txt":"""
-Below is a set of RDF triples in turtle format that define a set of
-classes and properties that show relationships between software, hardware, and data.
-It is the
-metadata for the AMI system.  AMI specific classes and properties are placed in
-the `ami:` and `sh:` prefix namespaces.
+Below is a set of bar-delimited RDF subject-predicate-object triples.
+It is the metadata for the AMI system.
+You can use the rdfs:label and rdfs:comment triples to help you associate questions
+with specific properties.  From there, you can use the rdfs:domain predicate to get
+the containing class, which itself may have an instance as a Property in another
+containing class.  Example:  Suppose the question is:
+
+    Find all software with binary type of 'jar' 
+
+Here are the steps you can take to build the desired SPARQL output:
+1.  There is a strong match to a triple in the dataset like this:
+    ami:bintype|rdfs:comment|\"x86_64\" and \"jar\" are two common binary file types.  Note that \"python\" is also a valid type even though technically it is not binary.
+2.  ami:bintype is indeed a Property:
+        ami:bintype|rdf:type|rdf:Property
+3.  The containing class is ami:Version:
+        ami:bintype|rdfs:domain|ami:Version
+4.  ami:Version is the rdfs:range i.e. the class type of ami:version
+5.  ami:version is a Property:
+        ami:version|rdf:type|rdf:Property
+6.  ami:version is contained in classes Software, Hardware, and Shape:
+        ami:version|rdfs:domain|ami:Shape
+        ami:version|rdfs:domain|ami:Hardware
+        ami:version|rdfs:domain|ami:Software
+
+Thus, the appropriate SPARQL fragment would be:
+
+    ?software a  ami:Software ;
+              ami:version  ?vv .
+    ?vv ami:bintype "jar" .
+
 The metadata ends when you see the line `# END METADATA`.
 
 %s
@@ -88,21 +121,31 @@ The metadata ends when you see the line `# END METADATA`.
 """  % ami_meta}
 
 
-    ,{"lbl":"Assumptions and Instructions", "txt":"""
-Here are important assumptions and instructions:
- *  You will use your knowledge of SPARQL and the AMI metadata to be able to
-    produce SPARQL queries.
+            
+    ,{"lbl":"SPARQL Assumptions and Instructions", "txt":"""
 
- *  ALWAYS create a response that has 2 parts:
-    1.  The SPARQL statement
-    2.  Textual insightful narrative about how you created the SPARQL statement
+ *  You will use your knowledge of SPARQL and the AMI metadata to be able to
+    produce SPARQL queries that when applied to a triple store would yield the
+    appropriate data.
+
+ *  The output variable names of your generated SPARQL queries MUST be simple
+    mixed case alpha ONLY; NO whitespace or special characters permitted.
+
+ *  ALWAYS create a response that has 2 parts and ONLY these 2 parts:
+    1.  Textual insightful narrative about how you created the SPARQL statement
         including notes on how you interpreted the question.
-    The narrative will be lines of text no longer than 60 characters.
-    EVERY narrative line is preceded with the hash (#) character.
+        The narrative will be lines of text no longer than 60 characters.
+        EVERY narrative line is preceded with the hash (#) character which is the
+        SPARQL comment character.
+        You MUST include at LEAST one line but more detail on more lines is
+        encouraged.
+    
+    2.  The SPARQL query itself.
+
     For example, when asked:
-        "Please group the assets by manager and print a list of manager and
+        Please group the assets by manager and print a list of manager and
         total number of assets for that manager only if the total is greater
-        than 2, and sort by total"
+        than 2, and sort by total
     your response should be similar to this:
         # AMI assumes that to "manage" an item means to the be the owner of it.
         # This is different from the steward who has operational responsibility,
@@ -115,9 +158,9 @@ Here are important assumptions and instructions:
         HAVING (COUNT(?item) > 2)
         ORDER BY DESC(?totalAssets)
 
+    DO NOT add narrative after the SPARQL query.
     
  *  DO NOT use the clause `?item a ami:Item` in the construction of any query.
-    We do not use RDFS reasoning in AMI to avoid potentially imprecise inference.
 
  *  ABSOLUTELY DO NOT invent RDF predicates in your SPARQL responses.  All predicates MUST come from
     the supplied 'ami:' or 'sh:' prefixes.  If you cannot do so, you must ask for
@@ -189,21 +232,24 @@ Here are important assumptions and instructions:
  *  DO associate the noun "complexity" in the context of data and data shape with the
     depth of nested structures and arrays
 
- *  Unless otherwise instructed, ALWAYS provide
-    the first and last name and DID of an Actor instead of the Actor subject URI.
+ *  DO NOT return "ami:Actor" directly in query.  If an "ami:Actor" becomes a terminal
+    variable in a query, ALWAYS go one step further and extract the "rdfs:label" as
+    a substitution.  
+        ex:system_001  ami:owner  ?owner
+        ?owner rdfs:label ?name .
+
+ *  ALWAYS use the "rdfs:label" when asked for owner name or steward name.
     For example, to show owner of ex:system_001, DO NOT just create the SPARQL clause
         ex:system_001  ami:owner  ?owner
     but rather
         ex:system_001  ami:owner  ?owner
-        ?owner ami:lastname ?ownerLastName ;
-   	       ami:DID ?ownerDID .
+        ?owner rdfs:label ?name .
+
 
  *  DO perform recursive transitive closure on dependencies when asked for dependents
     or complexity i.e. do not give just the first-level dependencies; walk the
     "linksWith" or "connectsTo" values to produce a graph.
 
- *  ASSUME that the noun "MEP" means "message exchange pattern".  MEPs appear in
-    the "ami:listensFor" complex property of the "ami:Component" class.
 
  *  ASSUME that the noun "catalog" means the complete set of data 
  *  ASSUME that unbounded questions like "How many vendors are there?" implies the complete set of data
@@ -215,56 +261,54 @@ Here are important assumptions and instructions:
 
     ,{"lbl":"Common Associations", "txt":"""
 Here are some common associations of nouns and verbs to the actual AMI entities.
-
- *  python, java, C, C++, rust, groovy, assembler, perl, shell script are all "ami:Software" 
- *  mongodb, mongo, oracle, postgres, SQLServer, DB2, MySQL, Neo4J are all databases
- *  kafka, rabbit are all message busses
- *  any "ami:Shape" definition that contains a predicate 'ex:sensitivity' is sensitive data
+Some of these will reinforce definitions in the AMI metadata itself, particularly
+in the "rdfs:comment" property.
     
+ *  python, java, C, C++, rust, groovy, assembler, perl, shell script are all "ami:Software"
+    
+ *  mongodb, mongo, oracle, postgres, SQLServer, DB2, MySQL, Neo4J are all databases
+
+ *  iOS, android are platforms
+    
+ *  kafka, rabbit are all message busses
+    
+ *  python, jar, war, x86_32, x86_64, arm64 are all binary file types.
+    
+ *  any "ami:Shape" definition that contains a predicate 'ex:sensitivity' is sensitive data
+
+ * "app", "service", "daemon", and "lib" are common Software ami:swtypes.
+   "app" a.k.a. application means something that a users sees and interacts with.
+
+ * "service" and "daemon" mean something that is started by automated processes and
+   continues to run "in the background", waiting to perform tasks, typically for
+   applications but certainly also for other services.
+    
+ * Databases, web services, and message busses are specialized examples of services.
+
+ * "lib" a.k.a. library is releasable unit of code like log4j-core-2.17.1.jar.
+
     
 """}
 
             
-    ,{"lbl":"Snippets", "txt":"""
-Snippets are query fragments that can be composed together to form
-a full, valid SPARQL query.  The format of a snippet is one or terse textual
-expressions followed by a SPARQL fragment wrapped with triple quotes to make it
-easier for you to identify the boundaries.  Consider this snippet:
-
-what software is Java
-what software depends on Java
-what depends on Java
-```    
-?sw  a  ami:Software ;
-     ami:version [ ami:bintype "jar" ] ;
-```
-
-This means if you determine that a question has the essence of 
-"getting all Java" in it then you can use the SPARQL fragment
-inside the triple quotes as part of the final SPARQL query.  If the question
-was
-    "Fetch all java software then group by the owner and show me owner and total."
-then your answer would be:
-    SELECT ?owner (COUNT(?software) AS ?total)
-        WHERE {
-        ?software a ami:Software ;
-                  ami:version [ ami:bintype "jar" ] ;
-                  ami:owner ?owner .
-        }
-    GROUP BY ?owner
-
-    
-"""}
-
     ,{"lbl":"Cookbook", "txt":"""
-The Cookbook contains more complex SPARQL queries called recipies.
-It is similar to snippets except the entire SPARQL query is provided.
-The format of a recipie is one or terse textual
-expressions followed by a SPARQL statement wrapped with triple quotes to make it
-easier for you to identify the boundaries.
-Assume that most questions will require you to adapt the recipe to return
-more or less information.
+The Cookbook contains complex SPARQL queries called recipies.
+The format of a recipie is one or more terse textual
+expressions that describe the goal followed by a SPARQL statement wrapped with
+triple quotes to make it easier for you to identify the boundaries.
+ASSUME that most questions WILL require you to adapt the recipe to return
+the appropriate information.
 
+get all software of a certain bintype or binary type; in this example, "jar"
+```
+SELECT ?software
+WHERE {
+    ?software a ami:Software ;
+              ami:version ?version ;
+    ?version ami:bintype "jar" ;
+}
+```
+    
 get recursive dependencies of a system
 ```    
 SELECT DISTINCT ?start ?end
@@ -279,7 +323,24 @@ WHERE {
     ?components ami:connectsTo+ ?start .
   }
 }
+```
+
+given component, get system then get recursive dependencies of that system
 ```    
+SELECT DISTINCT ?start ?end
+WHERE {
+  ex:system_001  ami:components  ?components .
+  
+  {  
+    ?components ami:connectsTo ?end .
+    BIND(?components AS ?start)
+  } UNION {
+    ?start ami:connectsTo ?end . 
+    ?components ami:connectsTo+ ?start .
+  }
+}
+```
+    
 
 get all software that depends on a given piece of software
 get all upstream dependencies of a given piece of software
@@ -287,7 +348,12 @@ get all upstream dependencies of a given piece of software
 SELECT DISTINCT ?start ?end
 WHERE {
   # Bind variable ?sw to the target piece of software
-    
+  #     BIND(ex:lib77 AS ?sw)
+  # or perform a statement that populates `?sw` e.g.
+  #     ?sw   a       ami:Software ;
+  #           ami:EOL ?eol .
+  #     FILTER (YEAR(?eol) = 2026)
+
   {
     ?start ami:linksWith ?sw .
     BIND(?sw AS ?end)
@@ -368,21 +434,41 @@ WHERE {
     
     ]
 
-
+        #blocks = []  # HA HA
+        
         preamble = """\
 You are AMI, the Intelligent Query System.
+
 I am a technical manager/architect.   I use AMI to turn natural language questions
 like "What Software is going EOL this year?" into SPARQL queries that I 
 can apply to my RDF triple store to yield an answer.  AMI does not need the actual
-data; it only needs to know how to ask for it.
+data; it only needs to know how to construct a query for it.
+
+My interaction with you will be conversational and your responses should be
+professional and terse.        
+
+An IMPORTANT INSTRUCTION is if a question begins with a slash "/" this means you
+should interrogate the AMI system design itself.  For example, a question like:
+    /What is a message exchange pattern?
+means use your knowledge of the AMI metadata and in particular the "rdfs:comment"
+property to craft a textual response similar to this:
+    A MEP stands for "message exchange pattern." It appears in the "ami:listensFor" complex property of the "ami:Component" class.
+
+If a question does NOT begin with a slash, then your response MUST observe the
+bullet list of "SPARQL Assumptions and Instructions" to follow.        
 
 You will now be given %d blocks of input that describe the AMI system:
 """ % len(blocks)
-        for index,b in enumerate(blocks):
-            preamble = preamble + "%d. %s\n" % (index+1, b['lbl'])
-        preamble += "Standby to receive these blocks."
 
-        self.conversation.predict(input=preamble)  # ignore output for
+        if len(blocks) > 0:
+            for index,b in enumerate(blocks):
+                preamble = preamble + "%d. %s\n" % (index+1, b['lbl'])
+            preamble += "Standby to receive these blocks."
+
+            self.ask(preamble)
+
+        else:
+            print("* not loading preamble or blocks")
 
         for index,b in enumerate(blocks):
             blurb = "\nBLOCK %d: %s\n" % (index+1, b['lbl'])
@@ -395,7 +481,7 @@ You will now be given %d blocks of input that describe the AMI system:
             while True:
                 retry_time = 2        
                 try:
-                    response = self.conversation.predict(input=blurb)  # ignore output for
+                    response = self.ask(blurb)  # ignore output for
                     #print(response)
                     break
                 except openai.error.RateLimitError as e:
@@ -417,12 +503,17 @@ You will now be given %d blocks of input that describe the AMI system:
                     sys.exit(1)
 
         blurb = """\
-You will now be asked questions about the data.
+You and I will now settle into a question and answer session.
 
-Please respond now with:
-AMI System query interface ready.  Type "show me all system owners and departments" to get tarted.
+Please respond now with the following text, maintaining the newlines:
+        
+AMI System query interface ready.  Type
+    show me all system descriptions, owner names, and departments
+to get started.   To ask question about AMI itself, preface your
+question with a /  e.g.
+    /What are the classes in AMI?
 """
-        self.ask(blurb, False) 
+        print(self.ask(blurb))
 
 
     def collect_input(self):
@@ -434,8 +525,6 @@ AMI System query interface ready.  Type "show me all system owners and departmen
             else:
                 user_input = self.fd.readline()
 
-#                print("[%s]" % user_input)
-                
                 if user_input == "":  # EOF
                     if self.rargs.keepgoing is True:
                         self.fd = None
@@ -467,8 +556,9 @@ AMI System query interface ready.  Type "show me all system owners and departmen
         while True:
             collected_inputs = self.collect_input()
             if 0 == len(collected_inputs):
+                print("DONE?")
                 break
-            self.ask(" ".join(collected_inputs), False)
+            print(self.ask(" ".join(collected_inputs)))
 
             
 def main():

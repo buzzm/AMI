@@ -38,6 +38,10 @@ More details of the properties of Item are associated with the properties
 themselves.
 """ .
 
+#  Concept for future with inference turned off: explicit dual inheritance:
+#ex:program1 a ami:Software, ami:Item ;
+
+
 
 
 #
@@ -79,6 +83,10 @@ ami:Shape and the SHACL sh:NodeShape classes (e.g. multiple inheritance).
 This permits the AMI system to manage the Shapes consistently with Software
 and Hardware and other types but the overall definition framework is SHACL.
 This permits industry standard tooling to work with Shapes.
+Shapes only define structure and field documentation, *not* validation
+constraints.
+This is important because 2 or more Components sharing a Shape may have
+different validation requirements.
 """ .
 
 ami:Component a rdfs:Class;
@@ -146,11 +154,21 @@ ami:DID a rdf:Property;
     rdfs:domain ami:Actor;
     rdfs:range xsd:string.
 
+ami:firstname a rdf:Property;
+    rdfs:domain ami:Actor;
+    rdfs:range xsd:string.
+
+ami:lastname a rdf:Property;
+    rdfs:domain ami:Actor;
+    rdfs:range xsd:string.
+
 #
 #  Vendor Properties
 #
-ami:DID a rdf:Property;
-    rdfs:domain ami:Actor;
+ami:LEI a rdf:Property;
+    rdfs:label "legal entity identifier" ;
+    rdfs:comment "Populated from somewhere" ;
+    rdfs:domain ami:Vendor;
     rdfs:range xsd:string.
 
 
@@ -185,7 +203,11 @@ ami:vers a rdf:Property;
 
 ami:created a rdf:Property;
     rdfs:domain ami:Item;
-    rdfs:range xsd:dateTime.
+    rdfs:range xsd:dateTime ;
+    rdfs:comment """
+created is a low-level AMI system field.  It is the timestamp of when
+the entity was physically stored in AMI.
+""" .
 
 ami:createdBy a rdf:Property;
     rdfs:domain ami:Item;
@@ -216,6 +238,7 @@ ami:alpha a rdf:Property;
 ami:released a rdf:Property;
     rdfs:domain ami:Version;
     rdfs:range xsd:dateTime.
+
 ami:bintype a rdf:Property;
     rdfs:label "binary type" ;
     rdfs:comment """
@@ -223,7 +246,13 @@ ami:bintype a rdf:Property;
 a valid type even though technically it is not binary.""" ;
     rdfs:domain ami:Version ;
     rdfs:range xsd:string .
+
 ami:platform a rdf:Property;
+    rdfs:label "platform" ;
+    rdfs:comment """
+A platform encompasses hardware, software, and a user engagement experience.  The term is most
+closely associated with mobile device technology.  "Android" and "iOS" are very well known
+platforms. """ ;
     rdfs:domain ami:Version;
     rdfs:range xsd:string.    
 
@@ -257,6 +286,23 @@ ami:linksWith rdf:type rdf:Property ;
               rdfs:range ami:Software ;
               rdfs:label "links with" ;
               rdfs:comment "Links this software with another software." .
+
+ami:swtype rdf:type rdf:Property ;
+           rdfs:domain ami:Software ;
+           rdfs:range xsd:string ;
+	   rdfs:label "software type" ;
+	   rdfs:comment """
+It is often helpful to characterize
+software according to how it is used.
+"app", "service", "daemon", and "lib" are common Software ami:swtypes.
+"app" a.k.a. application means something that a users sees and interacts with.
+"service" and "daemon" mean something that is started by automated processes and
+continues to run "in the background", waiting to perform tasks, typically for
+applications.
+Databases, web services, and message busses are specialized examples of services.
+"lib" a.k.a. library is releasable unit of code like log4j-core-2.17.1.jar.
+""" .
+
 
 ami:implements rdf:type rdf:Property ;
                rdfs:domain ami:Software , ami:Hardware ;
@@ -331,3 +377,14 @@ ami:dept rdf:type rdf:Property ;
          rdfs:comment """
 A department is an organizational code.  AMI places no restriction on the value.
 It is used for grouping and querying only. """ .
+
+
+ami:macrotype rdf:type rdf:Property ;
+         rdfs:domain ami:System ;
+         rdfs:range xsd:string ;
+	 rdfs:label "macroscopic type" ;
+         rdfs:comment """
+Systems are given very high level characterizations to help people
+better coarsely understand some of the technology used within.
+"mainframe", "distributed", and "desktop" are common System ami:macrotypes.
+""" .

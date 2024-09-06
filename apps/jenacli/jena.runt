@@ -16,22 +16,6 @@ JL=$HOME/java/lib
 # in the codebase
 # commons-lang3-3.4.jar has a bunch of "useful" utility functions.
 
-JENAL=/Users/buzz/codes/apache-jena-3.4.0/lib
-JENAJ=$JL/jena-mongodb-3.4.jar\
-:$JENAL/jena-core-3.4.0.jar\
-:$JENAL/jena-base-3.4.0.jar\
-:$JENAL/jena-iri-3.4.0.jar\
-:$JENAL/jena-arq-3.4.0.jar\
-:$JENAL/jena-shaded-guava-3.4.0.jar\
-:$JENAL/slf4j-api-1.7.25.jar\
-:$JENAL/slf4j-log4j12-1.7.25.jar\
-:$JENAL/log4j-1.2.17.jar\
-:$JENAL/xercesImpl-2.11.0.jar\
-:$JENAL/xml-apis-1.4.01.jar\
-:$JENAL/libthrift-0.9.3.jar\
-:$JENAL/commons-lang3-3.4.jar
-
-
 #  APACHE JENA 5.1
 
 JENAL=/Users/buzz/codes/apache-jena-5.1.0/lib
@@ -83,6 +67,7 @@ JENAJ=$JL/jena-mongodb-5.1.jar\
 :$JENAL/slf4j-api-2.0.13.jar\
 :$JENAL/titanium-json-ld-1.4.0.jar
 
+OTHER=$JL/json-20240303.jar
 
 JAVA="java -Xms4000m -Xmx4000m"
 
@@ -97,6 +82,7 @@ $JAVA \
 .\
 :$MONGO_DRIVER\
 :$JENAJ\
+:$OTHER\
  $*
 
 

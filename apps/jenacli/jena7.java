@@ -1,16 +1,15 @@
 
+// The custom triple store!
 import org.moschetti.jena.mongodb.core.* ;
 
+import com.sun.net.httpserver.HttpServer;
 
-// The Model
 import org.apache.jena.rdf.model.* ;
 
 import org.apache.jena.query.* ;
 
-import org.apache.jena.iri.*;
 
 import java.net.URI;
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,32 +28,20 @@ import java.io.File;
 
 public class jena7 {
 
-    // usage:   sh jena.runt jena7 collection sparqlfile
-    // example: sh jena.runt jena7 elm3 sparql3.spq
-
     public static void main(String[] args) {
 
 	try {
 
-	    IRIFactory iriFactory = IRIFactory.jenaImplementation();
-
-	    URI uri = URI.create("http://moschetti.org/foo/bar");
-	    IRI iri = iriFactory.create(uri);	
-
-	    System.out.println("iri: " + iri);
-
-
-	    
 	    String host = "mongodb://localhost:37017/?replicaSet=rs0";
 
 	    JenaMongoConnection mc = new JenaMongoConnection(host);
 	    JenaMongoStore ms = new JenaMongoStore(mc, "semantic");
 
-	    //Model mm = JenaMongoDataset.createRDFSModel(ms, args[0]);
+	    // After this call, it's all Jena interfaces; no more triple store specifics!
 	    Model mm = JenaMongoDataset.createModel(ms, args[0]);	    
 
-	    Dataset ds = DatasetFactory.create(mm);
 
+	    Dataset ds = DatasetFactory.create(mm);
 
 	    Scanner console = new Scanner(System.in);
 
@@ -78,12 +65,17 @@ public class jena7 {
 			//System.out.println("qexec: " + qexec);
 
 			ResultSet results = qexec.execSelect() ;
+
+			List<String> vars = results.getResultVars();
+			System.out.println("vars:" + vars);
+
 			int n = 0;
 			for ( ; results.hasNext() ; )
 			    {
-				QuerySolution soln = results.nextSolution() ;
+				//QuerySolution soln = results.nextSolution() ; 
+				QuerySolution soln = results.next() ;
 				n++;
-				System.out.println(n);
+				System.out.println(results.getRowNumber() + " " + n);
 				System.out.println(soln);
 				processOneSolution(soln);
 			    }
