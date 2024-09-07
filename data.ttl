@@ -140,11 +140,14 @@ The Oracle database engine.
 
       ami:swtype	"service" ;
       ami:vendor ex:oraclecorp ;
-    ami:version [ a ami:Version; ami:major 12; ami:minor 0; 
-                  ami:bintype "arm64"; ami:platform "macOS" ];
-    ami:EOL "2025-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
 
-    ami:released "2022-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+      ami:version [ a ami:Version;
+          ami:major 12; ami:minor 0;
+	  ami:released "2018-01-01T00:00:00Z"^^xsd:dateTime ;      
+	  ami:bintype "arm64"; ami:platform "macOS"
+      ];
+
+    
     ami:owner ex:actor1 ;
     ami:steward ex:actor1 .
 
@@ -156,11 +159,13 @@ The MongoDB database engine.
 	ami:implements	ex:db3 ;
 	
       ami:vendor ex:oraclecorp ;
-    ami:version [ a ami:Version; ami:major 7; ami:minor 0; 
-                  ami:bintype "arm64"; ami:platform "macOS" ];
+    ami:version [ a ami:Version;
+        ami:major 7; ami:minor 0;
+	ami:released "2022-01-01T00:00:00Z"^^xsd:dateTime ;	
+        ami:bintype "arm64"; ami:platform "macOS"
+    ];
     ami:EOL "2025-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
-
-    ami:released "2022-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+    
     ami:swtype	"service" ;    
     ami:owner ex:actor1 ;
     ami:steward ex:actor1 .    
@@ -190,9 +195,13 @@ ex:software3 a ami:Software;
     rdfs:label "susynct";
     ami:vendor ex:mtech ;
       ami:swtype	"app" ;    
-    ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:bintype "python" ];
+    ami:version [ a ami:Version;
+         ami:major 1; ami:minor 0;
+	 ami:released "2021-01-01T00:00:00Z"^^xsd:dateTime ;	 
+	 ami:bintype "python"
+	 ];
     ami:EOL "2027-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
-    ami:released "2022-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+
 #    ami:corn "{\"key\": [\"foo\",12, {\"$numberDecimal\": \"12.09\"} ] }"^^ex:json  ;
     ami:owner ex:actor2 ;
     ami:steward ex:actor2 .
@@ -230,7 +239,12 @@ ex:lib2	a		ami:Software ;
 	ami:EOL		"2026-08-02T14:00:57.478Z"^^xsd:dateTime .
 
 ex:lib3	a		ami:Software ;
-	ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:patch 0; ami:bintype "jar" ];
+	ami:version [ a ami:Version;
+		    ami:major 1; ami:minor 0; ami:patch 0;
+		    ami:bintype "jar" ;
+		    ami:released "2007-01-01T00:00:00Z"^^xsd:dateTime ;	 		    
+		    ];
+		    
 	rdfs:label "log4j";
 	rdfs:comment "Extremely popular logging framework for Java" ;	
       ami:swtype	"lib" ;

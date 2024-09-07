@@ -12,10 +12,13 @@ PREFIX ami: <http://moschetti.org/ami#>
 PREFIX ex: <http://moschetti.org/buzz#>
 PREFIX exc: <http://moschetti.org/compliance#>
 
-SELECT ?application ?owner ?name
+SELECT DISTINCT ?system ?software ?releaseDate
 WHERE {
-    ?application a ami:Software ;
-                 ami:swtype "app" ;
-                 ami:owner ?owner .
-    ?owner rdfs:label ?name .
+  ?software a ami:Software ;
+            ami:version ?version .
+  ?version ami:released ?releaseDate .
+  
+  
+  ?system ami:components ?component .
+  ?component ami:implements ?software .
 }
