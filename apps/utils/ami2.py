@@ -12,6 +12,8 @@ from langchain.memory import ConversationBufferMemory
 #from langchain.prompts import ChatPromptTemplate, PromptTemplate # import PromptTemplate
 import openai
 
+import requests
+
 import datetime
 import time
 import json
@@ -24,27 +26,50 @@ import argparse
 #  https://news.ycombinator.com/item?id=37112741
 
 class Program():
-    def __init__(self, conversation, fd, rargs):
-        self.conversation = conversation
-        self.fd = fd
+
+    def init_llm(self):
+        key_var = 'OPENAI_API_KEY'
+        API = os.environ[key_var]
+
+        #temp = 0.2   # between 0 and 2, default is 1.  .2 is more focused, .8 more random
+        temp = 0  # as conservative as possible...
+        #mname = "gpt-4"
+
+        # max_retries = 0 to let RateLimitError percolate back to us...
+        llm = ChatOpenAI(model_name=self.rargs.model, temperature=temp, max_retries=0, openai_api_key=API)
+        memory = ConversationBufferMemory()
+        return ConversationChain(llm=llm, memory=memory)
+        
+    def __init__(self, fd, rargs):
         self.rargs = rargs
 
+        self.ami_conversation = self.init_llm()
+        self.general_conversation = self.init_llm()        
 
-    def ask(self, blurb,echo=False):
+        self.fd = fd
+
+
+    def askAMI(self, blurb,echo=False):
         if echo is True:
             print("ME:", blurb)
-        xx = self.conversation.predict(input=blurb)
+        xx = self.ami_conversation.predict(input=blurb)
         return xx
+
+    def askGeneral(self, blurb,echo=False):
+        if echo is True:
+            print("ME:", blurb)
+        xx = self.general_conversation.predict(input=blurb)
+        return xx    
         
 
     def init_system(self):
-        ami_meta_f = "/Users/buzz/git/AMI/ami.ttl"
-        with open(ami_meta_f) as fd:
-            ami_meta = fd.read()
-
         ami_raw_f = "/Users/buzz/git/AMI/ami.raw"
         with open(ami_raw_f) as fd:
             ami_raw = fd.read()
+
+        local_raw_f = "/Users/buzz/git/AMI/local.raw"
+        with open(local_raw_f) as fd:
+            local_raw = fd.read()            
             
         print("Initializing system with model %s ..." % self.rargs.model)
 
@@ -118,7 +143,19 @@ The metadata ends when you see the line `# END METADATA`.
 %s
 
 # END METADATA
-"""  % ami_meta}
+"""  % ami_raw}
+
+            
+    ,{"lbl":"Local Metadata", "txt":"""
+Below is a set of bar-delimited RDF subject-predicate-object triples.
+It is the metadata for our local extensions to the AMI system.
+
+The metadata ends when you see the line `# END METADATA`.
+
+%s
+
+# END METADATA
+"""  % local_raw}            
 
 
             
@@ -162,9 +199,9 @@ The metadata ends when you see the line `# END METADATA`.
     
  *  DO NOT use the clause `?item a ami:Item` in the construction of any query.
 
- *  ABSOLUTELY DO NOT invent RDF predicates in your SPARQL responses.  All predicates MUST come from
-    the supplied 'ami:' or 'sh:' prefixes.  If you cannot do so, you must ask for
-    more information.
+ *  ABSOLUTELY DO NOT invent RDF predicates in your SPARQL responses.
+    All predicates MUST come from the supplied 'ami:','sh:', or 'exc:' prefixes.
+    If you cannot do so, you must ask for more information.
 
  *  ASSUME that specific instance subjects and objects are in the 'ex:' namespace.
     For example to find properties of system "system_001":
@@ -447,15 +484,9 @@ data; it only needs to know how to construct a query for it.
 My interaction with you will be conversational and your responses should be
 professional and terse.        
 
-An IMPORTANT INSTRUCTION is if a question begins with a slash "/" this means you
-should interrogate the AMI system design itself.  For example, a question like:
-    /What is a message exchange pattern?
-means use your knowledge of the AMI metadata and in particular the "rdfs:comment"
-property to craft a textual response similar to this:
-    A MEP stands for "message exchange pattern." It appears in the "ami:listensFor" complex property of the "ami:Component" class.
-
-If a question does NOT begin with a slash, then your response MUST observe the
-bullet list of "SPARQL Assumptions and Instructions" to follow.        
+A VERY IMPORTANT instruction is that if you cannot answer a question, YOU MUST
+respond with the EXACT PHRASE "<CANNOT ANSWER>" including the angle brackets.
+This is VITAL because other actions will be taken,
 
 You will now be given %d blocks of input that describe the AMI system:
 """ % len(blocks)
@@ -465,7 +496,7 @@ You will now be given %d blocks of input that describe the AMI system:
                 preamble = preamble + "%d. %s\n" % (index+1, b['lbl'])
             preamble += "Standby to receive these blocks."
 
-            self.ask(preamble)
+            self.askAMI(preamble)
 
         else:
             print("* not loading preamble or blocks")
@@ -481,7 +512,7 @@ You will now be given %d blocks of input that describe the AMI system:
             while True:
                 retry_time = 2        
                 try:
-                    response = self.ask(blurb)  # ignore output for
+                    response = self.askAMI(blurb)  # ignore output for
                     #print(response)
                     break
                 except openai.error.RateLimitError as e:
@@ -513,7 +544,7 @@ to get started.   To ask question about AMI itself, preface your
 question with a /  e.g.
     /What are the classes in AMI?
 """
-        print(self.ask(blurb))
+        print(self.askAMI(blurb))
 
 
     def collect_input(self):
@@ -551,16 +582,56 @@ question with a /  e.g.
 
 
     def go(self):
-        self.init_system()
+        if self.rargs.noinit is False:        
+            self.init_system()
 
+        nn = 0
         while True:
             collected_inputs = self.collect_input()
             if 0 == len(collected_inputs):
                 print("DONE?")
                 break
-            print(self.ask(" ".join(collected_inputs)))
 
+            qq = " ".join(collected_inputs)
             
+            if qq[0] == '!':
+                print(self.askGeneral(qq))
+                continue
+
+            candidate = self.askAMI(qq)
+
+            url = 'http://localhost:8080/query'
+            headers = {
+                'Content-Type': 'application/sparql-query',  # or 'application/x-www-form-urlencoded'
+                'Accept': 'application/json'  # Expecting JSON results
+            }
+            
+            if candidate != "<CANNOT ANSWER>":
+                print(candidate)
+                print("calling jenaserver...")
+
+                response = requests.post(url, data=candidate, headers=headers)
+                #print("code", response.status_code)
+
+                #response_data = response.json()
+                response_data = response.text                
+                print(response_data)                
+                
+                nnt = """
+                I used the following SPARQL query to collect data about my technology assets:
+                %s
+                This is the output reformed into JSON:
+                %s
+                Add this information to our dialogue as DATASET %d; we will refer to it later.
+                Please respond in brief.                    
+                """ % (candidate, response_data, nn)
+                nn += 1
+                
+                print(self.askGeneral(nnt))
+                
+            else:
+                print(self.askGeneral(qq))
+                    
 def main():
     parser = argparse.ArgumentParser(description=
 """AMI2 query interface.
@@ -571,6 +642,11 @@ def main():
                         metavar='OpenAI model to use',
                         default='gpt-3.5-turbo')
 
+    parser.add_argument('--noinit',
+                        action='store_true',
+                        help='Do not feed prompt blocks and AMI metadata; just fire up raw model')
+
+    
     parser.add_argument('--keepgoing',
                         action='store_true',
                         help='Only used if script is supplied.  If set, program will not exit after script is read but instead will switch to stdin for input')
@@ -596,19 +672,7 @@ def main():
         print("error: set", key_var)
         return
     
-    API = os.environ[key_var]
-
-    #temp = 0.2   # between 0 and 2, default is 1.  .2 is more focused, .8 more random
-    temp = 0  # as conservative as possible...
-    #mname = "gpt-4"
-
-    # max_retries = 0 to let RateLimitError percolate back to us...
-    llm = ChatOpenAI(model_name=rargs.model, temperature=temp, max_retries=0, openai_api_key=API)
-
-    memory = ConversationBufferMemory()
-    conversation = ConversationChain(llm=llm, memory=memory)
-
-    p = Program(conversation, fd, rargs)
+    p = Program(fd, rargs)
                 
     p.go()
 

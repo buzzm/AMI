@@ -43,15 +43,42 @@ public class jenaserver {
         }
     }
 
+    private static void emit(OutputStream os, JSONObject obj)
+	throws IOException
+    {
+	String t = obj.toString();			
+	os.write(t.getBytes(StandardCharsets.UTF_8));
+	os.write("\n".getBytes(StandardCharsets.UTF_8));	
+    }
+	
     // Handler class for processing HTTP requests
     static class QueryHandler implements HttpHandler {
+
+	private int NOT_FIXED_LENGTH = 0 ; // special val to indicate no Content-Length
+
+	private String pfx = """
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+PREFIX sh: <http://www.w3.org/ns/shacl#>
+
+# ami is the model, buzz is "my data"
+# Make sure the ami5 collection _id = SCHEME has a prefixes entry
+# that matches these!
+PREFIX ami: <http://moschetti.org/ami#>
+PREFIX ex: <http://moschetti.org/buzz#>
+PREFIX exc: <http://moschetti.org/compliance#>
+	    
+	    """;
+	
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             if ("POST".equals(exchange.getRequestMethod())) {
                 // Reading the input JSON
                 InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8);
                 BufferedReader br = new BufferedReader(isr);
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder(pfx);
 
                 /*
 		  String line;
@@ -75,40 +102,39 @@ public class jenaserver {
                 String queryString = sb.toString();
 		
                 // Execute SPARQL query (you might adjust the query based on `question`)
-                JSONObject jsonResponse = new JSONObject();
+
                 try {
                     Query query = QueryFactory.create(queryString);
 
                     try (QueryExecution qexec = QueryExecutionFactory.create(query, ds)) {
+			JSONObject jsonResponse = new JSONObject();
                         ResultSet results = qexec.execSelect();
                         List<String> vars = results.getResultVars();
 
+			// If you got here, it worked.
+			exchange.sendResponseHeaders(200, NOT_FIXED_LENGTH);
+
+			OutputStream os = exchange.getResponseBody();
+		
                         // Prepare the JSON response
                         JSONArray varsArray = new JSONArray(vars);
                         jsonResponse.put("vars", varsArray);
-
-                        StringBuilder sparqlResults = new StringBuilder();
+			emit(os, jsonResponse);
+			
                         while (results.hasNext()) {
                             QuerySolution soln = results.next();
-                            processOneSolution(soln, sparqlResults);
+                            processOneSolution(soln, os);
                         }
 
-                        jsonResponse.put("data", sparqlResults.toString());			
+			os.close();			
                     }
                 } catch (Exception e) {
-                    jsonResponse.put("error", "Query execution failed: " + e.getMessage());
+                    System.out.println("Query execution failed; continuing...");
+		    exchange.sendResponseHeaders(400, NOT_FIXED_LENGTH);
+		    OutputStream os = exchange.getResponseBody();
+		    os.close();					    
                 }
 
-                // Send the JSON response
-                String responseText = jsonResponse.toString();
-
-		System.out.println("RESPONSE:" + responseText);
-		
-		
-                exchange.sendResponseHeaders(200, responseText.length());
-                OutputStream os = exchange.getResponseBody();
-                os.write(responseText.getBytes(StandardCharsets.UTF_8));
-                os.close();
             } else {
                 // Handle non-POST requests
                 exchange.sendResponseHeaders(405, -1); // Method Not Allowed
@@ -117,22 +143,27 @@ public class jenaserver {
     }
 
     // Process a single SPARQL query solution
-    private static void processOneSolution(QuerySolution soln, StringBuilder sparqlResults) {
+    private static void processOneSolution(QuerySolution soln, OutputStream os)
+	throws IOException
+    {
+	JSONObject row = new JSONObject();
+
         Iterator<String> varNames = soln.varNames();
         while (varNames.hasNext()) {
             String varName = varNames.next();
             RDFNode node = soln.get(varName);
-
+			
             if (node.isURIResource()) {
-                sparqlResults.append(varName).append(": URI ").append(node.asResource().getURI()).append("\n");
+		row.put(varName, node.asResource().getURI());
             } else if (node.isLiteral()) {
-                sparqlResults.append(varName).append(": literal ").append(node.asLiteral().getString()).append("\n");
+		row.put(varName, node.asLiteral().getString());
             } else if (node.isAnon()) {
-                sparqlResults.append(varName).append(": blank node\n");
+                //sparqlResults.append(varName).append(": blank node\n");
             } else {
-                sparqlResults.append(varName).append(": unknown type\n");
+                //sparqlResults.append(varName).append(": unknown type\n");
             }
         }
+	emit(os, row);	    
     }
 }
 

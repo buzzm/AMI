@@ -236,6 +236,7 @@ ex:lib2	a		ami:Software ;
       ami:steward ex:actor2 ;
 	ami:owner ex:actor2 ;		
 	ami:vendor	ex:oss ;
+        ami:linksWith	ex:lib4 ;	
 	ami:EOL		"2026-08-02T14:00:57.478Z"^^xsd:dateTime .
 
 ex:lib3	a		ami:Software ;
@@ -359,7 +360,10 @@ myApp is used by the risk department to do fancy things.""" ;
 	     
 ex:myApp2    a    ami:Component ;
 	      	ami:owner ex:actor1 ;
-	      	ami:steward ex:actor1 ;		
+	      	ami:steward ex:actor1 ;
+		rdfs:label "myApp2" ;
+		rdfs:comment """
+myApp2 blends frogs and pencil eraser dust into a delicacy.""" ;		
 	     ami:connectsTo    ex:service7 .
 
 
@@ -431,8 +435,21 @@ ex:db2	       a    ami:Component ;
 	     	ami:owner ex:actor7 ;
 	     	ami:steward ex:actor7 ;
 		rdfs:label "exotics database" ;
+
+		#  Ah...  For databases we don't use a MEP because the
+		#  inbound is too wide open -- but we CAN expose
+		#  tables and collections as output!
+		ami:listensFor	[
+		  ami:protocol 	ami:proprietary ;
+		  ami:auth 	ami:basic ;		
+		  ami:shapeOut  ex:coll1, ex:coll2 ;
+		] ;
+			
 		rdfs:comment """
 A database optimized for storing richly structured data.""" .
+
+
+
 
 ex:db3	       a    ami:Component ;
 	     	ami:owner ex:actor7 ;
@@ -605,6 +622,50 @@ Digital ID plus SSN.
         sh:path ex:SSN ;
         sh:datatype xsd:string ;
     ] .
+
+
+ex:coll1 a sh:NodeShape, ami:Shape ;
+    ami:owner  ex:actor7 ;
+    ami:steward  ex:actor7 ;
+
+    rdfs:label  "defaults" ;
+    rdfs:comment  """
+Defaults table.
+""" ;
+
+    sh:property [
+        sh:path ex:id ;
+        sh:datatype xsd:string ;
+    ] ;
+
+    sh:property [
+        sh:path ex:updated ;
+        sh:datatype xsd:dateTime ;
+    ] .
+
+
+ex:coll2 a sh:NodeShape, ami:Shape ;
+    ami:owner  ex:actor7 ;
+    ami:steward  ex:actor7 ;
+
+    rdfs:label  "results" ;
+    rdfs:comment  """
+Results table holding various things that were calculated.
+""" ;
+
+    sh:property [
+        sh:path ex:id ;
+        sh:datatype xsd:string ;
+    ] ;
+
+    sh:property [
+        sh:path ex:value ;
+        sh:datatype xsd:string ;
+	rdfs:comment  """
+Value is stored as string due to legacy issues with floating point precision.""" ;
+    ] .
+
+
 
 
 ex:myShape_003 a sh:NodeShape, ami:Shape ;

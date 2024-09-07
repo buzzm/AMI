@@ -349,8 +349,12 @@ ami:shapeIn rdf:type rdf:Property ;
 ami:shapeOut rdf:type rdf:Property ;
              rdfs:domain rdf:List ;  # Part of the structured list in the listensFor property
              rdfs:range ami:Shape ;  # Shape expected as output
-             rdfs:label "shape out" ;
-             rdfs:comment "Defines the output data shape that the component produces." .
+             rdfs:label "record or table or document" ;
+             rdfs:comment """
+Defines the output data shape that the component produces.
+A broad-based use of ami:shapeOut is to have it describe all the tables or collections
+in a database component.
+""" .
 
 # Define the ex:mep1 and ex:mep2 properties as blank nodes within the list
 # Assuming these are part of the structured listensFor property
