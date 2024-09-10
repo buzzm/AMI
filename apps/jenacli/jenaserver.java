@@ -16,8 +16,25 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Iterator;
 
+import java.util.Map;
+import java.util.HashMap;
+
 public class jenaserver {
 
+    private static final Map<String, String> uriToPrefixMap = new HashMap<>();
+    
+    static {
+        uriToPrefixMap.put("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "rdf");
+        uriToPrefixMap.put("http://www.w3.org/2000/01/rdf-schema#", "rdfs");
+        uriToPrefixMap.put("http://www.w3.org/2001/XMLSchema#", "xsd");
+        uriToPrefixMap.put("http://www.w3.org/ns/shacl#", "sh");
+        uriToPrefixMap.put("http://moschetti.org/ami#", "ami");
+
+	// Should probably be driven by config...
+	uriToPrefixMap.put("http://moschetti.org/buzz#", "ex");
+        uriToPrefixMap.put("http://moschetti.org/compliance#", "exc");	
+    }
+    
     private static Dataset ds;
 
     public static void main(String[] args) {
@@ -50,27 +67,34 @@ public class jenaserver {
 	os.write(t.getBytes(StandardCharsets.UTF_8));
 	os.write("\n".getBytes(StandardCharsets.UTF_8));	
     }
+
+    public static String generatePfx() {
+	StringBuilder sb = new StringBuilder();
+	for (Map.Entry<String, String> entry : uriToPrefixMap.entrySet()) {
+	    sb.append("PREFIX ").append(entry.getValue())
+		.append(": <").append(entry.getKey()).append(">\n");
+	}
+	return sb.toString();
+    }
+
+    public static String substitutePrefix(String uri) {
+	for (Map.Entry<String, String> entry : uriToPrefixMap.entrySet()) {
+	    if (uri.startsWith(entry.getKey())) {
+		return entry.getValue() + ":" + uri.substring(entry.getKey().length());
+	    }
+	}
+	return "_:notFound"; // Return default if no match is found
+    }
 	
+	
+    
     // Handler class for processing HTTP requests
     static class QueryHandler implements HttpHandler {
 
-	private int NOT_FIXED_LENGTH = 0 ; // special val to indicate no Content-Length
+	private final int NOT_FIXED_LENGTH = 0 ; // special val to indicate no Content-Length
 
-	private String pfx = """
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+	private final String pfx = generatePfx();
 
-PREFIX sh: <http://www.w3.org/ns/shacl#>
-
-# ami is the model, buzz is "my data"
-# Make sure the ami5 collection _id = SCHEME has a prefixes entry
-# that matches these!
-PREFIX ami: <http://moschetti.org/ami#>
-PREFIX ex: <http://moschetti.org/buzz#>
-PREFIX exc: <http://moschetti.org/compliance#>
-	    
-	    """;
 	
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -100,14 +124,15 @@ PREFIX exc: <http://moschetti.org/compliance#>
                 //String queryString = jsonRequest.getString("query");
 
                 String queryString = sb.toString();
-		
+
+		JSONObject jsonResponse = new JSONObject();
+		    
                 // Execute SPARQL query (you might adjust the query based on `question`)
 
                 try {
                     Query query = QueryFactory.create(queryString);
 
                     try (QueryExecution qexec = QueryExecutionFactory.create(query, ds)) {
-			JSONObject jsonResponse = new JSONObject();
                         ResultSet results = qexec.execSelect();
                         List<String> vars = results.getResultVars();
 
@@ -118,6 +143,7 @@ PREFIX exc: <http://moschetti.org/compliance#>
 		
                         // Prepare the JSON response
                         JSONArray varsArray = new JSONArray(vars);
+                        jsonResponse.put("status", "OK");
                         jsonResponse.put("vars", varsArray);
 			emit(os, jsonResponse);
 			
@@ -128,10 +154,15 @@ PREFIX exc: <http://moschetti.org/compliance#>
 
 			os.close();			
                     }
+		    
                 } catch (Exception e) {
-                    System.out.println("Query execution failed; continuing...");
+                    System.out.println("Query execution failed; continuing..."  + e);
+		    
 		    exchange.sendResponseHeaders(400, NOT_FIXED_LENGTH);
 		    OutputStream os = exchange.getResponseBody();
+		    jsonResponse.put("status", "FAIL");
+		    jsonResponse.put("msg", "query failed");
+		    emit(os, jsonResponse);		    
 		    os.close();					    
                 }
 
@@ -154,7 +185,10 @@ PREFIX exc: <http://moschetti.org/compliance#>
             RDFNode node = soln.get(varName);
 			
             if (node.isURIResource()) {
-		row.put(varName, node.asResource().getURI());
+		String uri = node.asResource().getURI();
+		String pfx = substitutePrefix(uri);
+		row.put(varName, pfx);
+
             } else if (node.isLiteral()) {
 		row.put(varName, node.asLiteral().getString());
             } else if (node.isAnon()) {

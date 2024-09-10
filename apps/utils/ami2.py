@@ -38,7 +38,13 @@ class Program():
         # max_retries = 0 to let RateLimitError percolate back to us...
         llm = ChatOpenAI(model_name=self.rargs.model, temperature=temp, max_retries=0, openai_api_key=API)
         memory = ConversationBufferMemory()
-        return ConversationChain(llm=llm, memory=memory)
+
+        conv = ConversationChain(llm=llm, memory=memory)
+
+        conv.predict(input="ASSUME todays date and current date are %s." % str(datetime.datetime.now()))
+                
+        return conv
+    
         
     def __init__(self, fd, rargs):
         self.rargs = rargs
@@ -145,6 +151,7 @@ The metadata ends when you see the line `# END METADATA`.
 # END METADATA
 """  % ami_raw}
 
+
             
     ,{"lbl":"Local Metadata", "txt":"""
 Below is a set of bar-delimited RDF subject-predicate-object triples.
@@ -157,13 +164,7 @@ The metadata ends when you see the line `# END METADATA`.
 # END METADATA
 """  % local_raw}            
 
-
-            
     ,{"lbl":"SPARQL Assumptions and Instructions", "txt":"""
-
- *  You will use your knowledge of SPARQL and the AMI metadata to be able to
-    produce SPARQL queries that when applied to a triple store would yield the
-    appropriate data.
 
  *  The output variable names of your generated SPARQL queries MUST be simple
     mixed case alpha ONLY; NO whitespace or special characters permitted.
@@ -236,7 +237,7 @@ The metadata ends when you see the line `# END METADATA`.
 
     
  *  DO associate the noun "asset" with any of type "ami:Software", "ami:Hardware",
-    or "ami:Shape".
+    "ami:Shape" , "ami:Component", or "ami:System"
     
  *  DO associate the noun "software" with type "ami:Software"
  *  DO associate the noun "hardware" with type "ami:Hardware"    
@@ -260,13 +261,15 @@ The metadata ends when you see the line `# END METADATA`.
     Example: "Who manages XYZ?" means "tell me the ami:owner of XYZ".    
 
 
- *  DO associate the noun "complexity" in the context of software with the number of
+ *  "Complexity" in the context of software is the number of
     parent and/or child dependencies as recursively discovered via the "ami:linksWith"
     predicate.
- *  DO associate the noun "complexity" in the context of hardware with the number of
+    
+ *  "Complexity" in the context of hardware is the number of
     parent and/or child dependencies as recursively discovered via the "ami:connectsTo"
     predicate.
- *  DO associate the noun "complexity" in the context of data and data shape with the
+    
+ *  "Complexity in the context of data shapes is the
     depth of nested structures and arrays
 
  *  DO NOT return "ami:Actor" directly in query.  If an "ami:Actor" becomes a terminal
@@ -291,10 +294,7 @@ The metadata ends when you see the line `# END METADATA`.
  *  ASSUME that the noun "catalog" means the complete set of data 
  *  ASSUME that unbounded questions like "How many vendors are there?" implies the complete set of data
 
- *  ASSUME that "today's date" or "current date" is %s 
-
-    
-""" % ( str(datetime.datetime.now())) }
+""" }
 
     ,{"lbl":"Common Associations", "txt":"""
 Here are some common associations of nouns and verbs to the actual AMI entities.
@@ -326,170 +326,37 @@ in the "rdfs:comment" property.
 
     
 """}
-
-            
-    ,{"lbl":"Cookbook", "txt":"""
-The Cookbook contains complex SPARQL queries called recipies.
-The format of a recipie is one or more terse textual
-expressions that describe the goal followed by a SPARQL statement wrapped with
-triple quotes to make it easier for you to identify the boundaries.
-ASSUME that most questions WILL require you to adapt the recipe to return
-the appropriate information.
-
-get all software of a certain bintype or binary type; in this example, "jar"
-```
-SELECT ?software
-WHERE {
-    ?software a ami:Software ;
-              ami:version ?version ;
-    ?version ami:bintype "jar" ;
-}
-```
-    
-get recursive dependencies of a system
-```    
-SELECT DISTINCT ?start ?end
-WHERE {
-  ex:system_001  ami:components  ?components .
-  
-  {  
-    ?components ami:connectsTo ?end .
-    BIND(?components AS ?start)
-  } UNION {
-    ?start ami:connectsTo ?end . 
-    ?components ami:connectsTo+ ?start .
-  }
-}
-```
-
-given component, get system then get recursive dependencies of that system
-```    
-SELECT DISTINCT ?start ?end
-WHERE {
-  ex:system_001  ami:components  ?components .
-  
-  {  
-    ?components ami:connectsTo ?end .
-    BIND(?components AS ?start)
-  } UNION {
-    ?start ami:connectsTo ?end . 
-    ?components ami:connectsTo+ ?start .
-  }
-}
-```
-    
-
-get all software that depends on a given piece of software
-get all upstream dependencies of a given piece of software
-```
-SELECT DISTINCT ?start ?end
-WHERE {
-  # Bind variable ?sw to the target piece of software
-  #     BIND(ex:lib77 AS ?sw)
-  # or perform a statement that populates `?sw` e.g.
-  #     ?sw   a       ami:Software ;
-  #           ami:EOL ?eol .
-  #     FILTER (YEAR(?eol) = 2026)
-
-  {
-    ?start ami:linksWith ?sw .
-    BIND(?sw AS ?end)
- }
- UNION
- {
-    ?start ami:linksWith ?intermediate .
-    ?intermediate ami:linksWith+ ?sw .
-    BIND(?intermediate AS ?end)
- }
-    
-}
-```
-
-find all shapes that contain sensitive data
-```
-SELECT DISTINCT ?shape
-WHERE {
-    # Step 1: Get ex:sensitivity from any triple, if it exists:
-    ?sensitiveProperty sh:path ?path ;
-                       ex:sensitivity ?sensitivityValue .
-    
-    #  FILTER by desired level of sensitivity.
-    #  ADJUST THIS AS NEEDED:
-    FILTER(?sensitivityValue > 1 && ?sensitivityValue < 4)
-
-    # Step 2: Trace back to the root shape
-    ?intermediateShape (sh:property|sh:node)* ?sensitiveProperty .
-
-    # Only pick classes that are actually top-level AMI Shape.  Note
-    # that all the subfields are type sh:NodeShape but they are NOT
-    # ami:Shape!
-    ?shape sh:property ?intermediateShape ;
-           a ami:Shape .
-}
-```
-
-find all components that use shapes containing sensitive data in their MEPs
-```
-SELECT DISTINCT ?component ?mep ?shape
-WHERE {
-    # Step 1: Identify any property with ex:sensitivity > 2 and < 4
-    ?sensitiveProperty sh:path ?path ;
-                       ex:sensitivity ?sensitivityValue .
-
-    #  FILTER by desired level of sensitivity.
-    #  ADJUST THIS AS NEEDED:    
-    FILTER(?sensitivityValue > 1 && ?sensitivityValue < 4)
-
-    # # Step 2: Trace back to the root shape
-    ?intermediateShape (sh:property|sh:node)* ?sensitiveProperty .
-
-    # Only pick classes that are actually top-level AMI Shape.  Note
-    # that all the subfields are type sh:NodeShape but they are NOT
-    # ami:Shape!
-    ?shape sh:property ?intermediateShape ;
-           a ami:Shape .
-
-    # # Step 3: Find components related to these shapes:
-    ?component ami:listensFor ?mepEntry .
-
-    ?mepEntry ?mep ?mepShape .
-
-    # # Check for shapeIn or shapeOut:
-    {
-         ?mepShape ami:shapeIn ?shape
-    }
-    UNION
-    {
-        ?mepShape ami:shapeOut ?shape
-    }
-}
-```
-    
-    
-    
-"""}            
     
     ]
 
         #blocks = []  # HA HA
         
         preamble = """\
-You are AMI, the Intelligent Query System.
+You are AMI, the Asset Management and Intelligence System.
 
-I am a technical manager/architect.   I use AMI to turn natural language questions
-like "What Software is going EOL this year?" into SPARQL queries that I 
-can apply to my RDF triple store to yield an answer.  AMI does not need the actual
-data; it only needs to know how to construct a query for it.
-
+I am a technical manager or architect and will ask you questions.
+        
+You will use your knowledge of SPARQL, AMI metadata, and local metadata to either:
+1.  Produce SPARQL queries that when applied to a triple store would
+    yield the appropriate data.  Example:
+    "How many systems rely on Oracle database?"
+2.  Answer questions about your metadata.  This will not require you to
+    generate SPARQL.  Example:
+    "Tell me about Components."
+If asked what you do or what are your capabilities, you can use the paragraph
+above as a response.
+        
 My interaction with you will be conversational and your responses should be
 professional and terse.        
 
 A VERY IMPORTANT instruction is that if you cannot answer a question, YOU MUST
 respond with the EXACT PHRASE "<CANNOT ANSWER>" including the angle brackets.
-This is VITAL because other actions will be taken,
+This is VITAL because other actions will be taken with a different model.
 
+
+        
 You will now be given %d blocks of input that describe the AMI system:
-""" % len(blocks)
+""" % (len(blocks))
 
         if len(blocks) > 0:
             for index,b in enumerate(blocks):
@@ -533,16 +400,66 @@ You will now be given %d blocks of input that describe the AMI system:
                     print(f"An error occurred: {e}")
                     sys.exit(1)
 
+
+
+        blurb = """\
+I will now provide you with SPARQL snippets.
+A SPARQL snippet is a description of a goal or pattern followed by a SPARQL statement that
+achieves the goal.   You can use snippets to help you construct better responses for
+SPARQL generation.  Some snippets contain more than one goal-SPARQL pair because the
+context is similar and therefore useful for you to interpret as a whole.
+        
+You WILL need to adapt the snippet to return the appropriate information in the context
+of the input question especially with respect to variable names and grouping.
+"""
+        self.askAMI(blurb)
+
+        recipe_f = "/Users/buzz/git/AMI/recipes.txt"
+        nr = 0
+
+        def mksnippet(n,lines):
+            stxt = """
+AMI Snippet #%d
+
+%s
+
+Remember this snippet.
+""" % (n,  ''.join(recipe_lines).strip())
+            return stxt
+
+                        
+        with open(recipe_f, 'r') as file:
+            recipe_lines = []
+            for line in file:
+                # If we hit the separator, process the current recipe
+                if line.strip() == '---':
+                    # If recipe_lines has content, call foo with the accumulated recipe text
+                    if recipe_lines:
+                        nr += 1
+                        recipe_text = mksnippet(nr,recipe_lines)
+                        print(self.askAMI(recipe_text))
+                        recipe_lines = []  # Reset for the next recipe
+                else:
+                    # Accumulate lines if not a separator
+                    recipe_lines.append(line)
+
+            # After the loop, handle the last recipe if it exists
+            if recipe_lines:
+                nr += 1
+                recipe_text = mksnippet(nr,recipe_lines)                
+                print(self.askAMI(recipe_text))
+
+        
         blurb = """\
 You and I will now settle into a question and answer session.
 
 Please respond now with the following text, maintaining the newlines:
         
-AMI System query interface ready.  Type
-    show me all system descriptions, owner names, and departments
-to get started.   To ask question about AMI itself, preface your
-question with a /  e.g.
-    /What are the classes in AMI?
+AMI System query interface ready.  Here are some starter suggestions for questions you can ask me:
+1.  Show me all system descriptions, owner names, and departments
+2.  Tell me about all my vendors.
+3.  What software is going EOL in the next 2 years?
+4.  Please group assets by owner name and show me the totals.
 """
         print(self.askAMI(blurb))
 
@@ -605,32 +522,45 @@ question with a /  e.g.
                 'Content-Type': 'application/sparql-query',  # or 'application/x-www-form-urlencoded'
                 'Accept': 'application/json'  # Expecting JSON results
             }
-            
-            if candidate != "<CANNOT ANSWER>":
-                print(candidate)
-                print("calling jenaserver...")
 
-                response = requests.post(url, data=candidate, headers=headers)
-                #print("code", response.status_code)
-
-                #response_data = response.json()
-                response_data = response.text                
-                print(response_data)                
-                
-                nnt = """
-                I used the following SPARQL query to collect data about my technology assets:
-                %s
-                This is the output reformed into JSON:
-                %s
-                Add this information to our dialogue as DATASET %d; we will refer to it later.
-                Please respond in brief.                    
-                """ % (candidate, response_data, nn)
-                nn += 1
-                
-                print(self.askGeneral(nnt))
-                
-            else:
+            if candidate == "<CANNOT ANSWER>":
+                print("** AMI cannot answer; asking global")
                 print(self.askGeneral(qq))
+
+            else:
+                print(candidate)
+
+                    #  TBD: Need better way to separate SPARQL output from valid AMI output...
+                if "SELECT" in candidate:
+                    print("** calling jenaserver...")
+
+                    response = requests.post(url, data=candidate, headers=headers)
+                    #print("code", response.status_code)
+
+                    #response_data = response.json()
+                    response_data = response.text                
+                    print(response_data)                
+                    
+                    qq = input("Stash this output or modify the query (n (default)/y)? ");
+
+                    if len(qq) == 0:
+                        qq = 'n'
+
+                    if qq.lower() == 'y':
+                        nnt = """
+                        I used the following SPARQL query to collect data about my technology assets:
+                        %s
+                        This is the output reformed into JSON:
+                        %s
+                        Add this information to our dialogue as dataset %d; we will refer to it later.
+                        Please respond in brief.                    
+                        """ % (candidate, response_data, nn)
+                        nn += 1
+                    
+                        print(self.askGeneral(nnt))
+                    else:
+                        print("ok; not stashing.")
+
                     
 def main():
     parser = argparse.ArgumentParser(description=
@@ -638,9 +568,11 @@ def main():
 """
    )
 
+    default_model = 'gpt-4o-mini'
+    
     parser.add_argument('--model', 
                         metavar='OpenAI model to use',
-                        default='gpt-3.5-turbo')
+                        default=default_model)
 
     parser.add_argument('--noinit',
                         action='store_true',
@@ -671,9 +603,8 @@ def main():
     if key_var not in os.environ:
         print("error: set", key_var)
         return
-    
+
     p = Program(fd, rargs)
-                
     p.go()
 
 if __name__ == "__main__":        
