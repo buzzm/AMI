@@ -28,6 +28,19 @@ Note that unlike the java JVM runtime, java jar libraries are platform independe
 therefore, the binary type for instances of jars is always simply "jar".
 """ .
 
+
+ami:MEP a rdfs:Class ;
+	  rdfs:comment """
+MEP is an acronym for (m)essage (e)xchange (p)attern.
+It is used to describe both the shapes of data moving across an interface
+and the dynamics of the initiator and the responder.
+The dynamics of the initiator and the responder are represented by the following enumerations
+in the "ami:meptype" property:
+1.  IO  :  This is the classic request/response MEP.
+2.  I   :  Input only.  Only status codes and possible system errors are returned.
+""" .
+
+
 #  Versionable/owned things are Items:
 ami:Item a rdfs:Class ;
 	  rdfs:comment """
@@ -221,6 +234,21 @@ as owner and steward.
 """ .    
 
 #
+#  MEP
+#
+ami:meptype a rdf:Property;
+    rdfs:label "MEP type" ;
+    rdfs:comment """
+An enumeration, one of
+1.  IO  :  This is the classic request/response MEP.
+2.  I   :  Input only.  Only status codes and possible system errors are returned.
+""" ;
+    rdfs:domain ami:Version ;
+    rdfs:range xsd:string .
+
+
+
+#
 #  Version
 #
 ami:major a rdf:Property;
@@ -304,6 +332,21 @@ Databases, web services, and message busses are specialized examples of services
 """ .
 
 
+ami:slang rdf:type rdf:Property ;
+           rdfs:domain ami:Software ;
+           rdfs:range xsd:string ;
+	   rdfs:label "source code language" ;
+	   rdfs:comment """
+AMI uses all lowercase for languages names.  Common names include:
+javascript, python, java, c#, c, c++, f#, php, ruby, swiftgo, typescript, cobol, scala, perl
+
+This field is most useful for compiled source code written in
+c, c++, cobol, fortran, etc. where the binary type is the same e.g.
+4 different software entities in 4 different languages when compiled on
+Linux will have the same binary type x86_64.
+""" .
+
+
 ami:implements rdf:type rdf:Property ;
                rdfs:domain ami:Software , ami:Hardware ;
                rdfs:range ami:Component ;
@@ -324,37 +367,47 @@ ami:listensFor rdf:type rdf:Property ;
                rdfs:label "listens for" ;
                rdfs:comment "Defines the protocols and message exchange patterns that the component listens for." .
 
-# Define the ami:protocol property
 ami:protocol rdf:type rdf:Property ;
              rdfs:domain rdf:List ;  # Typically part of a structured list in the listensFor property
              rdfs:range ami:Protocol ;  # Assuming Protocol is a class
              rdfs:label "protocol" ;
              rdfs:comment "Specifies the protocol used by the component (e.g., HTTPS)." .
 
-# Define the ami:auth property
 ami:auth rdf:type rdf:Property ;
          rdfs:domain rdf:List ;  # Part of the structured list in the listensFor property
          rdfs:range ami:Auth ;  # Assuming Auth is a class
          rdfs:label "authentication" ;
          rdfs:comment "Specifies the authentication method used by the component (e.g., Basic)." .
 
+
+
 # Define the ami:shapeIn property
 ami:shapeIn rdf:type rdf:Property ;
-            rdfs:domain rdf:List ;  # Part of the structured list in the listensFor property
-            rdfs:range ami:Shape ;  # Shape expected as input
+	    rdfs:domain ami:Component, ami:MEP ;  
+	    rdfs:range ami:Shape ;  # Shape expected as input
             rdfs:label "shape in" ;
-            rdfs:comment "Defines the input data shape that the component expects." .
+            rdfs:comment """
+Defines the input data shape that the component expects.  ami:shapeIn can be found both as
+a direct property of the ami:listensFor property in an ami:Component or
+a subproperty of an ami:MEP instance.
+""" .
+
 
 # Define the ami:shapeOut property
 ami:shapeOut rdf:type rdf:Property ;
-             rdfs:domain rdf:List ;  # Part of the structured list in the listensFor property
+	    rdfs:domain ami:Component, ami:MEP ;
              rdfs:range ami:Shape ;  # Shape expected as output
              rdfs:label "record or table or document" ;
              rdfs:comment """
 Defines the output data shape that the component produces.
+ami:shapeOut can be found both as
+a direct property of the ami:listensFor property in an ami:Component or
+a subproperty of an ami:MEP instance.
 A broad-based use of ami:shapeOut is to have it describe all the tables or collections
-in a database component.
+in a database component without pairing it with an ami:shapeIn.
 """ .
+
+
 
 # Define the ex:mep1 and ex:mep2 properties as blank nodes within the list
 # Assuming these are part of the structured listensFor property

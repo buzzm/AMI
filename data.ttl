@@ -38,10 +38,6 @@ ex:actor2 a ami:Actor;
     ami:firstname "Dave" ;
     ami:lastname "Spector" .
 
-ex:actor3 a ami:Actor;
-    rdfs:label "Moschetti LLC" ;
-    ami:DID "A77" ;
-    ami:LEI "Moschetti LLC" .
 
 ex:actorSys a ami:Actor;
     rdfs:label "System Daemon 7" ;
@@ -80,30 +76,37 @@ ex:actor441 a ami:Actor;
 ex:oraclecorp	    a ami:Vendor ;
 		    ami:owner ex:actor44 ;
 		    ami:LEI "C003" ;
-		    rdfs:label "Oracle Corp" .
+		    rdfs:label "Oracle Corp" ;
+		    rdfs:comment "The spawn of Larry Elison" .		    
 
 ex:mscorp	    a ami:Vendor ;
 		    ami:owner ex:actor44 ;
 		    ami:LEI "C002" ;
-		    rdfs:label "Microsoft Corp" .
+		    rdfs:label "Microsoft Corp" ;
+		    rdfs:comment "The spawn of Bill Gates" .
 
 ex:internal	    a ami:Vendor ;
 		    ami:owner ex:actor44 ;
-		    rdfs:label "*internal development*" .
+		    rdfs:label "*internal development*" ;
+		    rdfs:comment "All internal produced software" .
+
 
 ex:mtech	    a ami:Vendor ;
 		    ami:owner ex:actor44 ;
 		    ami:LEI "C765" ;
-		    rdfs:label "Moschetti LLC" .
-
+		    rdfs:label "Moschetti LLC" ;
+		    rdfs:comment "The spawn of Buzz" .
+		    
 ex:oss		    a ami:Vendor ;
 		    ami:owner ex:actor441 ;
-		    rdfs:label "open source" .
-
+		    rdfs:label "open source" ;
+		    rdfs:comment "Unspecified open source code" .
+		    
 ex:mongocorp	    a ami:Vendor ;
 		    ami:owner ex:actor441 ;
 		    ami:LEI "C265" ;
-		    rdfs:label "MongoDB Inc" .
+		    rdfs:label "MongoDB Inc" ;
+		    rdfs:comment "The spawn of Dwight and Eliot" .
 		    
 
 ex:program1   a ami:Software ;
@@ -112,6 +115,7 @@ ex:program1   a ami:Software ;
 	      ami:swtype	"service" ;
 	      ami:implements	ex:service1 ;
 	      ami:linksWith	ex:lib1 ;
+	      ami:slang "java" ;
 	      ami:linksWith	ex:lib77 .
 
 ex:program3   a ami:Software ;
@@ -121,6 +125,7 @@ ex:program3   a ami:Software ;
 Calculates credit risk for instrument types A and B.
 """ ;
 	      ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:bintype "jar" ];	      
+	      ami:slang "java" ;
 	      ami:implements	ex:service1 ;
 	      ami:linksWith	ex:lib1 ;
 	      ami:linksWith	ex:lib77 .
@@ -157,8 +162,9 @@ ex:mdbx a ami:Software;
 The MongoDB database engine.
 """;    
 	ami:implements	ex:db3 ;
-	
-      ami:vendor ex:oraclecorp ;
+
+     ami:slang "c++" ;
+      ami:vendor ex:mongocorp ;
     ami:version [ a ami:Version;
         ami:major 7; ami:minor 0;
 	ami:released "2022-01-01T00:00:00Z"^^xsd:dateTime ;	
@@ -203,7 +209,8 @@ ex:software3 a ami:Software;
     ami:EOL "2027-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
 
 #    ami:corn "{\"key\": [\"foo\",12, {\"$numberDecimal\": \"12.09\"} ] }"^^ex:json  ;
-    ami:owner ex:actor2 ;
+     ami:slang "python" ;
+     ami:owner ex:actor2 ;
     ami:steward ex:actor2 .
 
 
@@ -224,7 +231,8 @@ Guava is a set of core Java libraries from Google that includes new collection t
 	ami:version [ a ami:Version; ami:major 7; ami:minor 6; ami:bintype "jar" ];	
       ami:swtype	"lib" ;    
       ami:steward ex:actor2 ;
-	ami:owner ex:actor2 ;	
+	ami:owner ex:actor2 ;
+      ami:slang "java" ;
 	ami:vendor	ex:oss ;
 	ami:EOL		"2024-08-02T14:00:57.478Z"^^xsd:dateTime .
 
@@ -234,7 +242,8 @@ ex:lib2	a		ami:Software ;
 	ami:version [ a ami:Version; ami:major 22; ami:minor 1; ami:bintype "jar" ];
       ami:swtype	"lib" ;
       ami:steward ex:actor2 ;
-	ami:owner ex:actor2 ;		
+	ami:owner ex:actor2 ;
+      ami:slang "java" ;	
 	ami:vendor	ex:oss ;
         ami:linksWith	ex:lib4 ;	
 	ami:EOL		"2026-08-02T14:00:57.478Z"^^xsd:dateTime .
@@ -251,7 +260,8 @@ ex:lib3	a		ami:Software ;
       ami:swtype	"lib" ;
       ami:steward ex:actor2 ;
 	ami:owner ex:actor2 ;		
-	ami:vendor	ex:oss ;
+      ami:slang "java" ;
+      ami:vendor	ex:oss ;
 	ami:EOL		"2026-02-01T12:00:00.000Z"^^xsd:dateTime .
 
 ex:lib4	a		ami:Software ;
@@ -260,7 +270,8 @@ ex:lib4	a		ami:Software ;
 	rdfs:comment "Extremely popular logging framework for Java" ;		
       ami:swtype	"lib" ;
       ami:steward ex:actor9 ;
-	ami:owner ex:actor9 ;	
+	ami:owner ex:actor9 ;
+      ami:slang "java" ;	
 	ami:vendor	ex:oss ;
 	ami:EOL		"2027-02-01T12:00:00.000Z"^^xsd:dateTime .
 
@@ -271,7 +282,8 @@ ex:lib77	a		ami:Software ;
       ami:swtype	"lib" ;
       ami:owner ex:actor9 ;
 	ami:steward ex:actor9 ;	
-        ami:linksWith	ex:lib88 ;
+      ami:slang "java" ;
+      ami:linksWith	ex:lib88 ;
 	ami:EOL		"2027-02-01T12:00:00.000Z"^^xsd:dateTime .	
 
 ex:lib88	a		ami:Software ;
@@ -279,7 +291,8 @@ ex:lib88	a		ami:Software ;
 	rdfs:label "jackson-bind";
       ami:swtype	"lib" ;
       ami:owner ex:actor9 ;
-	ami:steward ex:actor9 ;		
+      ami:slang "java" ;
+      ami:steward ex:actor9 ;		
 	ami:linksWith	ex:libMongo1 .
 
 ex:libMongo1	a		ami:Software ;
@@ -287,7 +300,8 @@ ex:libMongo1	a		ami:Software ;
 	rdfs:label "mongodb client SDK";
       ami:swtype	"lib" ;
       ami:owner ex:actor9 ;
-	ami:steward ex:actor9 ;		
+      ami:steward ex:actor9 ;		
+      ami:slang "java" ;
 	ami:vendor	ex:mongocorp ;		
 	rdfs:comment """
 The MongoDB Java client side SDK.
@@ -298,7 +312,8 @@ ex:libpg1	a		ami:Software ;
 	rdfs:label "postgres client SDK";
       ami:swtype	"lib" ;    	
 	ami:owner ex:actor9 ;
-	ami:steward ex:actor9 ;		
+	ami:steward ex:actor9 ;
+      ami:slang "java" ;
 	ami:vendor	ex:oss ;		
 	rdfs:comment """
 The Postgres Java client side SDK.
@@ -310,6 +325,7 @@ ex:jpg4	a		ami:Software ;
       ami:swtype	"lib" ;    	
 	ami:owner ex:actor9 ;
 	ami:steward ex:actor9 ;		
+      ami:slang "java" ;	
 	ami:vendor	ex:oss ;		
 	rdfs:comment """
 A JPG/JPEG graphics generation library.
@@ -378,11 +394,13 @@ results.  It uses live market data.""" ;
 		ami:listensFor	[
 		  ami:protocol 	ami:https ;
 		  ami:auth 	ami:basic ;		
-		  ex:mep1    [
+		  ami:mep    [
+		        a ami:MEP ;
 			ami:shapeIn  ex:shape1 ;
 			ami:shapeOut ex:myShape_003 ;			
 			] ;
-		  ex:mep2    [
+		  ami:mep    [
+		        a ami:MEP ;		  
 			ami:shapeIn  ex:shape3 ;
 			ami:shapeOut ex:shape4 ;			
 			] ;
@@ -394,7 +412,8 @@ ex:service7	a    ami:Component ;
 	     	ami:steward ex:actor9 ;		
 		ami:connectsTo    ex:db2 ;
 		ami:listensFor	[
-		  ex:mep1    [
+		  ami:mep    [
+		        a ami:MEP ;		  
 			ami:shapeIn  ex:myShape_001 ;
 			ami:shapeOut ex:shape2 ;			
 			]
@@ -528,7 +547,7 @@ ex:system_003	a	ami:System ;
 		ami:steward ex:actor10 ;
 		ami:macrotype "mainframe" ;
 		ami:dept	"HR" ;
-		ami:components  ex:employee1 ;
+		ami:components  ex:otherApp ;
 		rdfs:comment """
 A vacation tracker system.
 """ .    				
@@ -597,6 +616,7 @@ Describes a polymorphic instrument shape.
             sh:property [
                 sh:path ex:reviewDate ;
                 sh:datatype xsd:dateTime ;
+		rdfs:comment  "date of review submission maybe not actual review" ;
             ] ;
         ] ;
     ] .
