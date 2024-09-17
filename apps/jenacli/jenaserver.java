@@ -37,6 +37,7 @@ public class jenaserver {
     
     private static Dataset ds;
 
+    
     public static void main(String[] args) {
         try {
             // Initialization part - MongoDB and Jena setup
@@ -60,6 +61,7 @@ public class jenaserver {
         }
     }
 
+	
     private static void emit(OutputStream os, JSONObject obj)
 	throws IOException
     {
@@ -154,14 +156,35 @@ public class jenaserver {
 
 			os.close();			
                     }
+
+                } catch (org.apache.jena.query.QueryParseException e) {
+                    System.out.println("Parse execution; continuing..."  + e);
+
+		    String msg = e.getMessage();
+		    int col = e.getColumn();
+		    int line = e.getLine();
+
+		    jsonResponse.put("status", "FAIL");
+		    jsonResponse.put("category", "parse");
 		    
-                } catch (Exception e) {
-                    System.out.println("Query execution failed; continuing..."  + e);
-		    
+		    jsonResponse.put("msg", msg);
+		    jsonResponse.put("col", col);
+		    jsonResponse.put("line", line);
+
 		    exchange.sendResponseHeaders(400, NOT_FIXED_LENGTH);
 		    OutputStream os = exchange.getResponseBody();
+		    emit(os, jsonResponse);		    
+		    os.close();					       
+		    
+                } catch (Exception e) {
+                    System.out.println("General Jena failure; continuing..."  + e);
 		    jsonResponse.put("status", "FAIL");
-		    jsonResponse.put("msg", "query failed");
+		    jsonResponse.put("category", "general");		    
+		    jsonResponse.put("msg", e.toString());
+
+		    exchange.sendResponseHeaders(400, NOT_FIXED_LENGTH);
+		    OutputStream os = exchange.getResponseBody();
+
 		    emit(os, jsonResponse);		    
 		    os.close();					    
                 }

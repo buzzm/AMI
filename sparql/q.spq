@@ -12,14 +12,26 @@ PREFIX ami: <http://moschetti.org/ami#>
 PREFIX ex: <http://moschetti.org/buzz#>
 PREFIX exc: <http://moschetti.org/compliance#>
 
-SELECT *
+PREFIX sh: <http://www.w3.org/ns/shacl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX ex: <http://example.com/ns#>
+
+SELECT ?vendorLabel ?softwareLabel ?major ?minor ?patch ?bintype ?released
 WHERE {
-    ?dependentSoftware a ami:Software ;
-                       ami:linksWith ?log4j .
-    ?log4j rdfs:label ?log4jLabel .
-    ?log4j ami:version ?log4jVersion .
-    ?log4jVersion ami:major ?major .
-    FILTER(CONTAINS(LCASE(?log4jLabel), "log4j"))
+      ?software a ami:Software ;
+              ami:vendor ?vendor .
+     ?vendor rdfs:label ?vendorLabel .
+     FILTER(CONTAINS(LCASE(?vendorLabel), "oracle")) .
+     
+     ?software ami:vendor ?vendor ;
+     	       rdfs:label ?softwareLabel ;
+               ami:version ?version .
+
+     ?version ami:major ?major ;
+	       
+     OPTIONAL { ?version ami:minor ?minor . }
+     OPTIONAL { ?version ami:patch ?patch . }
+     OPTIONAL { ?version ami:bintype ?bintype . }
+     OPTIONAL { ?version ami:released ?released . }               
 }
-
-

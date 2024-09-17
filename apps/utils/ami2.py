@@ -27,6 +27,7 @@ import argparse
 
 class Program():
 
+    
     def init_llm(self):
         key_var = 'OPENAI_API_KEY'
         API = os.environ[key_var]
@@ -41,7 +42,7 @@ class Program():
 
         conv = ConversationChain(llm=llm, memory=memory)
 
-        conv.predict(input="ASSUME todays date and current date are %s." % str(datetime.datetime.now()))
+        #conv.predict(input="ASSUME todays date and current date are %s." % str(datetime.datetime.now()))
                 
         return conv
     
@@ -58,13 +59,21 @@ class Program():
     def askAMI(self, blurb,echo=False):
         if echo is True:
             print("ME:", blurb)
-        xx = self.ami_conversation.predict(input=blurb)
+        xx = ""
+        try:
+            xx = self.ami_conversation.predict(input=blurb)
+        except Exception as e:
+            xx = "AMI LLM error: " + str(e)
         return xx
 
     def askGeneral(self, blurb,echo=False):
         if echo is True:
             print("ME:", blurb)
-        xx = self.general_conversation.predict(input=blurb)
+        xx = ""
+        try:            
+            xx = self.general_conversation.predict(input=blurb)
+        except Exception as e:
+            xx = "General LLM error: " + str(e)
         return xx    
         
 
@@ -334,27 +343,26 @@ in the "rdfs:comment" property.
         preamble = """\
 You are AMI, the Asset Management and Intelligence System.
 
-I am a technical manager or architect and will ask you questions.
+I am a manager of technology and will ask you questions in
+a conversational manner.
         
-You will use your knowledge of SPARQL, AMI metadata, and local metadata to either:
+You will use your knowledge of SPARQL, AMI metadata, and local metadata to
+answer my questions in one of these three ways:
 1.  Produce SPARQL queries that when applied to a triple store would
     yield the appropriate data.  Example:
     "How many systems rely on Oracle database?"
+        
 2.  Answer questions about your metadata.  This will not require you to
     generate SPARQL.  Example:
     "Tell me about Components."
-If asked what you do or what are your capabilities, you can use the paragraph
-above as a response.
+
+3.  A VERY IMPORTANT instruction is that if you cannot answer a question,
+    YOU MUST respond with the EXACT PHRASE "<CANNOT ANSWER>" including the
+    angle brackets. This is VITAL because other actions will be taken with a
+    different model.
         
-My interaction with you will be conversational and your responses should be
-professional and terse.        
+Your responses should be professional and terse.        
 
-A VERY IMPORTANT instruction is that if you cannot answer a question, YOU MUST
-respond with the EXACT PHRASE "<CANNOT ANSWER>" including the angle brackets.
-This is VITAL because other actions will be taken with a different model.
-
-
-        
 You will now be given %d blocks of input that describe the AMI system:
 """ % (len(blocks))
 
@@ -497,7 +505,30 @@ AMI System query interface ready.  Here are some starter suggestions for questio
         return inputs
 
 
+    def emitResponse(self, cr_delimited_string):
+        # Split the input into lines and filter out blank lines
+        lines = [line for line in cr_delimited_string.splitlines() if line.strip()]
 
+        # Parse the first non-blank line to check the status and get the 'vars' array
+        first_line = json.loads(lines[0])
+        if first_line.get('status') != 'OK':
+            print(first_line)
+            return
+
+        # Get the 'vars' array and print it in a bar-delimited form
+        vars_list = first_line.get('vars', [])
+        print('|'.join(vars_list))
+    
+        # Process each subsequent line
+        for line in lines[1:]:
+            parsed_line = json.loads(line)
+
+            # Collect values for each var in the vars_list, use empty string if the key doesn't exist
+            values = [str(parsed_line.get(var, "")) for var in vars_list]
+
+            # Emit the bar-delimited string
+            print('|'.join(values))
+    
     def go(self):
         if self.rargs.noinit is False:        
             self.init_system()
@@ -538,10 +569,11 @@ AMI System query interface ready.  Here are some starter suggestions for questio
                     #print("code", response.status_code)
 
                     #response_data = response.json()
-                    response_data = response.text                
-                    print(response_data)                
                     
-                    qq = input("Stash this output or modify the query (n (default)/y)? ");
+                    response_data = response.text                
+                    self.emitResponse(response_data)                
+                    
+                    qq = input("Stash this output (n [default]/y)? ");
 
                     if len(qq) == 0:
                         qq = 'n'
@@ -550,7 +582,8 @@ AMI System query interface ready.  Here are some starter suggestions for questio
                         nnt = """
                         I used the following SPARQL query to collect data about my technology assets:
                         %s
-                        This is the output reformed into JSON:
+                        This is the output in bar-delimited table format.  The first line
+                        is the header line, followed by rows of data:
                         %s
                         Add this information to our dialogue as dataset %d; we will refer to it later.
                         Please respond in brief.                    

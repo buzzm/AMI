@@ -5,6 +5,7 @@ import pymongo
 
 #import json
 import bson
+from decimal import Decimal
 
 import datetime
 import argparse
@@ -45,8 +46,14 @@ def cvtString(input_str):
 
         if 'integer' == type_identifier:
             value = int(value)
-        elif 'decimal' == type_identifier:
+
+        elif 'double' == type_identifier or 'float' == type_identifier:
             value = float(value)
+            
+        elif 'decimal' == type_identifier:
+            xx = Decimal(value)
+            value = bson.decimal128.Decimal128(xx)
+
         elif 'dateTime' == type_identifier:
             if value.endswith('Z'):
                 value = value[:-1] + '+00:00'
@@ -167,7 +174,6 @@ def main():
 
     # Underscore is special and maps birectionally to itself:
     pfx['_'] = '_'   # smiley!  LOL
-
 
     #  ('<http://example.com/schema#myService>', '<http://example.com/schema#listensFor>', '_:riog00000001')
     #  ('_:riog00000001', '<http://example.com/schema#mep2>', '_:riog00000003')

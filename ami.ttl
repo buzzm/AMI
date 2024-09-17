@@ -5,6 +5,11 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 
+ami:Control a rdfs:Class ;
+	  rdfs:comment """
+The Control class holds general information about the AMI system
+itself.""" .
+
 ami:Actor a rdfs:Class ;
 	  rdfs:comment """
 An Actor is someone or something that interacts with entities in AMI.  An
@@ -158,6 +163,23 @@ ami:Instance a rdfs:Class;
 
 
 
+#
+#  Control Properties
+#
+ami:systemdesc a rdf:Property;
+    rdfs:label  "system description" ;
+    rdfs:comment """
+Overall description of the scope and nature of the systems and data under management of
+this AMI system.""" ;
+    rdfs:domain ami:Control ;
+    rdfs:range xsd:string .
+
+ami:systemsize a rdf:Property;
+    rdfs:label  "system size" ;
+    rdfs:comment """
+Total number of triples under management. """ ;
+    rdfs:domain ami:Control ;
+    rdfs:range xsd:string .
 
 
 #

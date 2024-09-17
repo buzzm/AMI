@@ -27,6 +27,7 @@
 
 ex:actor1 a ami:Actor;
     rdfs:label "Steve Austin" ;
+    ami:salary   "10.09"^^xsd:decimal ;	
     ami:DID "A123" ;
     ami:firstname "Steve" ;
     ami:lastname "Austin" .
