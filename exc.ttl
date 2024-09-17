@@ -1,0 +1,31 @@
+@prefix exc: <http://moschetti.org/compliance#> .
+
+@prefix ami: <http://moschetti.org/ami#> .
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+
+exc:Bcbs239 a rdfs:Class ;
+	  rdfs:label "BCBS239 attestation class" ;
+	  rdfs:comment """
+Carries information about who and when asserted that something was BCBS239 compiliant.""" .
+
+exc:bcbs239 a rdf:Property;
+    rdfs:domain ami:Shape ;
+    rdfs:range exc:Bcbs239 ;
+    rdfs:label "BCBS239 attestation property" ;
+    rdfs:comment """
+Place a exc:bcbs239 property at the root level of any ami:Shape e.g.
+    exc:bcbs239 [ a exc:Bcbs239; exc:attested_by ex:actor1 ] ;
+""" .    
+
+exc:attested_by a rdf:Property ;
+    rdfs:domain exc:Bcbs239 ;
+    rdfs:range ami:Actor .
+
+exc:attested_on a rdf:Property ;
+    rdfs:domain exc:Bcbs239 ;
+    rdfs:range xsd:dateTime .
+
