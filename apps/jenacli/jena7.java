@@ -28,12 +28,18 @@ import java.io.File;
 
 public class jena7 {
 
+    /* usage:  jena7 triple_collection filename [ mongo connstr ]  */
+    
     public static void main(String[] args) {
 
 	try {
-
 	    String host = "mongodb://localhost:37017/?replicaSet=rs0";
-
+	    if(args.length == 3) {
+		host = args[2];
+	    }
+	    System.out.println("\n\n**using " + host);
+		    
+	    
 	    JenaMongoConnection mc = new JenaMongoConnection(host);
 	    JenaMongoStore ms = new JenaMongoStore(mc, "semantic");
 

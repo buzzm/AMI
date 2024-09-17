@@ -42,6 +42,12 @@ public class jenaserver {
         try {
             // Initialization part - MongoDB and Jena setup
             String host = "mongodb://localhost:37017/?replicaSet=rs0";
+
+	    if(args.length == 2) {
+		host = args[1];
+	    }
+	    System.out.println("\n\n**using " + host);
+	    
             JenaMongoConnection mc = new JenaMongoConnection(host);
             JenaMongoStore ms = new JenaMongoStore(mc, "semantic");
 
