@@ -18,7 +18,8 @@ JL=$HOME/java/lib
 
 #  APACHE JENA 5.1
 
-JENAL=/Users/buzz/codes/apache-jena-5.1.0/lib
+JENAL=$HOME/codes/apache-jena-5.1.0/lib
+
 JENAJ=$JL/jena-mongodb-5.1.jar\
 :$JENAL/RoaringBitmap-1.2.0.jar\
 :$JENAL/apiguardian-api-1.1.2.jar\
