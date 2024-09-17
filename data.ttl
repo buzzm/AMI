@@ -153,7 +153,7 @@ The Oracle database engine.
 	  ami:bintype "arm64"; ami:platform "macOS"
       ];
 
-    
+    ami:EOL "2023-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;    
     ami:owner ex:actor1 ;
     ami:steward ex:actor1 .
 
@@ -181,6 +181,7 @@ ex:software2 a ami:Software;
     rdfs:label "java";
     ami:vendor ex:oraclecorp ;
     ami:version [ a ami:Version; ami:major 17; ami:minor 0; ami:patch 11;
+      		  ami:released "2021-01-01T00:00:00Z"^^xsd:dateTime ;          
                   ami:bintype "arm64"; ami:platform "macOS" ];
     ami:EOL "2028-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
       ami:swtype	"exec" ;
@@ -192,8 +193,9 @@ ex:software22 a ami:Software;
     ami:vendor ex:oraclecorp ;
       ami:swtype	"exec" ;    
     ami:version [ a ami:Version; ami:major 8; ami:minor 2; ami:patch 3;
+      		  ami:released "2006-01-01T00:00:00Z"^^xsd:dateTime ;
                   ami:bintype "x86_64"; ami:platform "ubuntu" ];
-    ami:EOL "2025-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+    ami:EOL "2020-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
     ami:owner ex:actor1 ;
     ami:steward ex:actor1.    
 

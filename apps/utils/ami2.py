@@ -78,13 +78,13 @@ class Program():
         
 
     def init_system(self):
-        ami_raw_f = "/Users/buzz/git/AMI/ami.raw"
-        with open(ami_raw_f) as fd:
-            ami_raw = fd.read()
+        ami_cpt_f = "/Users/buzz/git/AMI/ami.cpt"
+        with open(ami_cpt_f) as fd:
+            ami_cpt = fd.read()
 
-        local_raw_f = "/Users/buzz/git/AMI/local.raw"
-        with open(local_raw_f) as fd:
-            local_raw = fd.read()            
+        local_cpt_f = "/Users/buzz/git/AMI/local.cpt"
+        with open(local_cpt_f) as fd:
+            local_cpt = fd.read()            
             
         print("Initializing system with model %s ..." % self.rargs.model)
 
@@ -123,8 +123,25 @@ This an overall design summary of the AMI System:
 
 
     ,{"lbl":"AMI Metadata", "txt":"""
-Below is a set of bar-delimited RDF subject-predicate-object triples.
-It is the metadata for the AMI system.
+Below is a set of subject-predicate-object triples that is the metadata for
+the AMI system.
+
+The triples are in prefixed bar-delimited format.
+Object literals are wrapped with double quotes and optionally cast to the
+appropriate XSD datatype if they are not plain strings; otherwise, object URIs
+are unquoted.  Examples:
+object URI:             ami:swtype|rdfs:range|xsd:string
+object literal string:  ami:swtype|rdfs:label|"software type"
+object literal int:     ami:swtype|ami:maxvers|"10"^^xsd:int
+
+Here are the prefix mappings expressed in turtle format:
+
+@prefix ami: <http://moschetti.org/ami#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+    
 You can use the rdfs:label and rdfs:comment triples to help you associate questions
 with specific properties.  From there, you can use the rdfs:domain predicate to get
 the containing class, which itself may have an instance as a Property in another
@@ -153,25 +170,27 @@ Thus, the appropriate SPARQL fragment would be:
               ami:version  ?vv .
     ?vv ami:bintype "jar" .
 
-The metadata ends when you see the line `# END METADATA`.
+The metadata ends when you see the line `# END METADATA` and this
+line is not part of the metadata.
 
 %s
-
 # END METADATA
-"""  % ami_raw}
+"""  % ami_cpt}
 
 
             
     ,{"lbl":"Local Metadata", "txt":"""
-Below is a set of bar-delimited RDF subject-predicate-object triples.
-It is the metadata for our local extensions to the AMI system.
+Below is a set of subject-predicate-object triples that is the local
+extension to the AMI system.
+The triple are in prefixed bar-delimited format.
 
-The metadata ends when you see the line `# END METADATA`.
+The metadata ends when you see the line `# END METADATA` and this
+line is not part of the metadata.
 
 %s
 
 # END METADATA
-"""  % local_raw}            
+"""  % local_cpt}            
 
     ,{"lbl":"SPARQL Assumptions and Instructions", "txt":"""
 
@@ -310,7 +329,7 @@ Here are some common associations of nouns and verbs to the actual AMI entities.
 Some of these will reinforce definitions in the AMI metadata itself, particularly
 in the "rdfs:comment" property.
     
- *  python, java, C, C++, rust, groovy, assembler, perl, shell script are all "ami:Software"
+ *  python, java, C, C++, rust, groovy, assembler, perl, shell script are all "ami:Software" 
     
  *  mongodb, mongo, oracle, postgres, SQLServer, DB2, MySQL, Neo4J are all databases
 
