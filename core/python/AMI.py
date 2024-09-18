@@ -37,7 +37,16 @@ class AMI():
         self.api_key = kwargs.get('api_key')
         if None == self.api_key:
             raise Exception("error: must provide api_key")
-        
+
+        self.ami_cpt_f = kwargs.get('ami_cpt')
+        if None == self.ami_cpt_f:
+            self.ami_cpt_f = "ami.cpt"
+
+        self.local_cpt_f = kwargs.get('local_cpt')
+        if None == self.local_cpt_f:
+            self.local_cpt_f = "local.cpt"            
+
+            
         self.model = 'gpt-4o-mini'
 
         self.ami_conversation = self.init_llm()
@@ -68,12 +77,10 @@ class AMI():
         
 
     def init_system(self):
-        ami_cpt_f = "/Users/buzz/git/AMI/ami.cpt"
-        with open(ami_cpt_f) as fd:
+        with open(self.ami_cpt_f) as fd:
             ami_cpt = fd.read()
 
-        local_cpt_f = "/Users/buzz/git/AMI/local.cpt"
-        with open(local_cpt_f) as fd:
+        with open(self.local_cpt_f) as fd:
             local_cpt = fd.read()            
             
         print("Initializing system with model %s ..." % self.model)
@@ -544,10 +551,16 @@ def main():
     parser.add_argument('--api_key', 
                         metavar='OpenAI API key')
     
-    rargs = parser.parse_args()
-    
-    aa = AMI(api_key=rargs.api_key)
+    parser.add_argument('--ami_cpt', 
+                        metavar='Filename containing core AMI metadata')
 
+    parser.add_argument('--local_cpt', 
+                        metavar='Filename containing AMI extensions metadata')
+    
+    rargs = parser.parse_args()
+
+    
+    aa = AMI(api_key=rargs.api_key, ami_cpt=rargs.ami_cpt, local_cpt=rargs.local_cpt)
     
     nn = 0
     while True:
