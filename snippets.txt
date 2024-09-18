@@ -1,0 +1,209 @@
+
+Get version of software, hardware, or shape.
+Version itself is a class and not particularly useful to me.
+If you intend to return a Version class, please expand to include its components
+as follows.   Note that version MUST contain a "major" number but properties
+"minor", "patch", and "bintype" are optional:
+
+SELECT ?major ?minor ?patch ?btype ?released
+WHERE {
+    BIND(ex:lib3 AS ?software)  # use ex:lib3 as example of software instance.
+
+    ?software ami:version ?version .
+
+    ?version ami:major ?major .
+    OPTIONAL { ?version ami:minor ?minor }
+    OPTIONAL { ?version ami:patch ?patch }
+    OPTIONAL { ?version ami:bintype ?btype }
+    OPTIONAL { ?version ami:released ?released }        
+}
+
+
+Get all software of a certain bintype or binary type; in this example, "jar":
+
+SELECT ?software
+WHERE {
+    ?software a ami:Software ;
+              ami:version ?version .
+    ?version ami:bintype "jar" ;
+}
+
+---
+
+To find a vendor given a name, canonicalize the label to lowercase
+and use CONTAINS to find it anywhere in the name.  This may
+yield more than 1 vendor e.g. "Oracle USA" and "Oracle EU" but
+that is OK:
+
+SELECT DISTINCT ?vendor ?vendorLabel
+WHERE {
+      ?software a ami:Software ;
+              ami:vendor ?vendor .
+     ?vendor rdfs:label ?vendorLabel .
+     FILTER(CONTAINS(LCASE(?vendorLabel), "vendor name here")) .
+}
+
+---
+
+Given a system, get all component dependencies recursively ;
+Get all components for a system:
+
+SELECT DISTINCT ?start ?end
+WHERE {
+  ex:exampleSystemInstance ami:components  ?components .
+  
+  {  
+    ?components ami:connectsTo ?end .
+    BIND(?components AS ?start)
+  } UNION {
+    ?start ami:connectsTo ?end . 
+    ?components ami:connectsTo+ ?start .
+  }
+}
+
+
+Given any component, get all upstream component dependencies recursively:
+
+SELECT DISTINCT  ?start ?end
+WHERE {
+    BIND(ex:exampleComponentInstance AS ?components)
+
+    {
+      ?start ami:connectsTo ?components .
+       BIND(?components AS ?end)
+    }
+    UNION
+    {
+      ?start ami:connectsTo ?intermediate .
+      ?intermediate ami:connectsTo+ ?components .
+      BIND(?intermediate AS ?end)
+    }
+}
+
+
+
+Given any component, find all systems that use it:
+
+SELECT  ?label ?dept ?desc 
+WHERE {
+    BIND(ex:exampleComponentInstance AS ?components)
+
+    {
+      ?start ami:connectsTo ?components .
+       BIND(?components AS ?end)
+    }
+    UNION
+    {
+      ?start ami:connectsTo ?intermediate .
+      ?intermediate ami:connectsTo+ ?components .
+      BIND(?intermediate AS ?end)
+    }
+
+    ?system	ami:components  ?start .
+
+    # System object is not useful to return so get important
+    # properties and return those:
+    ?system	rdfs:label ?label ;
+    	        rdfs:comment ?desc ;
+    	        ami:dept ?dept .
+}
+
+
+Find all components:
+
+SELECT ?label ?desc
+WHERE {
+    ?components a ami:Component .
+    ?components rdfs:label ?label ;
+    		rdfs:comment ?desc .
+}
+
+
+---
+    
+Get all software that depends on a given piece of software
+Get all upstream dependencies of a given piece of software
+
+SELECT DISTINCT ?start ?end
+WHERE {
+  # Bind variable ?sw to the target piece of software
+  #     BIND(ex:lib77 AS ?sw)
+  # or perform a statement that populates `?sw` e.g.
+  #     ?sw   a       ami:Software ;
+  #           ami:EOL ?eol .
+  #     FILTER (YEAR(?eol) = 2026)
+
+  {
+    ?start ami:linksWith ?sw .
+    BIND(?sw AS ?end)
+ }
+ UNION
+ {
+    ?start ami:linksWith ?intermediate .
+    ?intermediate ami:linksWith+ ?sw .
+    BIND(?intermediate AS ?end)
+ }
+    
+}
+
+---
+
+find all shapes that contain sensitive data
+
+SELECT DISTINCT ?shape
+WHERE {
+    # Step 1: Get ex:sensitivity from any triple, if it exists:
+    ?sensitiveProperty sh:path ?path ;
+                       ex:sensitivity ?sensitivityValue .
+    
+    #  FILTER by desired level of sensitivity.
+    #  ADJUST THIS AS NEEDED:
+    FILTER(?sensitivityValue > 1 && ?sensitivityValue < 4)
+
+    # Step 2: Trace back to the root shape
+    ?intermediateShape (sh:property|sh:node)* ?sensitiveProperty .
+
+    # Only pick classes that are actually top-level AMI Shape.  Note
+    # that all the subfields are type sh:NodeShape but they are NOT
+    # ami:Shape!
+    ?shape sh:property ?intermediateShape ;
+           a ami:Shape .
+}
+
+---
+
+find all components that use shapes containing sensitive data in their MEPs
+
+SELECT DISTINCT ?component ?mep ?shape
+WHERE {
+    # Step 1: Identify any property with ex:sensitivity > 2 and < 4
+    ?sensitiveProperty sh:path ?path ;
+                       ex:sensitivity ?sensitivityValue .
+
+    #  FILTER by desired level of sensitivity.
+    #  ADJUST THIS AS NEEDED:    
+    FILTER(?sensitivityValue > 1 && ?sensitivityValue < 4)
+
+    # # Step 2: Trace back to the root shape
+    ?intermediateShape (sh:property|sh:node)* ?sensitiveProperty .
+
+    # Only pick classes that are actually top-level AMI Shape.  Note
+    # that all the subfields are type sh:NodeShape but they are NOT
+    # ami:Shape!
+    ?shape sh:property ?intermediateShape ;
+           a ami:Shape .
+
+    # # Step 3: Find components related to these shapes:
+    ?component ami:listensFor ?mepEntry .
+
+    ?mepEntry ?mep ?mepShape .
+
+    # # Check for shapeIn or shapeOut:
+    {
+         ?mepShape ami:shapeIn ?shape
+    }
+    UNION
+    {
+        ?mepShape ami:shapeOut ?shape
+    }
+}
