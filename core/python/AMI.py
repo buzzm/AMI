@@ -1,15 +1,9 @@
 
-#from langchain.chat_models import ChatOpenAI  # deprecated 
-#from langchain_community.chat_models import ChatOpenAI
-
 from langchain_openai import ChatOpenAI
-
-#from langchain.llms import OpenAI # import OpenAI model
 
 from langchain.chains import LLMChain, ConversationChain
 from langchain.memory import ConversationBufferMemory
 
-#from langchain.prompts import ChatPromptTemplate, PromptTemplate # import PromptTemplate
 import openai
 
 import requests
@@ -22,22 +16,15 @@ import re
 import sys
 import argparse
 
-#  https://github.com/microsoft/azurechatgpt
-#  https://news.ycombinator.com/item?id=37112741
-
-class Program():
-
+class AMI():
     
     def init_llm(self):
-        key_var = 'OPENAI_API_KEY'
-        API = os.environ[key_var]
-
         #temp = 0.2   # between 0 and 2, default is 1.  .2 is more focused, .8 more random
         temp = 0  # as conservative as possible...
         #mname = "gpt-4"
 
         # max_retries = 0 to let RateLimitError percolate back to us...
-        llm = ChatOpenAI(model_name=self.rargs.model, temperature=temp, max_retries=0, openai_api_key=API)
+        llm = ChatOpenAI(model_name=self.model, temperature=temp, max_retries=0, openai_api_key=self.api_key)
         memory = ConversationBufferMemory()
 
         conv = ConversationChain(llm=llm, memory=memory)
@@ -46,15 +33,18 @@ class Program():
                 
         return conv
     
+    def __init__(self, **kwargs):
+        self.api_key = kwargs.get('api_key')
+        if None == self.api_key:
+            raise Exception("error: must provide api_key")
         
-    def __init__(self, fd, rargs):
-        self.rargs = rargs
+        self.model = 'gpt-4o-mini'
 
         self.ami_conversation = self.init_llm()
         self.general_conversation = self.init_llm()        
 
-        self.fd = fd
-
+        self.init_system()
+        
 
     def askAMI(self, blurb,echo=False):
         if echo is True:
@@ -86,7 +76,7 @@ class Program():
         with open(local_cpt_f) as fd:
             local_cpt = fd.read()            
             
-        print("Initializing system with model %s ..." % self.rargs.model)
+        print("Initializing system with model %s ..." % self.model)
 
         blocks = [
     {"lbl":"Overall Design", "txt":"""
@@ -491,174 +481,136 @@ AMI System query interface ready.  Here are some starter suggestions for questio
         print(self.askAMI(blurb))
 
 
-    def collect_input(self):
-        inputs = []
-        while True:
-            # Print the prompt without a newline and flush to ensure it displays immediately
-            if self.fd is None:
-                user_input = input("> ")
-            else:
-                user_input = self.fd.readline()
 
-                if user_input == "":  # EOF
-                    if self.rargs.keepgoing is True:
-                        self.fd = None
-                        inputs = []                        
-                        continue
-                    else:
-                        break
+def emitResponse(cr_delimited_string):
+    # Split the input into lines and filter out blank lines
+    lines = [line for line in cr_delimited_string.splitlines() if line.strip()]
+    
+    # Parse the first non-blank line to check the status and get the 'vars' array
+    first_line = json.loads(lines[0])
+    if first_line.get('status') != 'OK':
+        print(first_line)
+        return
 
-                if user_input[0:1] == '#':
-                    continue
-                else:
-                    user_input = user_input.rstrip()                
-                    print("[%s]" % user_input)
-                
-            # Check if the input is empty
-            if user_input == "" :
-                break
+    # Get the 'vars' array and print it in a bar-delimited form
+    vars_list = first_line.get('vars', [])
+    print('|'.join(vars_list))
+    
+    # Process each subsequent line
+    for line in lines[1:]:
+        parsed_line = json.loads(line)
+
+        # Collect values for each var in the vars_list, use empty string if the key doesn't exist
+        values = [str(parsed_line.get(var, "")) for var in vars_list]
         
-            # Append the input to the list
-            inputs.append(user_input)
-    
-        return inputs
+        # Emit the bar-delimited string
+        print('|'.join(values))
 
-
-    def emitResponse(self, cr_delimited_string):
-        # Split the input into lines and filter out blank lines
-        lines = [line for line in cr_delimited_string.splitlines() if line.strip()]
-
-        # Parse the first non-blank line to check the status and get the 'vars' array
-        first_line = json.loads(lines[0])
-        if first_line.get('status') != 'OK':
-            print(first_line)
-            return
-
-        # Get the 'vars' array and print it in a bar-delimited form
-        vars_list = first_line.get('vars', [])
-        print('|'.join(vars_list))
-    
-        # Process each subsequent line
-        for line in lines[1:]:
-            parsed_line = json.loads(line)
-
-            # Collect values for each var in the vars_list, use empty string if the key doesn't exist
-            values = [str(parsed_line.get(var, "")) for var in vars_list]
-
-            # Emit the bar-delimited string
-            print('|'.join(values))
-    
-    def go(self):
-        if self.rargs.noinit is False:        
-            self.init_system()
-
-        nn = 0
-        while True:
-            collected_inputs = self.collect_input()
-            if 0 == len(collected_inputs):
-                print("DONE?")
-                break
-
-            qq = " ".join(collected_inputs)
+        
+def collect_input():
+    inputs = []
+    while True:
+        # Print the prompt without a newline and flush to ensure it displays immediately
+        if None == None:  # TBD TBD
+            user_input = input("> ")
+        else:
+            user_input = self.fd.readline()
             
-            if qq[0] == '!':
-                print(self.askGeneral(qq))
+            if user_input == "":  # EOF
+                break
+                
+            if user_input[0:1] == '#':
                 continue
-
-            candidate = self.askAMI(qq)
-
-            url = 'http://localhost:8080/query'
-            headers = {
-                'Content-Type': 'application/sparql-query',  # or 'application/x-www-form-urlencoded'
-                'Accept': 'application/json'  # Expecting JSON results
-            }
-
-            if candidate == "<CANNOT ANSWER>":
-                print("** AMI cannot answer; asking global")
-                print(self.askGeneral(qq))
-
             else:
-                print(candidate)
-
-                    #  TBD: Need better way to separate SPARQL output from valid AMI output...
-                if "SELECT" in candidate:
-                    print("** calling jenaserver...")
-
-                    response = requests.post(url, data=candidate, headers=headers)
-                    #print("code", response.status_code)
-
-                    #response_data = response.json()
+                user_input = user_input.rstrip()                
                     
-                    response_data = response.text                
-                    self.emitResponse(response_data)                
+        # Check if the input is empty
+        if user_input == "" :
+            break
                     
-                    qq = input("Stash this output (n [default]/y)? ");
-
-                    if len(qq) == 0:
-                        qq = 'n'
-
-                    if qq.lower() == 'y':
-                        nnt = """
-                        I used the following SPARQL query to collect data about my technology assets:
-                        %s
-                        This is the output in bar-delimited table format.  The first line
-                        is the header line, followed by rows of data:
-                        %s
-                        Add this information to our dialogue as dataset %d; we will refer to it later.
-                        Please respond in brief.                    
-                        """ % (candidate, response_data, nn)
-                        nn += 1
+        # Append the input to the list
+        inputs.append(user_input)
                     
-                        print(self.askGeneral(nnt))
-                    else:
-                        print("ok; not stashing.")
+    return inputs
 
-                    
+
+    
 def main():
     parser = argparse.ArgumentParser(description=
-"""AMI2 query interface.
+"""AMI query interface.
 """
    )
 
-    default_model = 'gpt-4o-mini'
+    parser.add_argument('--api_key', 
+                        metavar='OpenAI API key')
     
-    parser.add_argument('--model', 
-                        metavar='OpenAI model to use',
-                        default=default_model)
-
-    parser.add_argument('--noinit',
-                        action='store_true',
-                        help='Do not feed prompt blocks and AMI metadata; just fire up raw model')
-
-    
-    parser.add_argument('--keepgoing',
-                        action='store_true',
-                        help='Only used if script is supplied.  If set, program will not exit after script is read but instead will switch to stdin for input')
-
-    parser.add_argument('script',
-                        nargs='?')
-                        
     rargs = parser.parse_args()
-
-    print(rargs)
     
-    #  Get this out of way before banging on the API...
-    fd = None
-    if rargs.script is not None:
-        try:
-            fd = open(rargs.script, "r")
-        except:
-            print("error: cannot open", rargs.script)
-            return
+    aa = AMI(api_key=rargs.api_key)
+
     
-    key_var = 'OPENAI_API_KEY'
-    if key_var not in os.environ:
-        print("error: set", key_var)
-        return
+    nn = 0
+    while True:
+        collected_inputs = collect_input()
+        if 0 == len(collected_inputs):
+            break
 
-    p = Program(fd, rargs)
-    p.go()
+        qq = " ".join(collected_inputs)
+            
+        if qq[0] == '!':
+            print(aa.askGeneral(qq))
+            continue
 
+        candidate = aa.askAMI(qq)
+
+        url = 'http://localhost:8080/query'
+        headers = {
+            'Content-Type': 'application/sparql-query',  # or 'application/x-www-form-urlencoded'
+            'Accept': 'application/json'  # Expecting JSON results
+        }
+        
+        if candidate == "<CANNOT ANSWER>":
+            print("** AMI cannot answer; asking global")
+            print(aa.askGeneral(qq))
+
+        else:
+            print(candidate)
+
+            #  TBD: Need better way to separate SPARQL output from valid AMI output...
+            if "SELECT" in candidate:
+                print("** calling jenaserver...")
+
+                response = requests.post(url, data=candidate, headers=headers)
+                #print("code", response.status_code)
+
+                #response_data = response.json()
+                    
+                response_data = response.text                
+                emitResponse(response_data)                
+                    
+                qq = input("Stash this output (n [default]/y)? ");
+
+                if len(qq) == 0:
+                    qq = 'n'
+
+                if qq.lower() == 'y':
+                    nnt = """
+                    I used the following SPARQL query to collect data about my technology assets:
+                    %s
+                    This is the output in bar-delimited table format.  The first line
+                    is the header line, followed by rows of data:
+                    %s
+                    Add this information to our dialogue as dataset %d; we will refer to it later.
+                    Please respond in brief.                    
+                    """ % (candidate, response_data, nn)
+                    nn += 1
+                    
+                    print(aa.askGeneral(nnt))
+                else:
+                    print("ok; not stashing.")
+
+
+                        
 if __name__ == "__main__":        
     main()
         
