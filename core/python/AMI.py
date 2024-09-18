@@ -44,7 +44,11 @@ class AMI():
 
         self.local_cpt_f = kwargs.get('local_cpt')
         if None == self.local_cpt_f:
-            self.local_cpt_f = "local.cpt"            
+            self.local_cpt_f = "local.cpt"
+
+        self.snippet_f = kwargs.get('snippets')
+        if None == self.snippet_f:
+            self.snippet_f = "snippets.txt"                        
 
             
         self.model = 'gpt-4o-mini'
@@ -438,7 +442,6 @@ of the input question especially with respect to variable names and grouping.
 """
         self.askAMI(blurb)
 
-        recipe_f = "/Users/buzz/git/AMI/recipes.txt"
         nr = 0
 
         def mksnippet(n,lines):
@@ -452,7 +455,7 @@ Remember this snippet.
             return stxt
 
                         
-        with open(recipe_f, 'r') as file:
+        with open(self.snippet_f, 'r') as file:
             recipe_lines = []
             for line in file:
                 # If we hit the separator, process the current recipe
@@ -556,11 +559,14 @@ def main():
 
     parser.add_argument('--local_cpt', 
                         metavar='Filename containing AMI extensions metadata')
+
+    parser.add_argument('--snippets', 
+                        metavar='Filename containing SPARQL snippets')    
     
     rargs = parser.parse_args()
 
     
-    aa = AMI(api_key=rargs.api_key, ami_cpt=rargs.ami_cpt, local_cpt=rargs.local_cpt)
+    aa = AMI(api_key=rargs.api_key, ami_cpt=rargs.ami_cpt, local_cpt=rargs.local_cpt, snippets=rargs.snippets)
     
     nn = 0
     while True:
