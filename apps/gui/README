@@ -1,0 +1,27 @@
+
+
+npx create-react-app ami-frontend
+
+cd ami-frontend
+npm start
+
+
+nt to deploy it to a real web server), you would use the following:
+
+Build for Production:
+
+Run npm run build in your React project. This command bundles your code into static files (HTML, CSS, JavaScript) optimized for production use.
+After running this, you'll have a build/ folder that contains all the files you need to deploy to any web server.
+Deploy the build/ folder:
+
+The contents of the build/ folder are what you would upload or deploy to a web server (like Apache, NGINX, or a cloud hosting service).
+You can also serve this with your Flask backend later.
+For now, running npm start is the easiest way to develop and test your React app locally. Does this help clarify the process? Would you like to focus on running and exploring the browser app first?
+
+
+
+
+
+
+You said:
+~

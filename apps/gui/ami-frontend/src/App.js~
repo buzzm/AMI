@@ -1,0 +1,68 @@
+import React, { useState } from 'react';
+import './App.css';
+
+function App() {
+  const [input, setInput] = useState('');
+  const [output, setOutput] = useState('');
+  const [systemSize, setSystemSize] = useState('Simple');
+  const [stashPrompt, setStashPrompt] = useState(false);
+
+  const handleSubmit = async () => {
+    const response = await fetch('http://localhost:5000/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: input, systemSize })
+    });
+
+    const data = await response.json();
+    setOutput(data.response);
+    
+    if (data.response.includes('#DATA')) {
+      setStashPrompt(true);
+    } else {
+      setStashPrompt(false);
+    }
+  };
+
+  const handleStashResponse = async (answer) => {
+    await fetch('http://localhost:5000/stash', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stash: answer })
+    });
+
+    setOutput(prev => `${prev}\nOK; ${answer === 'yes' ? 'stashing' : 'not stashing'} the data.`);
+    setStashPrompt(false);
+  };
+
+  return (
+    <div className="App">
+      <h1>AMI</h1>
+      <label htmlFor="system-size">System Size:</label>
+      <select id="system-size" value={systemSize} onChange={(e) => setSystemSize(e.target.value)}>
+        <option value="Simple">Simple</option>
+        <option value="Small">Small</option>
+        <option value="Huge">Huge</option>
+      </select>
+
+      <div className="output-box">
+        <pre>{output}</pre>
+      </div>
+
+      <div className="input-box">
+        <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask your question..." />
+        <button onClick={handleSubmit}>Submit</button>
+      </div>
+
+      {stashPrompt && (
+        <div className="stash-prompt">
+          <p>Do you want to stash the data?</p>
+          <button onClick={() => handleStashResponse('yes')}>Yes</button>
+          <button onClick={() => handleStashResponse('no')}>No</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;

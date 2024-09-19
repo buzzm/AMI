@@ -1,11 +1,15 @@
+import uuid
+import argparse
+
+import json
+
+import requests
+
 from flask import Flask, request, session, jsonify
 from flask_cors import CORS
 from flask_session import Session
 
-import uuid
-import requests
 
-import argparse
 
 
 from AMI import AMI  # Assuming your AMI class is in a module
@@ -18,6 +22,25 @@ class AMIServer:
         self.ami_cpt = rargs.ami_cpt
         self.local_cpt = rargs.local_cpt
         self.snippets = rargs.snippets
+
+
+        # Ensure jena server is running....
+        self.jena_url = 'http://localhost:8080/query'
+        self.jena_headers = {
+            'Content-Type': 'application/sparql-query',  # or 'application/x-www-form-urlencoded'
+            'Accept': 'application/json'  # Expecting JSON results
+        }
+        try:
+            probe = 'SELECT (1 AS ?test) WHERE {}'
+            rr = requests.post(self.jena_url, data=probe, headers=self.jena_headers)
+        except:
+            msg = "jena server not running or parsing module broken"
+            print("ERROR:",msg)
+            raise Exception(msg)
+
+        
+        self.stash_count = 0
+
         
         self.configure_app(config)
         self.setup_routes()
@@ -38,6 +61,31 @@ class AMIServer:
         if config:
             self.app.config.update(config)
 
+
+    def process_response(self, cr_delimited_string):
+        '''Return a tuple of status,vars,data.
+        vars and data may not exist...'''
+        
+        # Split the input into lines and filter out blank lines
+        lines = [line for line in cr_delimited_string.splitlines() if line.strip()]
+    
+        # Parse the first non-blank line to check the status and get the 'vars' array
+        status_line = json.loads(lines[0])
+        if status_line.get('status') != 'OK':
+            return (status_line, None, None)
+
+        results = []
+
+        vars_list = status_line.get('vars', [])
+    
+        # Process each subsequent line -- if any!
+        for line in lines[1:]:
+            parsed_line = json.loads(line)
+            results.append(parsed_line)
+
+        return (status_line, vars_list, results)
+
+            
     def setup_routes(self):
         # Define routes here, wrapped inside the class
         @self.app.route('/query', methods=['POST'])
@@ -58,47 +106,84 @@ class AMIServer:
             question = data.get('question')
             system_size = data.get('systemSize')
 
+            rmsg = {
+                'status':'OK',
+                'narrative':"",
+                'vars':[],
+                'data':[]
+            }
+
             if question[0] == '!':
-                response = ami_context.askGeneral(question)
+                print("FFF")
+                rmsg['narrative'] = ami_context.askGeneral(question)
             else:
                 candidate = ami_context.askAMI(question)
 
-                url = 'http://localhost:8080/query'
-                headers = {
-                    'Content-Type': 'application/sparql-query',  # or 'application/x-www-form-urlencoded'
-                    'Accept': 'application/json'  # Expecting JSON results
-                }
-        
                 if candidate == "<CANNOT ANSWER>":
                     print("** AMI cannot answer; asking global")
-                    response = ami_context.askGeneral(question)
+                    rmsg['narrative'] = ami_context.askGeneral(question)
                 else:
-                    response = candidate
+                    rmsg['narrative'] = candidate
+
                     #  TBD: Need better way to separate SPARQL output from valid AMI output...
                     if "SELECT" in candidate:
                         print("** calling jenaserver...")
 
-                        response = requests.post(url, data=candidate, headers=headers)
-                        response = response.text                
-                        emitResponse(response)                
+                        try:
+                            rr = requests.post(self.jena_url, data=candidate, headers=self.jena_headers)
+                            (rmsg['status'],rmsg['vars'],rmsg['data']) = self.process_response(rr.text)
+                        except:
+                            rmsg['status'] = 'FAIL'
+                            rmsg['narrative'] = 'some exception'
 
-            return jsonify({'response': response})
+            return jsonify(rmsg)
 
+
+        def create_stash_narrative(rmsg):
+            # Boilerplate introduction
+            intro = "I used the following SPARQL query to collect data about my technology assets:\n"
+            # Text indicating the table structure
+            table_intro = ("This is the output in bar-delimited table format. "
+                   "The first line is the header line, followed by rows of data:\n")
+    
+            # Construct the header by joining vars with '|'
+            header = "|".join(rmsg['vars']) + "\n"
+    
+            # Construct the data rows
+            rows = "\n".join("|".join(row[var] for var in rmsg['vars']) for row in rmsg['data']) + "\n"
+    
+            # Add the final text indicating the dataset and brief response
+            conclusion = "Add this output to our dialogue as dataset %d; we will refer to it later.\nPlease respond in brief." % self.stash_count
+    
+            # Combine all parts
+            result = intro + rmsg['narrative'] + table_intro + header + rows + conclusion
+            return result
+
+        
         @self.app.route('/stash', methods=['POST'])
         def handle_stash():
             user_id = session.get('user_id')
             if user_id is None or user_id not in self.ami_contexts:
                 return jsonify({'error': 'Session not found'}), 400
 
-            # Simulate stashing data for this user
-            data = request.json
-            stash = data.get('stash')
+            ami_context = self.ami_contexts[user_id]
+            
+            rmsg = request.json
 
-            if stash == 'yes':
-                return jsonify({'message': 'Data stashed successfully'})
-            else:
-                return jsonify({'message': 'Data not stashed'})
+            self.stash_count += 1
+            nnt = create_stash_narrative(rmsg)
 
+            rmsg2 = {
+                'status':'OK',
+                'narrative':"",
+                'vars':[],
+                'data':[]
+            }
+            rmsg2['narrative'] = ami_context.askGeneral(nnt)
+                    
+            return jsonify(rmsg2)
+        
+            
     def run(self, **kwargs):
         self.app.run(**kwargs)
 

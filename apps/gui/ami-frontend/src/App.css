@@ -1,0 +1,58 @@
+.App {
+  text-align: center;
+  padding: 20px;
+}
+
+.input-box {
+  margin: 20px;
+}
+
+textarea {
+  width: 80%;
+  height: 100px;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px 20px;
+}
+
+.output-section {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.output-section .narrative-box,
+.output-section .sparql-box,
+.output-section .data-box {
+  width: 30%;
+  border: 1px solid #ddd;
+  padding: 10px;
+  background-color: #f9f9f9;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  height: 200px;
+}
+
+.data-box .data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-box .data-table th,
+.data-box .data-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.data-box .data-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.stash-prompt {
+  margin-top: 20px;
+}
+
