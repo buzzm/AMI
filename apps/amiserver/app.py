@@ -25,7 +25,8 @@ class AMIServer:
 
 
         # Ensure jena server is running....
-        self.jena_url = 'http://localhost:8080/query'
+        self.jena_url = 'http://localhost:5656/query'
+        
         self.jena_headers = {
             'Content-Type': 'application/sparql-query',  # or 'application/x-www-form-urlencoded'
             'Accept': 'application/json'  # Expecting JSON results

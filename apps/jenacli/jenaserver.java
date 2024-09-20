@@ -56,10 +56,11 @@ public class jenaserver {
             ds = DatasetFactory.create(mm);
 
             // HTTP Server setup
-            HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+	    int port = 5656;
+            HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
             server.createContext("/query", new QueryHandler());
             server.setExecutor(null); // Use the default executor
-            System.out.println("Server is listening on port 8080...");
+            System.out.println("Server is listening on port " + port);
             server.start();
 
         } catch (Exception e) {
