@@ -5,11 +5,10 @@ function App() {
   const [input, setInput] = useState('');       // User input
   const [narrative, setNarrative] = useState(''); // Narrative output
   const [sparql, setSparql] = useState('');     // SPARQL output
-  const [dataOutput, setDataOutput] = useState(''); // Data output
+  const [vars, setVars] = useState([]);         // Column headers for the data table
+  const [dataOutput, setDataOutput] = useState([]); // Data rows for the data table
   const [stashPrompt, setStashPrompt] = useState(false); // Prompt for stashing
-
-  // Variable to store the last rmsg received (for stashing)
-  const [lastRmsg, setLastRmsg] = useState(null);
+  const [lastRmsg, setLastRmsg] = useState(null); // Last response message for stashing
 
   const handleSubmit = async () => {
     try {
@@ -36,24 +35,20 @@ function App() {
       // No SPARQL generated; only narrative
       setNarrative(rmsg.narrative);
       setSparql('');  // Clear SPARQL box
-      setDataOutput('');  // Clear Data box
+      setVars([]);  // Clear table headers
+      setDataOutput([]);  // Clear Data rows
     } else {
       // SPARQL was generated
       setSparql(rmsg.narrative); // SPARQL comes back in narrative
       setNarrative('');  // Clear Narrative box
 
-      // Check if there is data generated
+      // Set headers (vars) and rows (data) for the table
+      setVars(rmsg.vars);  // Headers for the table
+
       if (rmsg.data.length > 0) {
-        // Clear data output and format it
-        let formattedVars = rmsg.vars.join(' | ');
-        let formattedData = rmsg.data.map((dd) => {
-          return Object.values(dd).join(' | ');
-        }).join('\n');
-        
-        // Set data output
-        setDataOutput(`${formattedVars}\n${formattedData}`);
+        setDataOutput(rmsg.data);  // Rows of data for the table
       } else {
-        setDataOutput('No data generated.');
+        setDataOutput([]);  // No data, but display headers
       }
 
       setStashPrompt(true);  // Prompt for stashing
@@ -83,6 +78,36 @@ function App() {
     setStashPrompt(false);
   };
 
+  // Render the dynamic table
+  const renderTable = () => {
+    return (
+      <table className="data-table">
+        <thead>
+          <tr>
+            {vars.map((header, index) => (
+              <th key={index}>{header}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {dataOutput.length > 0 ? (
+            dataOutput.map((row, rowIndex) => (
+              <tr key={rowIndex}>
+                {vars.map((header, colIndex) => (
+                  <td key={colIndex}>{row[header]}</td>
+                ))}
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={vars.length}>No data available</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    );
+  };
+
   return (
     <div className="App">
       <h1>AMI Query System</h1>
@@ -109,7 +134,7 @@ function App() {
 
         <div className="data-box">
           <h3>Data Output</h3>
-          <pre>{dataOutput}</pre>
+          {renderTable()}  {/* Render the dynamic table */}
         </div>
       </div>
 

@@ -19,7 +19,8 @@ themselves.
 """ .
 
 ami:Version a rdfs:Class ;
-	  rdfs:comment """
+    rdfs:label  "version" ;
+    rdfs:comment """
 Version is an abstraction that allows us to more precisely manage the
 version number and binary type for an entity.  For example, a single entity commonly
 known as "java" (and in fact so marked in AMI RDF as rdfs:label "java") will have many
@@ -311,6 +312,10 @@ platforms. """ ;
 #  Common properties for Software, Hardware, and Shape:
 #  
 ami:version a rdf:Property;
+    rdfs:label "version" ;
+    rdfs:comment """
+Major and minor release info plus more.  See Version class for more detail.    
+""" ;    
     rdfs:domain ami:Software, ami:Hardware, ami:Shape ;
     rdfs:range ami:Version.
 
@@ -321,6 +326,7 @@ ami:version a rdf:Property;
 ami:vendor a rdf:Property;
     rdfs:domain ami:Software, ami:Hardware;
     rdfs:range xsd:string.
+
 ami:EOL a rdf:Property;
     rdfs:domain ami:Software, ami:Hardware;
     rdfs:range xsd:dateTime;

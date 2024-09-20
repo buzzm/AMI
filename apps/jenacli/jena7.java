@@ -6,7 +6,26 @@ import com.sun.net.httpserver.HttpServer;
 
 import org.apache.jena.rdf.model.* ;
 
-import org.apache.jena.query.* ;
+//import org.apache.jena.query.* ;
+
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.QuerySolution;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.ResultSet;
+
+
+import org.apache.jena.sparql.algebra.Algebra;
+import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.OpVisitorBase;
+import org.apache.jena.sparql.algebra.op.OpFilter;
+import org.apache.jena.sparql.algebra.op.OpGroup;
+import org.apache.jena.sparql.algebra.op.OpProject;
+//import org.apache.jena.sparql.algebra.walker.OpWalker;
+import org.apache.jena.sparql.algebra.OpWalker;
 
 
 import java.net.URI;
@@ -63,14 +82,23 @@ public class jena7 {
 		
 		try {
 		    Query query = QueryFactory.create(queryString);
-		
-		    // System.out.println("query: " + query);
 
+
+		    analyze(query);
+
+		    
+		    // System.out.println("query: " + query);
+		    System.out.println("AAAA");
+			
 		    try (QueryExecution qexec = QueryExecutionFactory.create(query, ds)) {
 
-			//System.out.println("qexec: " + qexec);
+			System.out.println("BBBB qexec: " + qexec);
 
+			// Nothing happens until execSelect() is called.
+			// Then the underlying graph/find/mongodb machinery is invoked.
 			ResultSet results = qexec.execSelect() ;
+
+			System.out.println("CCCC");
 
 			List<String> vars = results.getResultVars();
 			System.out.println("vars:" + vars);
@@ -101,7 +129,32 @@ public class jena7 {
 	}
     }
 
+    private static void analyze(Query query) {
+	Op algebra = Algebra.compile(query);
 
+	// Use OpWalker to traverse the algebra and identify optimization points
+	OpWalker.walk(algebra, new OpVisitorBase() {
+		@Override
+		public void visit(OpFilter opFilter) {
+		    // Inspect filter conditions for pushdown to MongoDB
+		    System.out.println("Found filter: " + opFilter.getExprs());
+		}
+		
+		@Override
+		public void visit(OpGroup opGroup) {
+		    // Identify aggregation opportunities
+		    System.out.println("Found aggregation: " + opGroup.getAggregators());
+		}
+		
+		@Override
+		public void visit(OpProject opProject) {
+		    // Optimize projections
+		    System.out.println("Found projection: " + opProject.getVars());
+		}
+	    });
+    }
+	
+    
     private static void XXprocessOneSolution(QuerySolution soln) {
 	System.out.println(soln);
     }

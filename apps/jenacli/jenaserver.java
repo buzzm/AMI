@@ -164,7 +164,9 @@ public class jenaserver {
                     }
 
                 } catch (org.apache.jena.query.QueryParseException e) {
-                    System.out.println("Parse execution; continuing..."  + e);
+                    System.out.println("Parse exception");
+                    System.out.printf("INPUT [%s]\n", queryString);
+                    System.out.println("Exception: " + e);
 
 		    String msg = e.getMessage();
 		    int col = e.getColumn();

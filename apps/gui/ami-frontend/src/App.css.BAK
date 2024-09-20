@@ -5,37 +5,112 @@
 
 .input-box {
   margin: 20px;
+  display: flex;
+  justify-content: center;
 }
 
 textarea {
-  width: 80%;
+  width: 40%; /* Half the width */
   height: 100px;
 }
 
 button {
-  margin-top: 10px;
+  margin-left: 10px;
   padding: 10px 20px;
+  align-self: flex-start; /* Align the submit button to the top right of the input box */
 }
 
 .output-section {
   display: flex;
   justify-content: space-around;
   margin-top: 20px;
+  flex-wrap: wrap; /* Allow wrapping of elements for smaller screens */
 }
 
-.output-section .narrative-box,
-.output-section .sparql-box,
-.output-section .data-box {
+/* Narrative Box: label, word-wrap, no horizontal scroll */
+.output-section .narrative-box {
   width: 30%;
-  border: 1px solid #ddd;
   padding: 10px;
   background-color: #f9f9f9;
-  white-space: pre-wrap;
-  overflow-y: auto;
-  height: 200px;
 }
 
+.narrative-box .label {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.narrative-box .content {
+  border: 1px solid #ddd;
+  padding: 10px;
+  background-color: #fff;
+  max-height: 200px;
+  overflow-y: auto;
+  word-wrap: break-word; /* Ensure text wraps within the content box */
+  white-space: normal;   /* This forces the text to wrap inside the box */
+}
+
+/* SPARQL Box: label, word-wrap, horizontal scroll for long lines */
+.output-section .sparql-box {
+  width: 30%;
+  padding: 10px;
+  background-color: #f9f9f9;
+}
+
+.sparql-box .label {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.sparql-box .content {
+  border: 1px solid #ddd;
+  padding: 10px;
+  background-color: #fff;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap; /* Word-wrap the text */
+  overflow-x: auto; /* Allow horizontal scrolling for long lines */
+}
+
+/* Data Box: label, double height */
+.output-section .data-box {
+  width: 30%;
+  padding: 10px;
+  background-color: #f9f9f9;
+  overflow-y: auto;
+}
+
+.data-box .label {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.data-box .content {
+  border: 1px solid #ddd;
+  padding: 10px;
+  background-color: #fff;
+  max-height: 400px; /* Double the height */
+  overflow-y: auto; /* Enable vertical scrolling */
+}
+
+.data-box .data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-box .data-table th,
+.data-box .data-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.data-box .data-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+/* Stash Prompt: move under Data Table */
 .stash-prompt {
   margin-top: 20px;
+  padding: 10px;
 }
-
