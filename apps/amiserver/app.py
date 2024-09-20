@@ -34,6 +34,8 @@ class AMIServer:
         try:
             probe = 'SELECT (1 AS ?test) WHERE {}'
             rr = requests.post(self.jena_url, data=probe, headers=self.jena_headers)
+            print("jena server OK at", self.jena_url)
+                  
         except:
             msg = "jena server not running or parsing module broken"
             print("ERROR:",msg)
