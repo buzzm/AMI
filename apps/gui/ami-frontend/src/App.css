@@ -1,44 +1,47 @@
 .App {
-  text-align: center;
+    /*text-align: center;*/
   padding: 20px;
 }
 
-.input-box {
-  margin: 20px;
-  display: flex;
-  justify-content: center;
+h1 {
+  margin-bottom: 20px;
 }
 
-textarea {
-  width: 40%; /* Half the width */
+/* Row 1: Input Box and Submit Button */
+.input-section {
+/*  display: flex;*/
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.input-box {
+  width: 50%; /* Input box width */
   height: 100px;
 }
 
-button {
+.submit-button {
   margin-left: 10px;
   padding: 10px 20px;
-  align-self: flex-start; /* Align the submit button to the top right of the input box */
 }
 
+/* Row 2: Narrative and SPARQL output side by side */
 .output-section {
   display: flex;
-  justify-content: space-around;
-  margin-top: 20px;
-  flex-wrap: wrap; /* Allow wrapping of elements for smaller screens */
+  justify-content: space-between;
+  margin-bottom: 20px;
+  width: 90%; /* Make sure the container spans 90% of the screen */
+  margin: 0 auto; /* Center the container */
 }
 
-/* Narrative Box: label, word-wrap, no horizontal scroll */
-.output-section .narrative-box {
-  width: 30%;
-  padding: 10px;
-  background-color: #f9f9f9;
+.narrative-section, .sparql-section {
+    width: 45%; /* Narrative and SPARQL output take up 45% of the screen each */
+  height: 150px; /* Fixed height for both boxes */
+  display: flex;
+  flex-direction: column;
+
 }
 
-.narrative-box .label {
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
+/* Narrative Output Box */
 .narrative-box {
   border: 1px solid #ddd;
   padding: 10px;
@@ -46,74 +49,48 @@ button {
   height: 150px;
   overflow-y: auto; /* Enable vertical scrolling */
   overflow-x: auto; /* Enable horizontal scrolling */
-  white-space: pre-wrap; /* This ensures word wrapping but maintains new lines */
+  white-space: pre-wrap; /* Preserve line breaks and wrap text */
 }
 
-
-
-/* SPARQL Box: label, word-wrap, horizontal scroll for long lines */
-.output-section .sparql-box {
-  width: 30%;
-  padding: 10px;
-  background-color: #f9f9f9;
-}
-
-.sparql-box .label {
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
+/* SPARQL Output Box */
 .sparql-box pre {
   border: 1px solid #ddd;
   padding: 10px;
-  background-color: #fff;
-  max-height: 200px;
-  text-align: left;  
-  white-space: pre; 
-  overflow-x: auto; /* Allow horizontal scrolling for long lines */
-  overflow-y: auto; /* vert scroll */
-}
-
-/* Data Box: label, double height */
-.output-section .data-box {
-  width: 30%;
-  padding: 10px;
   background-color: #f9f9f9;
-  overflow-y: auto;
-}
-
-.data-box .label {
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.data-box .content {
-  border: 1px solid #ddd;
-  padding: 10px;
-  background-color: #fff;
-  max-height: 400px; /* Double the height */
+  height: 150px;
   overflow-y: auto; /* Enable vertical scrolling */
+  overflow-x: auto; /* Enable horizontal scrolling */
+  white-space: pre; /* Keep SPARQL preformatted */
 }
 
-.data-box .data-table {
+
+/* Row 3: Data Output Table */
+.data-section {
+  width: 90%; /* Data table section should take up 90% of the screen */
+  margin: 0 auto 20px auto; /* Center it and add some margin at the bottom */
+}
+
+.data-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.data-box .data-table th,
-.data-box .data-table td {
+.data-table th, .data-table td {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: left;
 }
 
-.data-box .data-table th {
+.data-table th {
   background-color: #f2f2f2;
   font-weight: bold;
 }
 
-/* Stash Prompt: move under Data Table */
+/* Row 4: Stash prompt */
 .stash-prompt {
   margin-top: 20px;
   padding: 10px;
+  width: 90%; /* Make sure it's also centered and aligned with other elements */
+  margin: 0 auto;
 }
+

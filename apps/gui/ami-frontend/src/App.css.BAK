@@ -39,19 +39,21 @@ button {
   margin-bottom: 10px;
 }
 
-.narrative-box .content {
+.narrative-box {
   border: 1px solid #ddd;
   padding: 10px;
-  background-color: #fff;
-  max-height: 200px;
-  overflow-y: auto;
-  word-wrap: break-word; /* Ensure text wraps within the content box */
-  white-space: normal;   /* This forces the text to wrap inside the box */
+  background-color: #f9f9f9;
+  height: 150px;
+  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-x: auto; /* Enable horizontal scrolling */
+  white-space: pre-wrap; /* This ensures word wrapping but maintains new lines */
 }
+
+
 
 /* SPARQL Box: label, word-wrap, horizontal scroll for long lines */
 .output-section .sparql-box {
-  width: 30%;
+  width: 20%;
   padding: 10px;
   background-color: #f9f9f9;
 }
@@ -61,14 +63,15 @@ button {
   margin-bottom: 10px;
 }
 
-.sparql-box .content {
+.sparql-box pre {
   border: 1px solid #ddd;
   padding: 10px;
   background-color: #fff;
   max-height: 200px;
-  overflow-y: auto;
-  white-space: pre-wrap; /* Word-wrap the text */
+  text-align: left;  
+  white-space: pre; 
   overflow-x: auto; /* Allow horizontal scrolling for long lines */
+  overflow-y: auto; /* vert scroll */
 }
 
 /* Data Box: label, double height */

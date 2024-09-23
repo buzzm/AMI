@@ -214,7 +214,7 @@ def main():
 
     
     server = AMIServer(rargs, config={'DEBUG': True})  # You can pass additional config here
-    server.run(port=5001)
+    server.run(host='0.0.0.0', port=5001)
 
     
 

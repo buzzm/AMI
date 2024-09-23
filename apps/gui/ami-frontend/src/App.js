@@ -131,12 +131,13 @@ function App() {
           <h3>SPARQL Output</h3>
           <pre>{sparql}</pre>
         </div>
-
-        <div className="data-box">
-          <h3>Data Output</h3>
-          {renderTable()}  {/* Render the dynamic table */}
-        </div>
       </div>
+	
+      <div className="data-box">
+        <h3>Data Output</h3>
+        {renderTable()}  {/* Render the dynamic table */}
+      </div>
+
 
       {stashPrompt && (
         <div className="stash-prompt">

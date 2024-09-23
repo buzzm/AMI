@@ -34,6 +34,6 @@ WHERE {
      OPTIONAL { ?version ami:bintype ?bintype . }
      OPTIONAL { ?version ami:released ?released . }
 
-     FILTER(?minor = 0)
+     FILTER(?minor = 0 || ?minor = 1 || ?major = 7)
      
 }
