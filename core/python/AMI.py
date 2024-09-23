@@ -246,6 +246,11 @@ line is not part of the metadata.
     it should be interpreted as 
         Show everything that depends on software instance ex:lib77
     
+ *  ALWAYS ASSUME that colon-prefixed identifiers e.g. 'ex:' and 'ami:'
+    are URIs, not literal strings.  For example, given the following question:
+        Show rdfs:comment for all Shapes
+    is a very strong signal to use a specific property "rdfs:comment".
+        
     
  *  DO rely on the "rdfs:label" property, if it exists, to provide a general identifier
     of a thing (software, hardware, component, etc.) without getting into details of

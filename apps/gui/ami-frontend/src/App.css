@@ -46,7 +46,7 @@ h1 {
   border: 1px solid #ddd;
   padding: 10px;
   background-color: #f9f9f9;
-  height: 150px;
+  height: 250px;
   overflow-y: auto; /* Enable vertical scrolling */
   overflow-x: auto; /* Enable horizontal scrolling */
   white-space: pre-wrap; /* Preserve line breaks and wrap text */
@@ -57,7 +57,7 @@ h1 {
   border: 1px solid #ddd;
   padding: 10px;
   background-color: #f9f9f9;
-  height: 150px;
+  height: 250px;
   overflow-y: auto; /* Enable vertical scrolling */
   overflow-x: auto; /* Enable horizontal scrolling */
   white-space: pre; /* Keep SPARQL preformatted */

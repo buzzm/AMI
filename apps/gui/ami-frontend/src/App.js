@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import './App.css';
 
 function App() {
+    //const targURL = process.env.REACT_APP_AMI_URL
+    const targURL = "http://localhost:5001"
+    
   const [input, setInput] = useState('');       // User input
   const [narrative, setNarrative] = useState(''); // Narrative output
   const [sparql, setSparql] = useState('');     // SPARQL output
@@ -12,7 +15,7 @@ function App() {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch('http://localhost:5001/query', {
+      const response = await fetch(targURL + '/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: input, systemSize: 'Simple' }),  // Example body
@@ -59,7 +62,7 @@ function App() {
   const handleStashResponse = async (answer) => {
     if (answer === 'yes' && lastRmsg) {
       try {
-        const stashResponse = await fetch('http://localhost:5001/stash', {
+        const stashResponse = await fetch(targURL + '/stash', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(lastRmsg),  // Send the last rmsg
@@ -111,7 +114,8 @@ function App() {
   return (
     <div className="App">
       <h1>AMI Query System</h1>
-
+	<a href="/help.html" className="help-link">Help</a>
+	
       <div className="input-box">
         <textarea
           value={input}
