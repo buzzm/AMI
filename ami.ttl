@@ -75,8 +75,6 @@ like libc.so, a tomcat .war file, a python module like pandas, a database
 engine like Oracle or MongoDB, or a message bus like Kafka.
 AMI is not a software development and versioning
 platform; therefore, it is not granular to individual source code files.
-An important property of Software is "implements" which declares the Software
-to have a particular Component as its interface.
 """ .
 
 ami:Hardware a rdfs:Class;
@@ -112,8 +110,8 @@ ami:Component a rdfs:Class;
     rdfs:subClassOf ami:Item ;
     rdfs:comment """
 A Component is an abstract description of a service that interacts with
-other components according to zero or more message exchange patterns.  A
-component does not specify software or hardware.  Components can name
+other components according to zero or more message exchange patterns.
+Components can name
 other components that they require to perform their function but do not
 name the components that connect to them; rather, they advertise their interface
 in terms of connection protocol, authentication, and data shapes consumed
@@ -375,20 +373,48 @@ Linux will have the same binary type x86_64.
 """ .
 
 
-ami:implements rdf:type rdf:Property ;
-               rdfs:domain ami:Software , ami:Hardware ;
-               rdfs:range ami:Component ;
-               rdfs:label "implements" ;
-               rdfs:comment """
-Optionally indicates the component i.e. the logical interface that this software
-implements.  Typically but not exclusively, this property exists on top-level
-executables like servlet subclasses, engines like message busses, etc.
-""" .
 
 
 #
 #  Component field defs
 #
+ami:entryPoint a rdf:Property ;
+               rdfs:domain ami:Component ;
+               rdfs:range ami:Software ;
+               rdfs:label "entry point" ;
+               rdfs:comment """
+Names the software that is effectively the "main()" function for this
+component.  This is the bridge between collections of components describing their
+interactions and the underlying software that actually runs it.
+
+The entryPoint is a critical property for answering questions like "What components
+use a piece of software?" and "What software is used by one or more components?"
+
+The entryPoint Software entity is not necessarily the executable that is running:
+ *  A Java program with a "main()" compiles to program.class. This is the
+    entryPoint even though the java runtime is the actual program running as
+    observed on a machine when an Instance is created.
+    
+ *  A Java servlet e.g. `class ecosServlet extends HttpServlet` compiles to
+    ecosServlet.class and this too is the entryPoint even though the java
+    runtime is running a tomcat container that will dynamically load and
+    transfer control to ecosServlet.class (i.e. twice indirected)
+    
+ *  A database engine e.g. postgres is actually a set of cooperating runtimes,
+    not a single executable so the entryPoint refers to the Software entity
+    that "summarizes" the postgres version, release and EOL dates, etc.  The
+    whole collection of execs, scripts, and configs is the unit of release as
+    noted in the definition of Software.
+    
+ *  A C program with a "main()" compiles to program.exe; this is the entryPoint.
+ 
+ *  A python or javascript script with a "main()" is not compiled at all. In
+    these cases, the script itself is the releasable Software unit and
+    is the entryPoint.
+
+
+""" .
+
 ami:listensFor rdf:type rdf:Property ;
                rdfs:domain ami:Component ;
                rdfs:range rdf:List ;  # Assuming the value is a structured list

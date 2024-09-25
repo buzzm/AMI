@@ -114,7 +114,6 @@ ex:program1   a ami:Software ;
 	      rdfs:label "report server";
 	      ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:bintype "jar" ];	      
 	      ami:swtype	"service" ;
-	      ami:implements	ex:service1 ;
 	      ami:linksWith	ex:lib1 ;
 	      ami:slang "java" ;
 	      ami:linksWith	ex:lib77 .
@@ -127,8 +126,7 @@ Calculates credit risk for instrument types A and B.
 """ ;
 	      ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:bintype "jar" ];	      
 	      ami:slang "java" ;
-	      ami:implements	ex:service1 ;
-	      ami:linksWith	ex:lib1 ;
+	      ami:linksWith	ex:lib2 ;
 	      ami:linksWith	ex:lib77 .
 
     
@@ -137,12 +135,6 @@ ex:software1 a ami:Software;
     rdfs:comment """
 The Oracle database engine.
 """;    
-	#  Ah....  Just like Properties have 1 or more classes,
-	#  Software can implement one or more Components!
-	#  Here we are saying Oracle is used as the component
-	#  for two different DBs:
-	ami:implements	ex:db1 ;
-	ami:implements	ex:db2 ;
 
       ami:swtype	"service" ;
       ami:vendor ex:oraclecorp ;
@@ -162,7 +154,6 @@ ex:mdbx a ami:Software;
     rdfs:comment """
 The MongoDB database engine.
 """;    
-	ami:implements	ex:db3 ;
 
      ami:slang "c++" ;
       ami:vendor ex:mongocorp ;
@@ -176,6 +167,27 @@ The MongoDB database engine.
     ami:swtype	"service" ;    
     ami:owner ex:actor1 ;
     ami:steward ex:actor1 .    
+
+
+ex:pgdbx a ami:Software;
+    rdfs:label "postgres";
+    rdfs:comment """
+The postgres database engine.
+""";    
+
+     ami:slang "c++" ;
+      ami:vendor ex:mongocorp ;
+    ami:version [ a ami:Version;
+        ami:major 16; ami:minor 3;
+	ami:released "2024-01-01T00:00:00Z"^^xsd:dateTime ;	
+        ami:bintype "arm64"; ami:platform "macOS"
+    ];
+    ami:EOL "2028-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+    
+    ami:swtype	"service" ;    
+    ami:owner ex:actor1 ;
+    ami:steward ex:actor1 .    
+
 
 ex:software2 a ami:Software;
     rdfs:label "java";
@@ -393,6 +405,8 @@ ex:service1	a    ami:Component ;
 		rdfs:comment """
 The risk service takes in requests to calculate things and returns the
 results.  It uses live market data.""" ;
+
+		ami:entryPoint	ex:program3 ;
 		
 		ami:listensFor	[
 		  ami:protocol 	ami:https ;
@@ -431,7 +445,10 @@ ex:service2  a    ami:Component ;
 		rdfs:label "instrument data service" ;
 		rdfs:comment """
 The instrument data service takes CUSIP, SEDOL, ISIN, BB, and GCID keys
-and returns richly structured data.""" ;		
+and returns richly structured data.""" ;
+
+		ami:entryPoint	ex:program2 ;
+		
 		ami:connectsTo    ex:service3 ;
 		ami:connectsTo    ex:db1 ;
 		ami:connectsTo    ex:db3 .		
@@ -445,9 +462,13 @@ The structured products service takes GCID keys
 and returns richly structured data for exotic structures.""" ;				
 	     ami:connectsTo    ex:db2 .
 
+
 ex:db1	       a    ami:Component ;
 	     	ami:owner ex:actor7 ;
 	     	ami:steward ex:actor7 ;
+
+	     	ami:entryPoint ex:software1 ;   # Oracle!
+		
 		rdfs:label "cash instrument database" ;
 		rdfs:comment """
 A database that holds cash instrument data like equities and bonds.""" .
@@ -458,6 +479,8 @@ ex:db2	       a    ami:Component ;
 	     	ami:steward ex:actor7 ;
 		rdfs:label "exotics database" ;
 
+	     	ami:entryPoint ex:software1 ;   # Oracle!
+		
 		#  Ah...  For databases we don't use a MEP because the
 		#  inbound is too wide open -- but we CAN expose
 		#  tables and collections as output!
@@ -476,6 +499,8 @@ A database optimized for storing richly structured data.""" .
 ex:db3	       a    ami:Component ;
 	     	ami:owner ex:actor7 ;
 	     	ami:steward ex:actor7 ;
+		ami:entryPoint ex:mdbx ;
+		
 		rdfs:label "portfolio database" ;
 		rdfs:comment """
 Global repo of position data.""" .
@@ -504,7 +529,7 @@ ex:program2   a ami:Software ;
 	ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:bintype "jar" ];
       ami:swtype	"service" ;    	
 	      rdfs:label "graphics server";
-	      ami:implements	ex:service1 ;
+
 	      ami:linksWith	ex:lib2 ;
 	      rdfs:comment """	      
 A web service to generate a variety of line, bar, and pie graphs in JPG, PNG, or
@@ -516,8 +541,7 @@ libraries, at the expense of performance due to data transmission over the netwo
 
 ex:foosvr   a ami:Software ;
 	      rdfs:label "foo server";
-      ami:swtype	"service" ;    		      
-	      ami:implements	ex:service3 ;
+            ami:swtype	"service" ;    		      
 	      ami:linksWith	ex:lib3 .	      
 
 

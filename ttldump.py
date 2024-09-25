@@ -18,6 +18,7 @@ def substitute_namespace(namespaces, candidate):
     return candidate
 
 def groom(text: str) -> str:
+
     # First, replace sequences of more than one '\n' with a newline character repeated as many times as there are '\n'
     text = re.sub(r'(\\n){2,}', lambda m: '\n' * (len(m.group(0)) // 2), text)
     
@@ -45,9 +46,9 @@ def cvtString(input_str):
         return value
     else:
         # (Optional...?  Do markdown interp of CR:
-        value = groom(input_str)
+        value = groom(input_str.strip('"'))
 
-        return value
+        return '"' + value + '"'
 
 
 def main():

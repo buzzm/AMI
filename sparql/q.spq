@@ -14,26 +14,30 @@ PREFIX exc: <http://moschetti.org/compliance#>
 PREFIX sh: <http://www.w3.org/ns/shacl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX ex: <http://example.com/ns#>
 
-SELECT ?vendorLabel ?softwareLabel ?major ?minor ?patch ?bintype ?released
+
+SELECT DISTINCT ?start ?end ?components
 WHERE {
-      ?software a ami:Software ;
-              ami:vendor ?vendor .
-     ?vendor rdfs:label ?vendorLabel .
-     FILTER(CONTAINS(LCASE(?vendorLabel), "oracle")) .
-     
-     ?software ami:vendor ?vendor ;
-     	       rdfs:label ?softwareLabel ;
-               ami:version ?version .
+  # Bind variable ?sw to the target piece of software
+       BIND(ex:lib4 AS ?sw)
 
-     ?version ami:major ?major ;
-	       
-     OPTIONAL { ?version ami:minor ?minor . }
-     OPTIONAL { ?version ami:patch ?patch . }
-     OPTIONAL { ?version ami:bintype ?bintype . }
-     OPTIONAL { ?version ami:released ?released . }
+# or perform a statement that populates `?sw` e.g.
+#       ?sw   a       ami:Software ;
+#	      ami:EOL ?eol .
+#       FILTER (YEAR(?eol) = 2026)
 
-     FILTER(?minor = 0 || ?minor = 1 || ?major = 7)
-     
+  {
+    ?start ami:linksWith ?sw .
+    BIND(?sw AS ?end)
+ }
+ UNION
+ {
+    ?start ami:linksWith ?intermediate .
+    ?intermediate ami:linksWith+ ?sw .
+    BIND(?intermediate AS ?end)
+ }
+
+ # "Rows" of ?start now have the upstream dependency graph.
+ # Simply find components where ami:entryPoint is a match!
+  ?components ami:entryPoint ?start .
 }

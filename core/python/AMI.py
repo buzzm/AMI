@@ -106,14 +106,12 @@ This an overall design summary of the AMI System:
 
  *  Components define interfaces and declare their dependencies with the
     "connectsTo" property whose value is another Component.  This is how a multi
-    component system can be built.  Components are an "abstract" representation
-    of functionality and data Shape flow but they do not define specific Software or
-    Hardware.
+    component system can be built.  
 
- *  A critical feature is that Software and Hardware may have a property "implements"
-    whose value is a Component.  This is what binds an abstract definition of a system
-    to the actual code and hardware that runs it.  Again, components do *NOT* define
-    their Software; instead, Software *implements* a Component.
+ *  A critical feature is that Components have a property "entryPoint"
+    whose value is a Software.  This is what binds an abstract definition of a system
+    to the actual code that runs it.  See "entryPoint" property definition for
+    more detail.
 
  *  A System is a named administrative "starting point" for a cooperating collection of
     Components e.g. the "Vacation Tracking System."  A System does not have to name
@@ -587,7 +585,7 @@ def main():
 
         candidate = aa.askAMI(qq)
 
-        url = 'http://localhost:8080/query'
+        url = 'http://localhost:5656/query'
         headers = {
             'Content-Type': 'application/sparql-query',  # or 'application/x-www-form-urlencoded'
             'Accept': 'application/json'  # Expecting JSON results

@@ -146,6 +146,38 @@ WHERE {
     
 }
 
+
+Get all components that depend on a piece of software.
+We must first find all upstream dependencies
+of software and then check to see if any components declare
+any one of those Software in the set to be an ami:entryPoint property.
+
+SELECT DISTINCT ?start ?end ?components
+WHERE {
+  # Bind variable ?sw to the target piece of software
+  BIND(ex:lib4 AS ?sw)
+
+# or perform a statement that populates `?sw` e.g.
+#       ?sw   a       ami:Software ;
+#	      ami:EOL ?eol .
+#       FILTER (YEAR(?eol) = 2026)
+
+  {
+    ?start ami:linksWith ?sw .
+    BIND(?sw AS ?end)
+ }
+ UNION
+ {
+    ?start ami:linksWith ?intermediate .
+    ?intermediate ami:linksWith+ ?sw .
+    BIND(?intermediate AS ?end)
+ }
+
+ # "Rows" of ?start now have the upstream dependency graph.
+ # Simply find components where ami:entryPoint is a match!
+  ?components ami:entryPoint ?start .
+}
+
 ---
 
 find all shapes that contain sensitive data
