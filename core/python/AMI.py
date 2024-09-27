@@ -228,103 +228,107 @@ line is not part of the metadata.
  *  DO NOT use the clause `?item a ami:Item` in the construction of any query.
 
  *  ABSOLUTELY DO NOT invent RDF predicates in your SPARQL responses.
-    All predicates MUST come from the supplied 'ami:','sh:', or 'exc:' prefixes.
-    If you cannot do so, you must ask for more information.
+    All predicates MUST come from the supplied 'ami:','sh:', 'exc:', or
+    'exr:' prefixes.  If you cannot do so, you must respond <CANNOT ANSWER>
 
- *  ASSUME that specific instance subjects and objects are in the 'ex:' namespace.
-    For example to find properties of system "system_001":
+ *  ASSUME that specific instance subjects and objects that you may use in your
+    construction of SPARQL are in the 'ex:' namespace.
+    For example to find properties of system 'system_001':
         SELECT *
         WHERE {
             ex:system_001 a ami:System .
         }
     
- *  ASSUME that unquoted identifiers entities imply URIs, not literal strings or
+ *  Colon-prefixed identifiers e.g. 'ex:myApp' and 'ami:EOL' and 'ex:lib3'
+    ARE ALWAYS URIs, not literal strings.  For example, given the
+    following question:
+        Show rdfs:comment for all Shapes
+    means use the specific property 'rdfs:comment' as part of your SPARQL
+    construction.
+    
+ *  ASSUME that quoted strings mean URIs, not literal strings or
     unbound variables.  For example, given the following question:
+        Show everything that depends on software "lib77"
+    it should be interpreted as 
+        Show everything that depends on software instance ex:lib77    
+
+ *  ASSUME that unquoted identifiers entities MIGHT imply URIs, not
+    literal strings or unbound variables.  For example, given the following question:
         Show everything that depends on software lib77
     it should be interpreted as 
         Show everything that depends on software instance ex:lib77
-    
- *  ALWAYS ASSUME that colon-prefixed identifiers e.g. 'ex:' and 'ami:'
-    are URIs, not literal strings.  For example, given the following question:
-        Show rdfs:comment for all Shapes
-    is a very strong signal to use a specific property "rdfs:comment".
-        
-    
- *  DO rely on the "rdfs:label" property, if it exists, to provide a general identifier
-    of a thing (software, hardware, component, etc.) without getting into details of
-    version.  For example, you will get questions like "Where do we use log4j?"; you
-    can use the "rdfs:label" property as a "tag" to help you identify the correct
-    properties and classes to use in the SPARQL statement.
 
- *  DO rely on the "rdfs:comment" property, if it exists, to provide very accurate
-    textual detail of a entity, which will help you associate the natural language
-    question with the correct properties and classes to use in the SPARQL statement.
+    
+ *  DO RELY on the 'rdfs:label' property as a general terse descriptor
+    of a software, hardware, component, or system instance.
 
- *  When presented with very broad questions like:
+ *  DO RELY on the 'rdfs:comment' property to provide very
+    accurate textual detail of a entity, which will help you associate the
+    question with the correct properties and classes to use in
+    the SPARQL statement.
+
+ *  ALWAYS use the 'rdfs:comment' property when presented with very broad
+    questions like:
         "What software is used for risk?"
         "Show me everything that makes graphics"
-    then DO identify keywords and filter against `rdfs:comment` as follows:
-        ?subject rdfs:comment ?comments ;
-        FILTER(REGEX(?comment, "keyword", "i"))
+        "What systems are used for machine parts inventory management?"
+    Improve your chances of a match by canonicalizing 'rdfs:comment' to
+    lowercase as follows (assuming ?comment is bound to 'rdfs:comment'):
+        FILTER(CONTAINS(LCASE(?comment), "keyword"))
 
     
- *  DO associate the noun "asset" with any of type "ami:Software", "ami:Hardware",
-    "ami:Shape" , "ami:Component", or "ami:System"
+ *  DO associate the noun "asset" with any of type 'ami:Software',
+    'ami:Hardware', 'ami:Shape' , 'ami:Component', or 'ami:System'
     
- *  DO associate the noun "software" with type "ami:Software"
- *  DO associate the noun "hardware" with type "ami:Hardware"    
- *  DO associate the phrase "depends on" in the context of software with the predicate "ami:linksWith"
- *  DO associate the phrase "depends on" in the context of components with the predicate "ami:connectsTo"
-
-
- *  DO associate the noun "system" ONLY with instances of type "ami:System".  In other
-    words, DO NOT consider the word "system" in other places especially names, labels,
-    and comments to suggest it is an "ami:System."
-
- *  DO interpret the noun "architecture" to mean the recursive component dependencies,
-    both up and down, for a particular system.
+ *  ALWAYS associate the noun "software" in a question with type "ami:Software"
+ *  ALWAYS associate the noun "hardware" in a question with type "ami:Hardware"
     
+ *  ALWAYS associate the phrase "depends on" in the context of software with the predicate "ami:linksWith"
+ *  ALWAYS associate the phrase "depends on" in the context of components with the predicate "ami:connectsTo"
 
- *  DO associate the phrase "responsible for" with "ami:owner".
-    Example: "Who is responsible for XYZ?" means "tell me the ami:owner of XYZ".
 
- *  DO associate the verb "manages" with "ami:owner" if "ami:owner" is known; otherwise,
-    associate it with "ami:steward".
-    Example: "Who manages XYZ?" means "tell me the ami:owner of XYZ".    
+ *  DO interpret the noun "architecture" to mean the recursive component
+    dependencies, both up and down, for a particular system.
+    
+ *  DO associate the phrase "responsible for" with BOTH properties 'ami:owner'
+    and 'ami:steward'.  Example:
+        "Who is responsible for XYZ?"
+    means
+        "Tell me the ami:owner and ami:steward of XYZ".
+
+ *  DO associate the terms "manages" with BOTH properties 'ami:owner'
+    and 'ami:steward'.  Example:
+        "Who manages component ABC?"
+    means
+        "Tell me the ami:owner and ami:steward of component ABC".    
 
 
  *  "Complexity" in the context of software is the number of
-    parent and/or child dependencies as recursively discovered via the "ami:linksWith"
-    predicate.
+    parent and/or child dependencies as recursively discovered via the
+    'ami:linksWith' predicate.
     
- *  "Complexity" in the context of hardware is the number of
-    parent and/or child dependencies as recursively discovered via the "ami:connectsTo"
-    predicate.
+ *  "Complexity" in the context of components is the number of
+    parent and/or child dependencies as recursively discovered via the
+    'ami:connectsTo' predicate.
     
  *  "Complexity in the context of data shapes is the
     depth of nested structures and arrays
 
- *  DO NOT return "ami:Actor" directly in query.  If an "ami:Actor" becomes a terminal
-    variable in a query, ALWAYS go one step further and extract the "rdfs:label" as
-    a substitution.  
-        ex:system_001  ami:owner  ?owner
-        ?owner rdfs:label ?name .
+ *  DO NOT return an 'ami:Actor' instance in query.  If an 'ami:Actor' instance
+    becomes a terminal variable in a query, ALWAYS go one step further and
+    extract the 'rdfs:label' for the name.  Example:
+        ex:system_001  ami:owner  ?owner  # do not stop here...
+        ?owner rdfs:label ?name .         # much more useful return
 
- *  ALWAYS use the "rdfs:label" when asked for owner name or steward name.
-    For example, to show owner of ex:system_001, DO NOT just create the SPARQL clause
+ *  ALWAYS use the 'rdfs:label' when asked for owner name or steward name.
+    For example, to show owner of 'ex:system_001', DO NOT just create the
+    SPARQL clause
         ex:system_001  ami:owner  ?owner
     but rather
         ex:system_001  ami:owner  ?owner
         ?owner rdfs:label ?name .
 
-
- *  DO perform recursive transitive closure on dependencies when asked for dependents
-    or complexity i.e. do not give just the first-level dependencies; walk the
-    "linksWith" or "connectsTo" values to produce a graph.
-
-
  *  ASSUME that the noun "catalog" means the complete set of data 
- *  ASSUME that unbounded questions like "How many vendors are there?" implies the complete set of data
 
 """ }
 
@@ -435,10 +439,16 @@ You will now be given %d blocks of input that describe the AMI system:
 
         blurb = """\
 I will now provide you with SPARQL snippets.
-A SPARQL snippet is a description of a goal or pattern followed by a SPARQL statement that
-achieves the goal.   You can use snippets to help you construct better responses for
-SPARQL generation.  Some snippets contain more than one goal-SPARQL pair because the
+A SPARQL snippet is a bullet list of brief descriptions of a goal or pattern,
+followed by explanatory narrative, then followed by a SPARQL statement that
+achieves the goal.  You can use snippets to help you construct better responses
+for SPARQL generation.  
+
+Some snippets contain more than one goal-SPARQL because the
 context is similar and therefore useful for you to interpret as a whole.
+Snippets with more than one goal-SPARQL will have a common theme that will
+reinforce certain common SPARQL design features.
+Goal-SPARQL are separated by a line starting with "----" for extra clarity.
         
 You WILL need to adapt the snippet to return the appropriate information in the context
 of the input question especially with respect to variable names and grouping.
@@ -462,7 +472,7 @@ Remember this snippet.
             recipe_lines = []
             for line in file:
                 # If we hit the separator, process the current recipe
-                if line.strip() == '---':
+                if line.strip() == '====':
                     # If recipe_lines has content, call foo with the accumulated recipe text
                     if recipe_lines:
                         nr += 1
@@ -585,7 +595,7 @@ def main():
 
         candidate = aa.askAMI(qq)
 
-        url = 'http://localhost:5656/query'
+        url = 'http://localhost:5656/sparql'
         headers = {
             'Content-Type': 'application/sparql-query',  # or 'application/x-www-form-urlencoded'
             'Accept': 'application/json'  # Expecting JSON results

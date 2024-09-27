@@ -7,6 +7,8 @@ import com.sun.net.httpserver.HttpServer;
 import org.apache.jena.rdf.model.* ;
 
 //import org.apache.jena.query.* ;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
@@ -21,11 +23,15 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVisitorBase;
+import org.apache.jena.sparql.algebra.OpWalker;
+
+import org.apache.jena.sparql.algebra.op.*;
+/*import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.algebra.op.OpFilter;
 import org.apache.jena.sparql.algebra.op.OpGroup;
 import org.apache.jena.sparql.algebra.op.OpProject;
 //import org.apache.jena.sparql.algebra.walker.OpWalker;
-import org.apache.jena.sparql.algebra.OpWalker;
+*/
 
 
 import java.net.URI;
@@ -84,21 +90,14 @@ public class jena7 {
 		    Query query = QueryFactory.create(queryString);
 
 
-		    analyze(query);
+		    //analyze(query);
 
 		    
 		    // System.out.println("query: " + query);
-		    System.out.println("AAAA");
-			
 		    try (QueryExecution qexec = QueryExecutionFactory.create(query, ds)) {
-
-			System.out.println("BBBB qexec: " + qexec);
-
 			// Nothing happens until execSelect() is called.
 			// Then the underlying graph/find/mongodb machinery is invoked.
 			ResultSet results = qexec.execSelect() ;
-
-			System.out.println("CCCC");
 
 			List<String> vars = results.getResultVars();
 			System.out.println("vars:" + vars);
@@ -132,26 +131,88 @@ public class jena7 {
     private static void analyze(Query query) {
 	Op algebra = Algebra.compile(query);
 
-	// Use OpWalker to traverse the algebra and identify optimization points
+	List sv = new ArrayList();
+	List sc = new ArrayList();
+	
 	OpWalker.walk(algebra, new OpVisitorBase() {
 		@Override
 		public void visit(OpFilter opFilter) {
-		    // Inspect filter conditions for pushdown to MongoDB
 		    System.out.println("Found filter: " + opFilter.getExprs());
 		}
-		
+
+		// Visit basic graph patterns (BGPs), which might contain multiple triples
 		@Override
-		public void visit(OpGroup opGroup) {
-		    // Identify aggregation opportunities
-		    System.out.println("Found aggregation: " + opGroup.getAggregators());
+		public void visit(OpBGP opBGP) {
+		    System.out.println("Visiting OpBGP");		    
+
+		    for (Triple triple : opBGP.getPattern().getList()) {
+			Node subject = triple.getSubject();
+			Node predicate = triple.getPredicate();
+			Node object = triple.getObject();
+
+			if (subject.isVariable()) {
+			    System.out.println("Subject variable: " + subject);
+			} else {
+			    System.out.println("Subject constant: " + subject);
+			}
+
+			if (predicate.isVariable()) {
+			    System.out.println("Predicate variable: " + predicate);
+			} else {
+			    System.out.println("Predicate constant: " + predicate);
+			}
+
+			if (object.isVariable()) {
+			    System.out.println("Object variable: " + object);
+			} else {
+			    System.out.println("Object constant: " + object);
+			}
+		    }
 		}
-		
+
+		// Optionally, handle other operations like joins or sequences
 		@Override
-		public void visit(OpProject opProject) {
-		    // Optimize projections
-		    System.out.println("Found projection: " + opProject.getVars());
+		public void visit(OpJoin opJoin) {
+		    System.out.println("Visiting join operation");
+		    opJoin.getLeft().visit(this);
+		    opJoin.getRight().visit(this);
+		}
+
+		@Override
+		public void visit(OpSequence opSequence) {
+		    System.out.println("Visiting sequence operation");
+		    for (Op op : opSequence.getElements()) {
+			op.visit(this);
+		    }
+		}
+
+		@Override
+		public void visit(OpUnion opUnion) {
+		    System.out.println("Visiting union operation");
+		    opUnion.getLeft().visit(this);
+		    opUnion.getRight().visit(this);
+		}
+
+		// Direct handling of individual triples, in case they're not part of a BGP
+		@Override
+		public void visit(OpTriple opTriple) {
+		    Triple triple = opTriple.getTriple();
+		    Node subject = triple.getSubject();
+		    Node predicate = triple.getPredicate();
+		    Node object = triple.getObject();
+
+		    if (subject.isVariable()) {
+			System.out.println("Subject variable: " + subject);
+		    }
+		    if (predicate.isVariable()) {
+			System.out.println("Predicate variable: " + predicate);
+		    }
+		    if (object.isVariable()) {
+			System.out.println("Object variable: " + object);
+		    }
 		}
 	    });
+
     }
 	
     

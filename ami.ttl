@@ -323,7 +323,7 @@ Major and minor release info plus more.  See Version class for more detail.
 
 ami:vendor a rdf:Property;
     rdfs:domain ami:Software, ami:Hardware;
-    rdfs:range xsd:string.
+    rdfs:range ami:Vendor .
 
 ami:EOL a rdf:Property;
     rdfs:domain ami:Software, ami:Hardware;

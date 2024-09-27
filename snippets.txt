@@ -1,5 +1,5 @@
+* Get version of software
 
-Get version of software, hardware, or shape.
 Version itself is a class and not particularly useful to me.
 If you intend to return a Version class, please expand to include its components
 as follows.   Note that version MUST contain a "major" number but properties
@@ -18,8 +18,9 @@ WHERE {
     OPTIONAL { ?version ami:released ?released }        
 }
 
+----
 
-Get all software of a certain bintype or binary type; in this example, "jar":
+* Get all software of a certain bintype or binary type
 
 SELECT ?software
 WHERE {
@@ -28,7 +29,9 @@ WHERE {
     ?version ami:bintype "jar" ;
 }
 
----
+====
+
+* Get name of vendor
 
 To find a vendor given a name, canonicalize the label to lowercase
 and use CONTAINS to find it anywhere in the name.  This may
@@ -43,10 +46,15 @@ WHERE {
      FILTER(CONTAINS(LCASE(?vendorLabel), "vendor name here")) .
 }
 
----
+====
 
-Given a system, get all component dependencies recursively ;
-Get all components for a system:
+* Given a system, get all component dependencies recursively
+* Get all components for a system
+
+This SPARQL takes full advantage of the '+' operator that instructs the
+query engine to recursively follow the ami:connectsTo property from instance
+to instance.
+It is a downstream dependency lookup.
 
 SELECT DISTINCT ?start ?end
 WHERE {
@@ -61,8 +69,15 @@ WHERE {
   }
 }
 
+----
 
-Given any component, get all upstream component dependencies recursively:
+* Given a component, get all upstream components
+* Get all upstream component dependencies recursively
+
+This SPARQL takes full advantage of the '+' operator that instructs the
+query engine to recursively follow the ami:connectsTo property from instance
+to instance.
+It is an upstream dependency lookup.
 
 SELECT DISTINCT  ?start ?end
 WHERE {
@@ -80,9 +95,10 @@ WHERE {
     }
 }
 
+----
 
-
-Given any component, find all systems that use it:
+* Given a component, find all systems that use it
+* Get all systems that, through dependency traversal, use a component
 
 SELECT  ?label ?dept ?desc 
 WHERE {
@@ -108,8 +124,10 @@ WHERE {
     	        ami:dept ?dept .
 }
 
+----
 
-Find all components:
+* Find all components
+* List all components
 
 SELECT ?label ?desc
 WHERE {
@@ -119,10 +137,15 @@ WHERE {
 }
 
 
----
+====
     
-Get all software that depends on a given piece of software
-Get all upstream dependencies of a given piece of software
+* Get all software that depends on a given piece of software
+* Get all upstream dependencies of a given piece of software
+
+This SPARQL takes full advantage of the '+' operator that instructs the
+query engine to recursively follow the ami:linkWith property from instance
+to instance.
+It is an upstream dependency lookup.
 
 SELECT DISTINCT ?start ?end
 WHERE {
@@ -146,8 +169,10 @@ WHERE {
     
 }
 
+----
 
-Get all components that depend on a piece of software.
+* Get all components that depend on a piece of software.
+
 We must first find all upstream dependencies
 of software and then check to see if any components declare
 any one of those Software in the set to be an ami:entryPoint property.
@@ -178,9 +203,60 @@ WHERE {
   ?components ami:entryPoint ?start .
 }
 
----
+----
 
-find all shapes that contain sensitive data
+* Get all system that depend on a piece of software.
+
+This takes the previous goal-SPARQL to the next level
+by finding upstream dependencies of components and checking to
+see if any are found in a system instance.
+
+SELECT DISTINCT ?system ?dept ?desc
+WHERE {
+    # Find software with "log4j" in the label
+    ?software a ami:Software ;
+              rdfs:label ?swLabel .
+    FILTER(CONTAINS(LCASE(?swLabel), "log4j"))
+
+    # Find all upstream dependencies of the software
+    {
+        ?start ami:linksWith ?software .
+        BIND(?software AS ?end)
+    } UNION {
+        ?start ami:linksWith ?intermediate .
+        ?intermediate ami:linksWith+ ?software .
+        BIND(?intermediate AS ?end)
+    }
+
+    # Find components that use any of the upstream dependencies as an entry point
+    ?components ami:entryPoint ?start .
+
+    # Find upstream dependencies of these components:
+    {
+      ?ss2 ami:connectsTo ?components .
+       BIND(?components AS ?ee2)
+    }
+    UNION
+    {
+      ?ss2 ami:connectsTo ?intermediate .
+      ?intermediate ami:connectsTo+ ?components .
+      BIND(?intermediate AS ?ee2)
+    }
+
+    # Find systems having 1 or more components from ?ss2:
+    ?system ami:components ?ss2 .
+
+    # Retrieve important properties of the system
+    ?system rdfs:label ?label ;
+            rdfs:comment ?desc ;
+            ami:dept ?dept .
+}
+
+
+====
+
+* Find all shapes that contain sensitive data
+
 
 SELECT DISTINCT ?shape
 WHERE {
@@ -202,9 +278,9 @@ WHERE {
            a ami:Shape .
 }
 
----
+----
 
-find all components that use shapes containing sensitive data in their MEPs
+* Find all components that use shapes containing sensitive data in their MEPs
 
 SELECT DISTINCT ?component ?mep ?shape
 WHERE {

@@ -1,8 +1,3 @@
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-
-PREFIX sh: <http://www.w3.org/ns/shacl#>
 
 # ami is the model, buzz is "my data"
 # Make sure the ami5 collection _id = SCHEME has a prefixes entry
@@ -12,32 +7,48 @@ PREFIX ex: <http://moschetti.org/buzz#>
 PREFIX exc: <http://moschetti.org/compliance#>
 
 PREFIX sh: <http://www.w3.org/ns/shacl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
+PREFIX xts: <http://xts.com/xts#>
 
-SELECT DISTINCT ?start ?end ?components
+SELECT DISTINCT ?system ?dept ?desc
 WHERE {
-  # Bind variable ?sw to the target piece of software
-       BIND(ex:lib4 AS ?sw)
+    # Find software with "log4j" in the label
+    ?software a ami:Software ;
+              rdfs:label ?swLabel .
+    FILTER(CONTAINS(LCASE(?swLabel), "log4j"))
 
-# or perform a statement that populates `?sw` e.g.
-#       ?sw   a       ami:Software ;
-#	      ami:EOL ?eol .
-#       FILTER (YEAR(?eol) = 2026)
+    # Find all upstream dependencies of the software
+    {
+        ?start ami:linksWith ?software .
+        BIND(?software AS ?end)
+    } UNION {
+        ?start ami:linksWith ?intermediate .
+        ?intermediate ami:linksWith+ ?software .
+        BIND(?intermediate AS ?end)
+    }
 
-  {
-    ?start ami:linksWith ?sw .
-    BIND(?sw AS ?end)
- }
- UNION
- {
-    ?start ami:linksWith ?intermediate .
-    ?intermediate ami:linksWith+ ?sw .
-    BIND(?intermediate AS ?end)
- }
+    # Find components that use any of the upstream dependencies as an entry point
+    ?components ami:entryPoint ?start .
 
- # "Rows" of ?start now have the upstream dependency graph.
- # Simply find components where ami:entryPoint is a match!
-  ?components ami:entryPoint ?start .
+    {
+      ?ss2 ami:connectsTo ?components .
+       BIND(?components AS ?ee2)
+    }
+    UNION
+    {
+      ?ss2 ami:connectsTo ?intermediate .
+      ?intermediate ami:connectsTo+ ?components .
+      BIND(?intermediate AS ?ee2)
+    }
+
+    # # Find systems that contain these components
+    ?system ami:components ?ss2 .
+
+    # Retrieve important properties of the system
+    ?system rdfs:label ?label ;
+            rdfs:comment ?desc ;
+            ami:dept ?dept .
 }

@@ -84,7 +84,6 @@ def cvtString(input_str):
         value = groom(value)
 
         if ':' in value:
-            print("safing", value)
             value = '!' + value   # JenaMongodbIOSchemeMode1
             
         return value
@@ -135,7 +134,7 @@ def main():
     if rargs.nodb:
         print("nodb mode")
     else:
-        print("connecting to",rargs.mongoconn,"...")
+        print("connecting to",rargs.mongoconn,rargs.coll,"...")
         client = pymongo.MongoClient(rargs.mongoconn)
         db = client.get_default_database()
         coll = db[rargs.coll]

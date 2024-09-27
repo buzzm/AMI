@@ -8,11 +8,15 @@
 @prefix exr: <http://moschetti.org/datarisk#> .
 @prefix exc: <http://moschetti.org/compliance#> .
 
+#  We depend on an external namespace of Software data!
+@prefix xts: <http://xts.com/xts#> .
+
+
 #  The foundation AMI namespace:
 @prefix ami: <http://moschetti.org/ami#> .
 
+#  Industry standards:
 @prefix sh: <http://www.w3.org/ns/shacl#> .
-
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -286,9 +290,15 @@ ex:lib4	a		ami:Software ;
       ami:swtype	"lib" ;
       ami:steward ex:actor9 ;
 	ami:owner ex:actor9 ;
-      ami:slang "java" ;	
+      ami:slang "java" ;
+
+      ami:linksWith	xts:slf4j ; # ah... external ref!
+
 	ami:vendor	ex:oss ;
 	ami:EOL		"2027-02-01T12:00:00.000Z"^^xsd:dateTime .
+
+
+
 
 ex:lib77	a		ami:Software ;
 	ami:version [ a ami:Version; ami:major 5; ami:minor 7; ami:bintype "jar" ];
@@ -516,7 +526,15 @@ Tracks current and historic thresholds and setting used to drive risk systems.""
 
 
 ex:otherApp  a    ami:Component ;
-	     ami:connectsTo	 ex:serviceX .
+	     	ami:owner ex:actor10 ;
+	     	ami:steward ex:actor10 ;
+	     ami:entryPoint	ex:program8 ;
+	      rdfs:label "Vacation System" ;
+	      rdfs:comment """	      
+Legacy mainframe program to track ONLY employee vacation time allotted and
+consumed.
+""" .
+
 ex:serviceX  a    ami:Component ;
 	     ami:connectsTo    ex:db2 .
 
@@ -539,6 +557,21 @@ libraries, at the expense of performance due to data transmission over the netwo
 """ .
 
 
+ex:program8   a ami:Software ;
+		ami:steward ex:actor10 ;
+		ami:owner ex:actor10 ;
+	ami:version [ a ami:Version; ami:major 23; ami:minor 9; ami:bintype "x390" ];
+      ami:swtype	"app" ;    	
+	      ami:slang "cobol" ;
+	      rdfs:label "HR Vacation system";
+	      rdfs:comment """
+Strict x3270 emulation required.  Was part of series of COBOL programs that
+avoided link issues by build all dependencies into a single compilable and
+releasable unit hence it has no links.
+""" .    				
+
+
+
 ex:foosvr   a ami:Software ;
 	      rdfs:label "foo server";
             ami:swtype	"service" ;    		      
@@ -551,21 +584,23 @@ ex:foosvr   a ami:Software ;
 ex:system_001	a	ami:System ;
 		ami:owner ex:actor9 ;
 		ami:steward ex:actor9 ;
-		rdfs:label "Glue System";
+		ami:macrotype "distributed" ;		
+		rdfs:label "Bond System";
 			ami:dept	"ABC" ;
-		ami:components  ex:myApp, ex:myApp2 ;
+		ami:components  ex:myApp ;
 		rdfs:comment """
-This system computes amount of glue needed to bind things together.
+User application to create and manage bonds.
 """ .    		
 
 ex:system_002	a	ami:System ;
-		rdfs:label "Bond System";
+		rdfs:label "Bond System (full)";
 		ami:owner ex:actor9 ;
 		ami:steward ex:actor9 ;
+		ami:macrotype "distributed" ;				
 		ami:dept	"ABC" ;
 		ami:components  ex:myApp, ex:myApp2 ;
 		rdfs:comment """
-This system does almost the same thing as ex:system_001.
+All applications relating to the Bond System.
 """ .    				
 
 ex:system_003	a	ami:System ;
@@ -575,9 +610,10 @@ ex:system_003	a	ami:System ;
 		ami:macrotype "mainframe" ;
 		ami:dept	"HR" ;
 		ami:components  ex:otherApp ;
-		rdfs:comment """
-A vacation tracker system.
-""" .    				
+	      rdfs:comment """	      
+Legacy mainframe program to track ONLY employee vacation time allotted and
+consumed.  
+""" .
 
 
 #
