@@ -294,13 +294,13 @@ line is not part of the metadata.
     and 'ami:steward'.  Example:
         "Who is responsible for XYZ?"
     means
-        "Tell me the ami:owner and ami:steward of XYZ".
+        "Tell me the ami:owner name and ami:steward name of XYZ".
 
  *  DO associate the terms "manages" with BOTH properties 'ami:owner'
     and 'ami:steward'.  Example:
         "Who manages component ABC?"
     means
-        "Tell me the ami:owner and ami:steward of component ABC".    
+        "Tell me the ami:owner name and ami:steward name of XYZ".    
 
 
  *  "Complexity" in the context of software is the number of

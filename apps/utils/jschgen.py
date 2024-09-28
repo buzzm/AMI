@@ -22,6 +22,7 @@ faker = Faker()
 
 # Namespaces
 SH = rdflib.Namespace("http://www.w3.org/ns/shacl#")
+RDFS = rdflib.Namespace("http://www.w3.org/2000/01/rdf-schema#")
 EX = rdflib.Namespace("http://example.org/ex#")
 
 def parse_rdf_file(rdf_file):
@@ -49,7 +50,8 @@ def shacl_to_jsonschema(graph, shape):
         path = graph.value(prop, SH.path)
         datatype = graph.value(prop, SH.datatype)
         node = graph.value(prop, SH.node)
-        
+        comment = graph.value(prop, RDFS.comment)
+
         property_name = path.split("#")[-1] if isinstance(path, rdflib.URIRef) else str(path)
 
         # Handle nested node shapes recursively
@@ -58,7 +60,11 @@ def shacl_to_jsonschema(graph, shape):
         else:
             # Handle datatype mapping
             schema["properties"][property_name] = map_shacl_datatype_to_jsonschema(datatype)
+            if comment is not None:
+                schema["properties"][property_name]['description'] = comment
+                
             schema["required"].append(property_name)
+
     
     return schema
 

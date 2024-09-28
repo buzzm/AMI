@@ -278,7 +278,7 @@ ex:lib3	a		ami:Software ;
 	rdfs:comment "Extremely popular logging framework for Java" ;	
       ami:swtype	"lib" ;
       ami:steward ex:actor2 ;
-	ami:owner ex:actor2 ;		
+	ami:owner ex:actor44 ;		
       ami:slang "java" ;
       ami:vendor	ex:oss ;
 	ami:EOL		"2026-02-01T12:00:00.000Z"^^xsd:dateTime .
@@ -289,7 +289,7 @@ ex:lib4	a		ami:Software ;
 	rdfs:comment "Extremely popular logging framework for Java" ;		
       ami:swtype	"lib" ;
       ami:steward ex:actor9 ;
-	ami:owner ex:actor9 ;
+	ami:owner ex:actor44 ;
       ami:slang "java" ;
 
       ami:linksWith	xts:slf4j ; # ah... external ref!
@@ -659,6 +659,7 @@ Describes a polymorphic instrument shape.
                         sh:path ex:first ;
                         sh:datatype xsd:string ;
 			ex:sensitivity  2  ;
+			rdfs:comment  "a deeper nested comment"
 		    ] ;
                     sh:property [
                         sh:path ex:last ;

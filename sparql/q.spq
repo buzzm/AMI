@@ -13,42 +13,29 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 PREFIX xts: <http://xts.com/xts#>
 
-SELECT DISTINCT ?system ?dept ?desc
-WHERE {
-    # Find software with "log4j" in the label
-    ?software a ami:Software ;
-              rdfs:label ?swLabel .
-    FILTER(CONTAINS(LCASE(?swLabel), "log4j"))
-
-    # Find all upstream dependencies of the software
-    {
-        ?start ami:linksWith ?software .
-        BIND(?software AS ?end)
-    } UNION {
-        ?start ami:linksWith ?intermediate .
-        ?intermediate ami:linksWith+ ?software .
-        BIND(?intermediate AS ?end)
-    }
-
-    # Find components that use any of the upstream dependencies as an entry point
-    ?components ami:entryPoint ?start .
-
-    {
-      ?ss2 ami:connectsTo ?components .
-       BIND(?components AS ?ee2)
-    }
+SELECT * WHERE {
+       {
+       ?shape a sh:NodeShape ;
+           rdfs:comment ?comment .
+  }
     UNION
     {
-      ?ss2 ami:connectsTo ?intermediate .
-      ?intermediate ami:connectsTo+ ?components .
-      BIND(?intermediate AS ?ee2)
+        ?shape a sh:NodeShape ;
+               sh:property/sh:node ?nestedNode .
+        ?nestedNode rdfs:comment ?comment .
+    }
+  
+    UNION
+    {
+        ?shape a sh:NodeShape ;
+               sh:property/sh:node/sh:property/sh:node ?deepNode .
+        ?deepNode rdfs:comment ?comment .
     }
 
-    # # Find systems that contain these components
-    ?system ami:components ?ss2 .
-
-    # Retrieve important properties of the system
-    ?system rdfs:label ?label ;
-            rdfs:comment ?desc ;
-            ami:dept ?dept .
+    UNION
+    {
+        ?shape a sh:NodeShape ;
+               sh:property/sh:node/sh:property/sh:node/sh:property/sh:node ?deeperNode .
+        ?deeperNode rdfs:comment ?comment .
+    }
 }

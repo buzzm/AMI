@@ -252,6 +252,22 @@ WHERE {
             ami:dept ?dept .
 }
 
+====
+
+* Get owner and steward names.
+* Who is responsible for ...
+* Who manages for ...
+
+Questions will often not be specific about whether they seek the
+ami:owner name or the ami:steward name.  Although technically both
+are required properties for virtually every AMI type, sometimes one or both
+might be missing.  This is a good SPARQL query to fetch them:
+
+SELECT ?owner 
+WHERE {
+      ?item ami:owner ?owner .
+      ?owner rfds:label owner .
+}
 
 ====
 
