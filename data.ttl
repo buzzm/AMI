@@ -1,5 +1,5 @@
 #  Our instance namespace:
-@prefix ex: <http://moschetti.org/buzz#> .
+@prefix dd: <http://moschetti.org/buzz#> .
 
 #  The namespace for predicates, classes, and properties bespoke
 #  to my environment.  The ami: namespace is off-limits and it is
@@ -29,100 +29,108 @@
 #  TBD:  Maybe Actors also need Item to pick up owner, steward, etc...
 #
 
-ex:actor1 a ami:Actor;
+dd:actor1 a ami:Actor;
     rdfs:label "Steve Austin" ;
+    rdfs:comment "Steve Austin" ;    
     ami:salary   "10.09"^^xsd:decimal ;	
     ami:DID "A123" ;
     ami:firstname "Steve" ;
     ami:lastname "Austin" .
     
 
-ex:actor2 a ami:Actor;
+dd:actor2 a ami:Actor;
     rdfs:label "Dave Spector" ;
+    rdfs:comment "Dave Spector" ;    
     ami:DID "A456" ;
     ami:firstname "Dave" ;
     ami:lastname "Spector" .
 
 
-ex:actorSys a ami:Actor;
+dd:actorSys a ami:Actor;
     rdfs:label "System Daemon 7" ;
+    rdfs:comment "System Daemon 7" ;    
     ami:DID "S7" .
 
-ex:actor7 a ami:Actor;
+dd:actor7 a ami:Actor;
     rdfs:label "Linda Shaw" ;
+    rdfs:comment "Linda Shaw" ;    
     ami:DID "A86" ;
     ami:firstname "Linda" ;
     ami:lastname "Shaw" .
 
-ex:actor9 a ami:Actor;
+dd:actor9 a ami:Actor;
     rdfs:label "Druce Vertes" ;
+    rdfs:comment "Druce Vertes" ;    
     ami:DID "A999" ;
     ami:firstname "Druce" ;
     ami:lastname "Vertes" .    
 
-ex:actor10 a ami:Actor;
+dd:actor10 a ami:Actor;
     rdfs:label "Jane Doe" ;
+    rdfs:comment "Jane Doe" ;    
     ami:DID "B87" ;
     ami:firstname "Jane" ;
     ami:lastname "Doe" .
 
-ex:actor44 a ami:Actor;
+dd:actor44 a ami:Actor;
     rdfs:label "Marsha Brady" ;
+    rdfs:comment "Marsha Brady" ;    
     ami:DID "X0098" ;
     ami:firstname "Marsha" ;
     ami:lastname "Brady" .
 
-ex:actor441 a ami:Actor;
-    rdfs:label "Jan Brady" ;
+dd:actor55 a ami:Actor;
+    rdfs:label "Robert Plant" ;
+    rdfs:comment "Robert Plant" ;    
     ami:DID "X0298" ;
-    ami:firstname "Jan" ;
-    ami:lastname "Brady" .
+    ami:firstname "Robert" ;
+    ami:lastname "Plant" .
 
-ex:oraclecorp	    a ami:Vendor ;
-		    ami:owner ex:actor44 ;
+dd:oraclecorp	    a ami:Vendor ;
+		    ami:owner dd:actor44 ;
 		    ami:LEI "C003" ;
 		    rdfs:label "Oracle Corp" ;
 		    rdfs:comment "The spawn of Larry Elison" .		    
 
-ex:mscorp	    a ami:Vendor ;
-		    ami:owner ex:actor44 ;
+dd:mscorp	    a ami:Vendor ;
+		    ami:owner dd:actor44 ;
 		    ami:LEI "C002" ;
 		    rdfs:label "Microsoft Corp" ;
 		    rdfs:comment "The spawn of Bill Gates" .
 
-ex:internal	    a ami:Vendor ;
-		    ami:owner ex:actor44 ;
+dd:internal	    a ami:Vendor ;
+		    ami:owner dd:actor44 ;
 		    rdfs:label "*internal development*" ;
 		    rdfs:comment "All internal produced software" .
 
 
-ex:mtech	    a ami:Vendor ;
-		    ami:owner ex:actor44 ;
+dd:mtech	    a ami:Vendor ;
+		    ami:owner dd:actor44 ;
 		    ami:LEI "C765" ;
 		    rdfs:label "Moschetti LLC" ;
 		    rdfs:comment "The spawn of Buzz" .
 		    
-ex:oss		    a ami:Vendor ;
-		    ami:owner ex:actor441 ;
+dd:oss		    a ami:Vendor ;
+		    ami:owner dd:actor55 ;
 		    rdfs:label "open source" ;
 		    rdfs:comment "Unspecified open source code" .
 		    
-ex:mongocorp	    a ami:Vendor ;
-		    ami:owner ex:actor441 ;
+dd:mongocorp	    a ami:Vendor ;
+		    ami:owner dd:actor55 ;  # Robert Plant
 		    ami:LEI "C265" ;
 		    rdfs:label "MongoDB Inc" ;
 		    rdfs:comment "The spawn of Dwight and Eliot" .
 		    
 
-ex:program1   a ami:Software ;
+dd:program1   a ami:Software ;
 	      rdfs:label "report server";
 	      ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:bintype "jar" ];	      
 	      ami:swtype	"service" ;
-	      ami:linksWith	ex:lib1 ;
+	      ami:linksWith	dd:lib1 ;
 	      ami:slang "java" ;
-	      ami:linksWith	ex:lib77 .
+	      ami:linksWith	dd:lib77 .
 
-ex:program3   a ami:Software ;
+dd:program3   a ami:Software ;
 	      rdfs:label "risk calculator";
 	      ami:swtype	"service" ;	      
 	      rdfs:comment """
@@ -130,18 +138,18 @@ Calculates credit risk for instrument types A and B.
 """ ;
 	      ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:bintype "jar" ];	      
 	      ami:slang "java" ;
-	      ami:linksWith	ex:lib2 ;
-	      ami:linksWith	ex:lib77 .
+	      ami:linksWith	dd:lib2 ;
+	      ami:linksWith	dd:lib77 .
 
     
-ex:software1 a ami:Software;
+dd:software1 a ami:Software;
     rdfs:label "Oracle";
     rdfs:comment """
 The Oracle database engine.
 """;    
 
       ami:swtype	"service" ;
-      ami:vendor ex:oraclecorp ;
+      ami:vendor dd:oraclecorp ;
 
       ami:version [ a ami:Version;
           ami:major 12; ami:minor 0;
@@ -150,17 +158,17 @@ The Oracle database engine.
       ];
 
     ami:EOL "2023-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;    
-    ami:owner ex:actor1 ;
-    ami:steward ex:actor1 .
+    ami:owner dd:actor1 ;
+    ami:steward dd:actor1 .
 
-ex:mdbx a ami:Software;
+dd:mdbx a ami:Software;
     rdfs:label "MongoDB";
     rdfs:comment """
 The MongoDB database engine.
 """;    
 
      ami:slang "c++" ;
-      ami:vendor ex:mongocorp ;
+      ami:vendor dd:mongocorp ;
     ami:version [ a ami:Version;
         ami:major 7; ami:minor 0;
 	ami:released "2022-01-01T00:00:00Z"^^xsd:dateTime ;	
@@ -169,18 +177,18 @@ The MongoDB database engine.
     ami:EOL "2025-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
     
     ami:swtype	"service" ;    
-    ami:owner ex:actor1 ;
-    ami:steward ex:actor1 .    
+    ami:owner dd:actor1 ;
+    ami:steward dd:actor1 .    
 
 
-ex:pgdbx a ami:Software;
+dd:pgdbx a ami:Software;
     rdfs:label "postgres";
     rdfs:comment """
 The postgres database engine.
 """;    
 
      ami:slang "c++" ;
-      ami:vendor ex:mongocorp ;
+      ami:vendor dd:mongocorp ;
     ami:version [ a ami:Version;
         ami:major 16; ami:minor 3;
 	ami:released "2024-01-01T00:00:00Z"^^xsd:dateTime ;	
@@ -189,36 +197,36 @@ The postgres database engine.
     ami:EOL "2028-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
     
     ami:swtype	"service" ;    
-    ami:owner ex:actor1 ;
-    ami:steward ex:actor1 .    
+    ami:owner dd:actor1 ;
+    ami:steward dd:actor1 .    
 
 
-ex:software2 a ami:Software;
+dd:software2 a ami:Software;
     rdfs:label "java";
-    ami:vendor ex:oraclecorp ;
+    ami:vendor dd:oraclecorp ;
     ami:version [ a ami:Version; ami:major 17; ami:minor 0; ami:patch 11;
       		  ami:released "2021-01-01T00:00:00Z"^^xsd:dateTime ;          
                   ami:bintype "arm64"; ami:platform "macOS" ];
     ami:EOL "2028-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
       ami:swtype	"exec" ;
-      ami:owner ex:actor1 ;
-    ami:steward ex:actor1.
+      ami:owner dd:actor1 ;
+    ami:steward dd:actor1.
 
-ex:software22 a ami:Software;
+dd:software22 a ami:Software;
     rdfs:label "java";
-    ami:vendor ex:oraclecorp ;
+    ami:vendor dd:oraclecorp ;
       ami:swtype	"exec" ;    
     ami:version [ a ami:Version; ami:major 8; ami:minor 2; ami:patch 3;
       		  ami:released "2006-01-01T00:00:00Z"^^xsd:dateTime ;
                   ami:bintype "x86_64"; ami:platform "ubuntu" ];
     ami:EOL "2020-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
-    ami:owner ex:actor1 ;
-    ami:steward ex:actor1.    
+    ami:owner dd:actor1 ;
+    ami:steward dd:actor1.    
 
 
-ex:software3 a ami:Software;
+dd:software3 a ami:Software;
     rdfs:label "susynct";
-    ami:vendor ex:mtech ;
+    ami:vendor dd:mtech ;
       ami:swtype	"app" ;    
     ami:version [ a ami:Version;
          ami:major 1; ami:minor 0;
@@ -227,47 +235,47 @@ ex:software3 a ami:Software;
 	 ];
     ami:EOL "2027-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
 
-#    ami:corn "{\"key\": [\"foo\",12, {\"$numberDecimal\": \"12.09\"} ] }"^^ex:json  ;
+#    ami:corn "{\"key\": [\"foo\",12, {\"$numberDecimal\": \"12.09\"} ] }"^^dd:json  ;
      ami:slang "python" ;
-     ami:owner ex:actor2 ;
-    ami:steward ex:actor2 .
+     ami:owner dd:actor2 ;
+    ami:steward dd:actor2 .
 
 
-ex:software4 a ami:Software;
+dd:software4 a ami:Software;
     rdfs:label "AMI";
       ami:swtype	"app" ;        
-    ami:vendor ex:mtech ;
+    ami:vendor dd:mtech ;
     ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:bintype "python" ];
     ami:EOL "2026-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
-    ami:steward ex:actor2 ;
-    ami:owner ex:actor2 .    
+    ami:steward dd:actor2 ;
+    ami:owner dd:actor2 .    
 
-ex:lib1	a		ami:Software ;
+dd:lib1	a		ami:Software ;
 	rdfs:label "google-guava";
 	rdfs:comment """
 Guava is a set of core Java libraries from Google that includes new collection types (such as multimap and multiset), immutable collections, a graph library, and utilities for concurrency, I/O, hashing, primitives, strings, and more.
 """ ;
 	ami:version [ a ami:Version; ami:major 7; ami:minor 6; ami:bintype "jar" ];	
       ami:swtype	"lib" ;    
-      ami:steward ex:actor2 ;
-	ami:owner ex:actor2 ;
+      ami:steward dd:actor2 ;
+	ami:owner dd:actor2 ;
       ami:slang "java" ;
-	ami:vendor	ex:oss ;
+	ami:vendor	dd:oss ;
 	ami:EOL		"2024-08-02T14:00:57.478Z"^^xsd:dateTime .
 
     
-ex:lib2	a		ami:Software ;
+dd:lib2	a		ami:Software ;
 	rdfs:label "common-collections";
 	ami:version [ a ami:Version; ami:major 22; ami:minor 1; ami:bintype "jar" ];
       ami:swtype	"lib" ;
-      ami:steward ex:actor2 ;
-	ami:owner ex:actor2 ;
+      ami:steward dd:actor2 ;
+	ami:owner dd:actor2 ;
       ami:slang "java" ;	
-	ami:vendor	ex:oss ;
-        ami:linksWith	ex:lib4 ;	
+	ami:vendor	dd:oss ;
+        ami:linksWith	dd:lib4 ;	
 	ami:EOL		"2026-08-02T14:00:57.478Z"^^xsd:dateTime .
 
-ex:lib3	a		ami:Software ;
+dd:lib3	a		ami:Software ;
 	ami:version [ a ami:Version;
 		    ami:major 1; ami:minor 0; ami:patch 0;
 		    ami:bintype "jar" ;
@@ -277,219 +285,267 @@ ex:lib3	a		ami:Software ;
 	rdfs:label "log4j";
 	rdfs:comment "Extremely popular logging framework for Java" ;	
       ami:swtype	"lib" ;
-      ami:steward ex:actor2 ;
-	ami:owner ex:actor44 ;		
+      ami:steward dd:actor2 ;
+	ami:owner dd:actor44 ;		
       ami:slang "java" ;
-      ami:vendor	ex:oss ;
+      ami:vendor	dd:oss ;
 	ami:EOL		"2026-02-01T12:00:00.000Z"^^xsd:dateTime .
 
-ex:lib4	a		ami:Software ;
+dd:lib4	a		ami:Software ;
 	ami:version [ a ami:Version; ami:major 2; ami:minor 8; ami:bintype "jar" ];
 	rdfs:label "log4j";
 	rdfs:comment "Extremely popular logging framework for Java" ;		
       ami:swtype	"lib" ;
-      ami:steward ex:actor9 ;
-	ami:owner ex:actor44 ;
+      ami:steward dd:actor9 ;
+	ami:owner dd:actor44 ;
       ami:slang "java" ;
 
       ami:linksWith	xts:slf4j ; # ah... external ref!
 
-	ami:vendor	ex:oss ;
+	ami:vendor	dd:oss ;
 	ami:EOL		"2027-02-01T12:00:00.000Z"^^xsd:dateTime .
 
 
+dd:bson1	a		ami:Software ;
+	ami:version [ a ami:Version; ami:major 4; ami:minor 9; ami:bintype "jar" ];
+	rdfs:label "bson";
+	rdfs:comment "BSON SDK for Java" ;		
+      ami:swtype	"lib" ;
+      ami:steward dd:actor9 ;
+	ami:owner dd:actor44 ;
+      ami:slang "java" ;
+
+      ami:linksWith	xts:slf4j ; # ah... external ref!
+
+	ami:vendor	dd:mongocorp ;
+	ami:EOL		"2028-02-01T12:00:00.000Z"^^xsd:dateTime .
 
 
-ex:lib77	a		ami:Software ;
+dd:bson2	a		ami:Software ;
+	ami:version [ a ami:Version; ami:major 3; ami:minor 11; ami:bintype "jar" ];
+	rdfs:label "bson";
+	rdfs:comment "BSON SDK for Java" ;		
+      ami:swtype	"lib" ;
+      ami:steward dd:actor9 ;
+	ami:owner dd:actor44 ;  # Marsha
+      ami:slang "java" ;
+
+      ami:linksWith	xts:slf4j , xts:slf4japi, xts:a35e ;
+
+	ami:vendor	dd:mongocorp ;
+	ami:EOL		"2020-02-01T12:00:00.000Z"^^xsd:dateTime .
+
+
+
+
+dd:lib77	a		ami:Software ;
 	ami:version [ a ami:Version; ami:major 5; ami:minor 7; ami:bintype "jar" ];
 	rdfs:label "jackson";
 	rdfs:comment "Extremely popular XML parser for Java" ;		
       ami:swtype	"lib" ;
-      ami:owner ex:actor9 ;
-	ami:steward ex:actor9 ;	
+      ami:owner dd:actor9 ;
+	ami:steward dd:actor9 ;	
       ami:slang "java" ;
-      ami:linksWith	ex:lib88 ;
+      ami:linksWith	dd:lib88 ;
 	ami:EOL		"2027-02-01T12:00:00.000Z"^^xsd:dateTime .	
 
-ex:lib88	a		ami:Software ;
+dd:lib88	a		ami:Software ;
 	ami:version [ a ami:Version; ami:major 2; ami:minor 2; ami:bintype "jar" ];
 	rdfs:label "jackson-bind";
       ami:swtype	"lib" ;
-      ami:owner ex:actor9 ;
+      ami:owner dd:actor9 ;
       ami:slang "java" ;
-      ami:steward ex:actor9 ;		
-	ami:linksWith	ex:libMongo1 .
+      ami:steward dd:actor9 ;		
+	ami:linksWith	dd:libMongo1 .
 
-ex:libMongo1	a		ami:Software ;
+dd:libMongo1	a		ami:Software ;
 	ami:version [ a ami:Version; ami:major 4; ami:minor 9; ami:bintype "jar" ];
 	rdfs:label "mongodb client SDK";
       ami:swtype	"lib" ;
-      ami:owner ex:actor9 ;
-      ami:steward ex:actor9 ;		
+      ami:owner dd:actor9 ;
+      ami:steward dd:actor9 ;		
       ami:slang "java" ;
-	ami:vendor	ex:mongocorp ;		
+	ami:vendor	dd:mongocorp ;		
 	rdfs:comment """
 The MongoDB Java client side SDK.
 """ .    		
 
-ex:libpg1	a		ami:Software ;
+dd:libpg1	a		ami:Software ;
 	ami:version [ a ami:Version; ami:major 16; ami:minor 0; ami:bintype "jar" ];
 	rdfs:label "postgres client SDK";
       ami:swtype	"lib" ;    	
-	ami:owner ex:actor9 ;
-	ami:steward ex:actor9 ;
+	ami:owner dd:actor9 ;
+	ami:steward dd:actor9 ;
       ami:slang "java" ;
-	ami:vendor	ex:oss ;		
+	ami:vendor	dd:oss ;		
 	rdfs:comment """
 The Postgres Java client side SDK.
 """ .
 
-ex:jpg4	a		ami:Software ;
+dd:jpg4	a		ami:Software ;
 	ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:bintype "jar" ];
 	rdfs:label "JPEG SDK";
       ami:swtype	"lib" ;    	
-	ami:owner ex:actor9 ;
-	ami:steward ex:actor9 ;		
+	ami:owner dd:actor9 ;
+	ami:steward dd:actor9 ;		
       ami:slang "java" ;	
-	ami:vendor	ex:oss ;		
+	ami:vendor	dd:oss ;		
 	rdfs:comment """
 A JPG/JPEG graphics generation library.
 """ .    		
 
-# ex:sw001	a		ami:Software ;
-# 		ami:linksWith	ex:sw003 .
+# dd:sw001	a		ami:Software ;
+# 		ami:linksWith	dd:sw003 .
 
-# ex:sw002	a		ami:Software ;
-# 		ami:linksWith	ex:sw003 .
+# dd:sw002	a		ami:Software ;
+# 		ami:linksWith	dd:sw003 .
 
-# ex:sw003	a		ami:Software ;
-# 		ami:linksWith	ex:sw004 , ex:sw006 .
+# dd:sw003	a		ami:Software ;
+# 		ami:linksWith	dd:sw004 , dd:sw006 .
 
-# ex:sw004	a		ami:Software ;
-# 		ami:linksWith	ex:sw005 .
+# dd:sw004	a		ami:Software ;
+# 		ami:linksWith	dd:sw005 .
 
-# ex:sw005	a		ami:Software ;
+# dd:sw005	a		ami:Software ;
 
-# ex:sw006	a		ami:Software ;
-
-
-ex:sw001	ex:linksWith	ex:sw003 .
-ex:sw002	ex:linksWith	ex:sw003 .
-ex:sw003	ex:linksWith	ex:sw004 , ex:sw006 .
-ex:sw004	ex:linksWith	ex:sw005 .
+# dd:sw006	a		ami:Software ;
 
 
+dd:sw001	dd:linksWith	dd:sw003 .
+dd:sw002	dd:linksWith	dd:sw003 .
+dd:sw003	dd:linksWith	dd:sw004 , dd:sw006 .
+dd:sw004	dd:linksWith	dd:sw005 .
 
 
-ex:vm1	a		ami:Hardware ;
-	ami:steward ex:actor7 ;
-	ami:owner ex:actor7 ;	
-	ami:vendor	ex:mscorp ;
+
+
+dd:vm1	a		ami:Hardware ;
+	ami:steward dd:actor7 ;
+	ami:owner dd:actor7 ;	
+	ami:vendor	dd:mscorp ;
 	ami:vmtype	"Standard_D2" .
+
+
+dd:vm2	a		ami:Hardware ;
+	ami:steward dd:actor7 ;
+	ami:owner dd:actor7 ;	
+	ami:vmtype	"Standard_D2" ;
+
+	# Just like in AWS:
+	ami:secgroup	dd:sg456 ;
+
+	# Could also make it a blank node:
+	ami:secgroup	[
+		ami:protocol	"TCP" ;
+		ami:port	8080;
+	] ;
+
+	ami:vendor	dd:mscorp .
+
 
 #
 #  Components tie together as a logical representation of a system
 #
 
-ex:myApp     a    ami:Component ;
-	     	ami:owner ex:actor1 ;
-		ami:steward ex:actor1 ;
+dd:myApp     a    ami:Component ;
+	     	ami:owner dd:actor1 ;
+		ami:steward dd:actor1 ;
 		rdfs:label "myApp" ;
 		rdfs:comment """
 myApp is used by the risk department to do fancy things.""" ;
-	     ami:connectsTo    ex:service1 .
+	     ami:connectsTo    dd:service1 .
 	     
-ex:myApp2    a    ami:Component ;
-	      	ami:owner ex:actor1 ;
-	      	ami:steward ex:actor1 ;
+dd:myApp2    a    ami:Component ;
+	      	ami:owner dd:actor1 ;
+	      	ami:steward dd:actor1 ;
 		rdfs:label "myApp2" ;
 		rdfs:comment """
 myApp2 blends frogs and pencil eraser dust into a delicacy.""" ;		
-	     ami:connectsTo    ex:service7 .
+	     ami:connectsTo    dd:service7 .
 
 
-ex:service1	a    ami:Component ;
-	     	ami:owner ex:actor1 ;
-	     	ami:steward ex:actor1 ;
+dd:service1	a    ami:Component ;
+	     	ami:owner dd:actor1 ;
+	     	ami:steward dd:actor1 ;
 		rdfs:label "risk service" ;
 		rdfs:comment """
 The risk service takes in requests to calculate things and returns the
 results.  It uses live market data.""" ;
 
-		ami:entryPoint	ex:program3 ;
+		ami:entryPoint	dd:program3 ;
 		
 		ami:listensFor	[
 		  ami:protocol 	ami:https ;
 		  ami:auth 	ami:basic ;		
 		  ami:mep    [
 		        a ami:MEP ;
-			ami:shapeIn  ex:shape1 ;
-			ami:shapeOut ex:myShape_003 ;			
+			ami:shapeIn  dd:shape1 ;
+			ami:shapeOut dd:myShape_003 ;			
 			] ;
 		  ami:mep    [
 		        a ami:MEP ;		  
-			ami:shapeIn  ex:shape3 ;
-			ami:shapeOut ex:shape4 ;			
+			ami:shapeIn  dd:shape3 ;
+			ami:shapeOut dd:shape4 ;			
 			] ;
 		] ;
-		ami:connectsTo  ex:service2 .
+		ami:connectsTo  dd:service2 .
 
-ex:service7	a    ami:Component ;
-	     	ami:owner ex:actor9 ;
-	     	ami:steward ex:actor9 ;		
-		ami:connectsTo    ex:db2 ;
+dd:service7	a    ami:Component ;
+	     	ami:owner dd:actor9 ;
+	     	ami:steward dd:actor9 ;		
+		ami:connectsTo    dd:db2 ;
 		ami:listensFor	[
 		  ami:mep    [
 		        a ami:MEP ;		  
-			ami:shapeIn  ex:myShape_001 ;
-			ami:shapeOut ex:shape2 ;			
+			ami:shapeIn  dd:myShape_001 ;
+			ami:shapeOut dd:shape2 ;			
 			]
 		] .
 
 
-#ex:service1  ami:connectsTo    ex:service2 .
+#dd:service1  ami:connectsTo    dd:service2 .
 
-ex:service2  a    ami:Component ;
-	     	ami:owner ex:actor1 ;
-	     	ami:steward ex:actor1 ;
+dd:service2  a    ami:Component ;
+	     	ami:owner dd:actor1 ;
+	     	ami:steward dd:actor1 ;
 		rdfs:label "instrument data service" ;
 		rdfs:comment """
 The instrument data service takes CUSIP, SEDOL, ISIN, BB, and GCID keys
 and returns richly structured data.""" ;
 
-		ami:entryPoint	ex:program2 ;
+		ami:entryPoint	dd:program2 ;
 		
-		ami:connectsTo    ex:service3 ;
-		ami:connectsTo    ex:db1 ;
-		ami:connectsTo    ex:db3 .		
+		ami:connectsTo    dd:service3 ;
+		ami:connectsTo    dd:db1 ;
+		ami:connectsTo    dd:db3 .		
 
-ex:service3  a    ami:Component ;
-	     	ami:owner ex:actor1 ;
-	     	ami:steward ex:actor1 ;
+dd:service3  a    ami:Component ;
+	     	ami:owner dd:actor1 ;
+	     	ami:steward dd:actor1 ;
 		rdfs:label "structured products data service" ;
 		rdfs:comment """
 The structured products service takes GCID keys
 and returns richly structured data for exotic structures.""" ;				
-	     ami:connectsTo    ex:db2 .
+	     ami:connectsTo    dd:db2 .
 
 
-ex:db1	       a    ami:Component ;
-	     	ami:owner ex:actor7 ;
-	     	ami:steward ex:actor7 ;
+dd:db1	       a    ami:Component ;
+	     	ami:owner dd:actor7 ;
+	     	ami:steward dd:actor7 ;
 
-	     	ami:entryPoint ex:software1 ;   # Oracle!
+	     	ami:entryPoint dd:software1 ;   # Oracle!
 		
 		rdfs:label "cash instrument database" ;
 		rdfs:comment """
 A database that holds cash instrument data like equities and bonds.""" .
 
 
-ex:db2	       a    ami:Component ;
-	     	ami:owner ex:actor7 ;
-	     	ami:steward ex:actor7 ;
+dd:db2	       a    ami:Component ;
+	     	ami:owner dd:actor7 ;
+	     	ami:steward dd:actor7 ;
 		rdfs:label "exotics database" ;
 
-	     	ami:entryPoint ex:software1 ;   # Oracle!
+	     	ami:entryPoint dd:software1 ;   # Oracle!
 		
 		#  Ah...  For databases we don't use a MEP because the
 		#  inbound is too wide open -- but we CAN expose
@@ -497,7 +553,7 @@ ex:db2	       a    ami:Component ;
 		ami:listensFor	[
 		  ami:protocol 	ami:proprietary ;
 		  ami:auth 	ami:basic ;		
-		  ami:shapeOut  ex:coll1, ex:coll2 ;
+		  ami:shapeOut  dd:coll1, dd:coll2 ;
 		] ;
 			
 		rdfs:comment """
@@ -506,49 +562,49 @@ A database optimized for storing richly structured data.""" .
 
 
 
-ex:db3	       a    ami:Component ;
-	     	ami:owner ex:actor7 ;
-	     	ami:steward ex:actor7 ;
-		ami:entryPoint ex:mdbx ;
+dd:db3	       a    ami:Component ;
+	     	ami:owner dd:actor7 ;
+	     	ami:steward dd:actor7 ;
+		ami:entryPoint dd:mdbx ;
 		
 		rdfs:label "portfolio database" ;
 		rdfs:comment """
 Global repo of position data.""" .
 
 
-ex:db4	       a    ami:Component ;
-	     	ami:owner ex:actor7 ;
-	     	ami:steward ex:actor7 ;
+dd:db4	       a    ami:Component ;
+	     	ami:owner dd:actor7 ;
+	     	ami:steward dd:actor7 ;
 		rdfs:label "compliance limits database" ;
 		rdfs:comment """
 Tracks current and historic thresholds and setting used to drive risk systems.""" .
 
 
 
-ex:otherApp  a    ami:Component ;
-	     	ami:owner ex:actor10 ;
-	     	ami:steward ex:actor10 ;
-	     ami:entryPoint	ex:program8 ;
+dd:otherApp  a    ami:Component ;
+	     	ami:owner dd:actor10 ;
+	     	ami:steward dd:actor10 ;
+	     ami:entryPoint	dd:program8 ;
 	      rdfs:label "Vacation System" ;
 	      rdfs:comment """	      
 Legacy mainframe program to track ONLY employee vacation time allotted and
 consumed.
 """ .
 
-ex:serviceX  a    ami:Component ;
-	     ami:connectsTo    ex:db2 .
+dd:serviceX  a    ami:Component ;
+	     ami:connectsTo    dd:db2 .
 
 
 
 
-ex:program2   a ami:Software ;
-		ami:steward ex:actor9 ;
-		ami:owner ex:actor9 ;
+dd:program2   a ami:Software ;
+		ami:steward dd:actor9 ;
+		ami:owner dd:actor9 ;
 	ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:bintype "jar" ];
       ami:swtype	"service" ;    	
 	      rdfs:label "graphics server";
 
-	      ami:linksWith	ex:lib2 ;
+	      ami:linksWith	dd:lib2 ;
 	      rdfs:comment """	      
 A web service to generate a variety of line, bar, and pie graphs in JPG, PNG, or
 PDF formats.  The purpose is to free programs from the sometimes complex and
@@ -557,9 +613,9 @@ libraries, at the expense of performance due to data transmission over the netwo
 """ .
 
 
-ex:program8   a ami:Software ;
-		ami:steward ex:actor10 ;
-		ami:owner ex:actor10 ;
+dd:program8   a ami:Software ;
+		ami:steward dd:actor10 ;
+		ami:owner dd:actor10 ;
 	ami:version [ a ami:Version; ami:major 23; ami:minor 9; ami:bintype "x390" ];
       ami:swtype	"app" ;    	
 	      ami:slang "cobol" ;
@@ -572,44 +628,44 @@ releasable unit hence it has no links.
 
 
 
-ex:foosvr   a ami:Software ;
+dd:foosvr   a ami:Software ;
 	      rdfs:label "foo server";
             ami:swtype	"service" ;    		      
-	      ami:linksWith	ex:lib3 .	      
+	      ami:linksWith	dd:lib3 .	      
 
 
 #
 #   SYSTEMS
 #
-ex:system_001	a	ami:System ;
-		ami:owner ex:actor9 ;
-		ami:steward ex:actor9 ;
+dd:system_001	a	ami:System ;
+		ami:owner dd:actor9 ;
+		ami:steward dd:actor9 ;
 		ami:macrotype "distributed" ;		
 		rdfs:label "Bond System";
 			ami:dept	"ABC" ;
-		ami:components  ex:myApp ;
+		ami:components  dd:myApp ;
 		rdfs:comment """
 User application to create and manage bonds.
 """ .    		
 
-ex:system_002	a	ami:System ;
+dd:system_002	a	ami:System ;
 		rdfs:label "Bond System (full)";
-		ami:owner ex:actor9 ;
-		ami:steward ex:actor9 ;
+		ami:owner dd:actor9 ;
+		ami:steward dd:actor9 ;
 		ami:macrotype "distributed" ;				
 		ami:dept	"ABC" ;
-		ami:components  ex:myApp, ex:myApp2 ;
+		ami:components  dd:myApp, dd:myApp2 ;
 		rdfs:comment """
 All applications relating to the Bond System.
 """ .    				
 
-ex:system_003	a	ami:System ;
+dd:system_003	a	ami:System ;
 		rdfs:label "Vacation System";
-		ami:owner ex:actor10 ;
-		ami:steward ex:actor10 ;
+		ami:owner dd:actor10 ;
+		ami:steward dd:actor10 ;
 		ami:macrotype "mainframe" ;
 		ami:dept	"HR" ;
-		ami:components  ex:otherApp ;
+		ami:components  dd:otherApp ;
 	      rdfs:comment """	      
 Legacy mainframe program to track ONLY employee vacation time allotted and
 consumed.  
@@ -619,66 +675,89 @@ consumed.
 #
 #  Instances are actual running things:
 #
-
-ex:foosvr_001	a	ami:Instance ;
-		ami:program	     ex:foosvr ;
+dd:foosvr_001	a	ami:Instance ;
+		ami:program	     dd:foosvr ;
 		ami:pid		     73645 ;
 		ami:host	     "machine1" .
 
 
+#  Reports:   For the future...
+dd:rpt3		a	ami:Report ;
+		ami:owner dd:actor55 ;  
+		ami:steward dd:actor55 ;
+		rdfs:label "report" ;
+		rdfs:comment """This report
+shows the software that has the smallest amount of time from when
+it is released to when it is declared EOL. """ ;
+		
+		ami:sparql	     """
+SELECT ?software ?released ?eol (?eol - ?released)
+WHERE {
+    ?software a ami:Software ;
+    	      ami:EOL  ?eol ;
+    	      ami:version ?vers .
 
-ex:myShape_001 a sh:NodeShape, ami:Shape ;
-    ami:owner  ex:actor7 ;
-    ami:steward  ex:actor7 ;
+    ?vers     ami:released	?released ;
+}
+ORDER BY DESC(?eol - ?released)
+LIMIT 3
+""" .
+
+
+
+
+dd:myShape_001 a sh:NodeShape, ami:Shape ;
+    ami:owner  dd:actor7 ;
+    ami:steward  dd:actor7 ;
 
     rdfs:label  "instrument" ;
     rdfs:comment  """
 Describes a polymorphic instrument shape.
 """ ;
 
-    exc:bcbs239 [ a exc:Bcbs239; exc:attested_by ex:actor1 ] ;
+    exc:bcbs239 [ a exc:Bcbs239; exc:attested_by dd:actor1 ] ;
     
     sh:property [
-        sh:path ex:amt ;
+        sh:path dd:amt ;
         sh:datatype xsd:integer ;
     ] ;
     
     sh:property [
-        sh:path ex:recentReviews ;
+        sh:path dd:recentReviews ;
         sh:node [
             a sh:NodeShape ;
             sh:property [
-                sh:path ex:text ;
+                sh:path dd:text ;
                 sh:datatype xsd:string ;
             ] ;
             sh:property [
-                sh:path ex:reviewerName ;
+                sh:path dd:reviewerName ;
                 sh:node [
                     a sh:NodeShape ;
                     sh:property [
-                        sh:path ex:first ;
+                        sh:path dd:first ;
                         sh:datatype xsd:string ;
-			ex:sensitivity  2  ;
+			dd:sensitivity  2  ;
 			rdfs:comment  "a deeper nested comment"
 		    ] ;
                     sh:property [
-                        sh:path ex:last ;
+                        sh:path dd:last ;
                         sh:datatype xsd:string ;
                     ] ;
                 ] ;
             ] ;
             sh:property [
-                sh:path ex:reviewerID ;
+                sh:path dd:reviewerID ;
                 sh:datatype xsd:string ;
                 sh:pattern "^[\\w._%+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$" ;  # Email format pattern
             ] ;
             sh:property [
-                sh:path ex:reviewerPhone ;
+                sh:path dd:reviewerPhone ;
                 sh:datatype xsd:string ;
                 sh:pattern "^(\\+\\d{1,3}[- ]?)?\\d{10}$" ;  # Simple phone number pattern
             ] ;
             sh:property [
-                sh:path ex:reviewDate ;
+                sh:path dd:reviewDate ;
                 sh:datatype xsd:dateTime ;
 		rdfs:comment  "date of review submission maybe not actual review" ;
             ] ;
@@ -686,9 +765,9 @@ Describes a polymorphic instrument shape.
     ] .
 
 
-ex:myShape_002 a sh:NodeShape, ami:Shape ;
-    ami:owner  ex:actor7 ;
-    ami:steward  ex:actor7 ;
+dd:myShape_002 a sh:NodeShape, ami:Shape ;
+    ami:owner  dd:actor7 ;
+    ami:steward  dd:actor7 ;
 
     rdfs:label  "user info" ;
     rdfs:comment  """
@@ -698,19 +777,19 @@ Digital ID plus SSN.
     ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:patch 0 ];
     
     sh:property [
-        sh:path ex:id ;
+        sh:path dd:id ;
         sh:datatype xsd:string ;
     ] ;
 
     sh:property [
-        sh:path ex:SSN ;
+        sh:path dd:SSN ;
         sh:datatype xsd:string ;
     ] .
 
 
-ex:coll1 a sh:NodeShape, ami:Shape ;
-    ami:owner  ex:actor7 ;
-    ami:steward  ex:actor7 ;
+dd:coll1 a sh:NodeShape, ami:Shape ;
+    ami:owner  dd:actor7 ;
+    ami:steward  dd:actor7 ;
 
     rdfs:label  "defaults" ;
     rdfs:comment  """
@@ -718,19 +797,19 @@ Defaults table.
 """ ;
 
     sh:property [
-        sh:path ex:id ;
+        sh:path dd:id ;
         sh:datatype xsd:string ;
     ] ;
 
     sh:property [
-        sh:path ex:updated ;
+        sh:path dd:updated ;
         sh:datatype xsd:dateTime ;
     ] .
 
 
-ex:coll2 a sh:NodeShape, ami:Shape ;
-    ami:owner  ex:actor7 ;
-    ami:steward  ex:actor7 ;
+dd:coll2 a sh:NodeShape, ami:Shape ;
+    ami:owner  dd:actor7 ;
+    ami:steward  dd:actor7 ;
 
     rdfs:label  "results" ;
     rdfs:comment  """
@@ -738,12 +817,12 @@ Results table holding various things that were calculated.
 """ ;
 
     sh:property [
-        sh:path ex:id ;
+        sh:path dd:id ;
         sh:datatype xsd:string ;
     ] ;
 
     sh:property [
-        sh:path ex:value ;
+        sh:path dd:value ;
         sh:datatype xsd:string ;
 	rdfs:comment  """
 Value is stored as string due to legacy issues with floating point precision.""" ;
@@ -752,9 +831,9 @@ Value is stored as string due to legacy issues with floating point precision."""
 
 
 
-ex:myShape_003 a sh:NodeShape, ami:Shape ;
-    ami:owner  ex:actor7 ;
-    ami:steward  ex:actor7 ;    
+dd:myShape_003 a sh:NodeShape, ami:Shape ;
+    ami:owner  dd:actor7 ;
+    ami:steward  dd:actor7 ;    
     rdfs:label  "boring" ;
     rdfs:comment  """
 A boring shape.
@@ -763,15 +842,15 @@ A boring shape.
     ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:patch 0 ];
     
     sh:property [
-        sh:path ex:corn ;
+        sh:path dd:corn ;
         sh:datatype xsd:string ;
-	ex:sensitivity 3
+	dd:sensitivity 3
     ] .
 
 
-ex:myShape_004 a sh:NodeShape, ami:Shape ;
-    ami:owner  ex:actor7 ;
-    ami:steward  ex:actor7 ;
+dd:myShape_004 a sh:NodeShape, ami:Shape ;
+    ami:owner  dd:actor7 ;
+    ami:steward  dd:actor7 ;
     
     rdfs:label  "nested boring" ;
     rdfs:comment  """
@@ -781,34 +860,34 @@ Nested but ultimately boring shape.
     ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:patch 0 ];
 
     sh:property [
-        sh:path ex:recentReviews ;
+        sh:path dd:recentReviews ;
         sh:node [
             a sh:NodeShape ;
             sh:property [
-                sh:path ex:zzoop ;
+                sh:path dd:zzoop ;
                 sh:node [
                     a sh:NodeShape ;
                     sh:property [
-                        sh:path ex:name ;
+                        sh:path dd:name ;
                         sh:datatype xsd:string ;
                     ] ;
 
             	    sh:property [
-		        sh:path ex:flug ;
+		        sh:path dd:flug ;
 			sh:node [
 			    a sh:NodeShape ;
 			    sh:property [
-			        sh:path ex:part1 ;
+			        sh:path dd:part1 ;
 				sh:datatype xsd:string ;
 			    ] ;
 			    sh:property [
-			        sh:path ex:part2 ;
+			        sh:path dd:part2 ;
 				sh:datatype xsd:string ;
 			    ] ;
    		        ] ;
                     ] ;
 		    sh:property [
-                        sh:path ex:last ;
+                        sh:path dd:last ;
                         sh:datatype xsd:string ;
                     ] ;
                 ] ;

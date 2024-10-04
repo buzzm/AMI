@@ -10,6 +10,10 @@ import org.apache.jena.rdf.model.* ;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 
+import org.apache.jena.datatypes.RDFDatatype;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
+import org.apache.jena.datatypes.xsd.XSDDuration;
+    
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QuerySolution;
@@ -238,6 +242,16 @@ public class jena7 {
 		    pp(varName, "URI", resource.getURI());
 		} else if (node.isLiteral()) {
 		    Literal literal = node.asLiteral();
+
+		    RDFDatatype rt = literal.getDatatype();
+		    if (rt.equals(XSDDatatype.XSDduration)) {
+			// Cast the literal's value to XSDDuration
+			XSDDuration duration = (XSDDuration) literal.getValue();
+			// Extract the number of days
+			int days = duration.getDays();
+			System.out.println("days: " + days);
+		    }
+		    
 		    pp(varName, "literal", literal.getDatatype() + ":" + literal.getString());
 		} else if (node.isAnon()) {
 		    Resource anonResource = node.asResource();

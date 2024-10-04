@@ -1,0 +1,147 @@
+<HTML>
+
+  <HEAD>
+<TITLE>AMI Guide</TITLE>
+
+<style type="text/css">
+.QQQ {
+   background-color: #CCFFCC ; 
+   margin-left: 20pt ;
+   margin-right: 160pt ;
+}
+.ZZZ {
+   margin-left: 20pt ;
+}
+
+.rev {
+   font-size: 12 ; 
+}
+</style>
+</HEAD>
+
+
+  <BODY>
+<H2>AMI Guide</H2>
+
+<H3>TL;DR</H3>
+Type each of the following lines separately into the input box:
+<ol>
+  <li>Show me all my software and vendor names.</li>
+  <li>Group by vendor name and show me totals.</li>
+  <li>Just the top 3.</li>
+  <li>(Stash the data)</li>
+</ol>
+
+
+<H3>Overview</H3>
+Asset Management & Intelligence (AMI) is a hybrid AI/configuration management
+database ("CMDB") that allows you to explore your technology footprint both
+conversationally and programmatically.
+The backend CMDB contains your information on
+software, hardware, data shapes, vendors, and more and is precisely and reliably
+queryable using SPARQL, much in the same way Oracle or Postgres can be precisely
+and reliably queried using SQL.   By "precisely and reliably" we mean that
+queries work the same way each time, every time.   There are no hallucinations.
+But building such queries can be tedious and furthermore, there is a great
+deal of interesting and relevant information on the internet that is clearly
+not part of your CMDB.   AMI uses a novel approach to use a carefully prompted
+LLM to generate SPARQL to access your data and can then blend that with other
+information, at your discretion, in a general purpose LLM.  
+<p>
+  AMI responds to different "flavors" of questions as follows:
+  <ol>
+    <li>Questions it can reasonably infer are associated directly with specific
+      CMDB data.  Example: "Show all my software that is going EOL
+      in 2024."  AMI knows about the concept of "Software" and "EOL" in its
+      metadata and together with the word "my", AMI will construct SPARQL
+      and call the CMDB.
+    </li>
+    <li>Questions that are ambiguous regarding association with local CMDB
+      data or the general knowledge pool:  Example:  "What is the most
+      popular software?" or "What software uses log4j?"  AMI can come up with
+      a variety of interpretations and the user must be vigilant to review
+      the narrative and possibly SPARQL response.  Just 1 or 2 extra words
+      or punctuation will significantly help AMI, e.g. What software in my
+      catalog uses "ex:log4j"?  will certainly generate a SPARQL/CMDB result.
+    </li>
+    <li>Questions that clearly cannot be answered by the AMI CMDB.  Example:
+      "What are the corporate headquarters for my vendors?"
+    </li>
+  </ol>
+  The key concept to bridging the data is through the use of stashing.
+  Of course, upon startup if you so desired, you can certainly begin an AI chat
+  e.g. "What is the diameter of the moon?" which the backend will clearly
+  vector to the general purpose LLM ; no SPARQL here!  But the more common use
+  is to ask CMDB-targetted questions, get data results, and then add this data
+  to the LLM via stashing.   Stashing is made to be an optional step because
+  especially as you are iteratively enhancing a question/query, it doesn't
+  help the LLM to keep ingesting intermediate stages of data.  When you are
+  pleased with the progress, then it's time to stash the results.
+</p>  
+
+<H3>Self-Documentation and The Power of LLM</H3>
+RDF hyperdenormalization gives us the opportunity to label and comment every
+single property in every single entity.  Even the most terse creation of
+labels and comments, combined with LLM, allows us to ask:
+
+  What properties are associated with sensitive data?
+
+
+
+
+
+
+<H3>Important Consideration When Querying AMI</H3>
+When AMI generates SPARQL, that SPARQL if executed over and over, will produce
+the same results every time.  However, it is possible that in trying to make
+a SPARQL query, AMI will misinterpret what you wanted and produce a different
+query that may yield different answers than you expect.  For example  if you
+are asking for system descriptions hoping to get the rdfs:comment field for
+each instance of an AMI System class, occasionally your conversation context
+will trigger the LLM to instead fashion SPARQL that include the
+ami:systemdesc property because it has an rdfs:label of "system description".
+
+
+<H3>Entities in AMI</H3>
+<p>
+  AMI primary keys (the subjects)
+  are essentially internal only.
+  To add a bit of context to what they are, AMI subject and objects in the
+  actual data domain (not the metadata domain) have a formula for
+  their construction:  <tt>  dd:[entity_type][random] </tt>.  The
+  entity type is one of the following:
+  <ul>
+    <li>sf   Software</li>
+    <li>hr   Hardware</li>
+    <li>sh   Shape</li>
+    <li>co   Component</li>
+    <li>sy   System</li>
+    <li>in   Instance</li>
+    <li>vn   Vendor</li>
+    <li>ac   Actor</li>
+    <li>ve   Version</li>
+    <li>rp   Report</li>                                    
+  </ul>
+  The <i>random</i> is a 6 character code of the form
+  <tt>[0-9][a-z0-9]{2}[0-9][a-z0-9]{2}</tt>.  This permits up to 167,961,600
+  unique codes without the danger of creating off-color words
+  Examples: <tt>  6un6wm, 1pw5yj, 62l3mo, 06180o, 639423, 2qt4uu </tt>
+
+  <div class="QQQ"><pre>
+dd:2qt4uu	a		ami:Software ;
+	ami:version [ a ami:Version; ami:major 2; ami:minor 8; ami:bintype "jar" ];
+	rdfs:label "log4j";
+	rdfs:comment "Extremely popular logging framework for Java" ;		
+</pre></div>
+
+  The numeric-infused randomness also helps the LLM clearly distinguish
+  keys from other text.
+
+
+  </BODY>
+</HTML>
+
+	      
+
+
+

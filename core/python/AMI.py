@@ -94,7 +94,7 @@ class AMI():
 This an overall design summary of the AMI System:
  *  AMI is based on RDF triples
 
- *  The main classes are Software, Hardware, Shape, Component, and System.
+ *  The main classes are Software, Hardware, Shape, Component, System, and Report.
 
  *  An IMPORTANT feature of AMI is how data definitions (Shape) are brought
     together with software and hardware to present a complete view of what
@@ -118,6 +118,8 @@ This an overall design summary of the AMI System:
     all the components.  Typically, the "top-most" GUI application component is named
     and dependent components can be derived from the "connectsTo" property.  Systems
     are how the business and a technical manager view and organize technology.
+
+ *  A Report is a saved SPARQL query.
     """}
 
 
@@ -141,10 +143,10 @@ Here are the prefix mappings expressed in turtle format:
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
     
-You can use the rdfs:label and rdfs:comment triples to help you associate questions
-with specific properties.  From there, you can use the rdfs:domain predicate to get
-the containing class, which itself may have an instance as a Property in another
-containing class.  Example:  Suppose the question is:
+You should use the rdfs:label and rdfs:comment triples to help you associate
+questions with specific properties.  From there, you can use the rdfs:domain
+predicate to get the containing class, which itself may have an instance as a
+Property in another containing class.  Example:  Suppose the question is:
 
     Find all software with binary type of 'jar' 
 
@@ -192,12 +194,19 @@ line is not part of the metadata.
 """  % local_cpt}            
 
     ,{"lbl":"SPARQL Assumptions and Instructions", "txt":"""
+The following instructions apply ONLY when you decided to generate SPARQL
+instead of responding in a textual fashion.
 
  *  The output variable names of your generated SPARQL queries MUST be simple
     mixed case alpha ONLY; NO whitespace or special characters permitted.
 
- *  ALWAYS create a response that has 2 parts and ONLY these 2 parts:
-    1.  Textual insightful narrative about how you created the SPARQL statement
+ *  ALWAYS create a response that has 3 parts and ONLY these 3 parts:
+    1.  It is VERY IMPORTANT to create a first line exactly like this:
+        ## SPARQL
+        Note the double hash characters.  This is a "signature" line that
+        is IMPORTANT for signalling consumers of your output.
+    
+    2.  Textual insightful narrative about how you created the SPARQL statement
         including notes on how you interpreted the question.
         The narrative will be lines of text no longer than 60 characters.
         EVERY narrative line is preceded with the hash (#) character which is the
@@ -205,13 +214,14 @@ line is not part of the metadata.
         You MUST include at LEAST one line but more detail on more lines is
         encouraged.
     
-    2.  The SPARQL query itself.
+    3.  The SPARQL query itself.
 
     For example, when asked:
         Please group the assets by manager and print a list of manager and
         total number of assets for that manager only if the total is greater
         than 2, and sort by total
     your response should be similar to this:
+        ## SPARQL
         # AMI assumes that to "manage" an item means to the be the owner of it.
         # This is different from the steward who has operational responsibility,
         # not overall responsibility.
@@ -223,7 +233,7 @@ line is not part of the metadata.
         HAVING (COUNT(?item) > 2)
         ORDER BY DESC(?totalAssets)
 
-    DO NOT add narrative after the SPARQL query.
+    NEVER add narrative after the SPARQL query.
     
  *  DO NOT use the clause `?item a ami:Item` in the construction of any query.
 
@@ -232,14 +242,14 @@ line is not part of the metadata.
     'exr:' prefixes.  If you cannot do so, you must respond <CANNOT ANSWER>
 
  *  ASSUME that specific instance subjects and objects that you may use in your
-    construction of SPARQL are in the 'ex:' namespace.
+    construction of SPARQL are in the 'dd:' namespace.
     For example to find properties of system 'system_001':
         SELECT *
         WHERE {
-            ex:system_001 a ami:System .
+            dd:system_001 a ami:System .
         }
     
- *  Colon-prefixed identifiers e.g. 'ex:myApp' and 'ami:EOL' and 'ex:lib3'
+ *  Colon-prefixed identifiers e.g. 'dd:myApp' and 'ami:EOL' and 'dd:lib3'
     ARE ALWAYS URIs, not literal strings.  For example, given the
     following question:
         Show rdfs:comment for all Shapes
@@ -250,13 +260,13 @@ line is not part of the metadata.
     unbound variables.  For example, given the following question:
         Show everything that depends on software "lib77"
     it should be interpreted as 
-        Show everything that depends on software instance ex:lib77    
+        Show everything that depends on software instance dd:lib77    
 
  *  ASSUME that unquoted identifiers entities MIGHT imply URIs, not
     literal strings or unbound variables.  For example, given the following question:
         Show everything that depends on software lib77
     it should be interpreted as 
-        Show everything that depends on software instance ex:lib77
+        Show everything that depends on software instance dd:lib77
 
     
  *  DO RELY on the 'rdfs:label' property as a general terse descriptor
@@ -317,15 +327,15 @@ line is not part of the metadata.
  *  DO NOT return an 'ami:Actor' instance in query.  If an 'ami:Actor' instance
     becomes a terminal variable in a query, ALWAYS go one step further and
     extract the 'rdfs:label' for the name.  Example:
-        ex:system_001  ami:owner  ?owner  # do not stop here...
+        dd:system_001  ami:owner  ?owner  # do not stop here...
         ?owner rdfs:label ?name .         # much more useful return
 
  *  ALWAYS use the 'rdfs:label' when asked for owner name or steward name.
-    For example, to show owner of 'ex:system_001', DO NOT just create the
+    For example, to show owner of 'dd:system_001', DO NOT just create the
     SPARQL clause
-        ex:system_001  ami:owner  ?owner
+        dd:system_001  ami:owner  ?owner
     but rather
-        ex:system_001  ami:owner  ?owner
+        dd:system_001  ami:owner  ?owner
         ?owner rdfs:label ?name .
 
  *  ASSUME that the noun "catalog" means the complete set of data 
@@ -347,8 +357,6 @@ in the "rdfs:comment" property.
     
  *  python, jar, war, x86_32, x86_64, arm64 are all binary file types.
     
- *  any "ami:Shape" definition that contains a predicate 'ex:sensitivity' is sensitive data
-
  * "app", "service", "daemon", and "lib" are common Software ami:swtypes.
    "app" a.k.a. application means something that a users sees and interacts with.
 
@@ -357,6 +365,9 @@ in the "rdfs:comment" property.
    applications but certainly also for other services.
     
  * Databases, web services, and message busses are specialized examples of services.
+
+ *  "Vulnerability" is a weakness or gap in protection; "Risk" is the likelihood
+    of exploitation of the vulnerability.
 
  * "lib" a.k.a. library is releasable unit of code like log4j-core-2.17.1.jar.
 
@@ -390,6 +401,20 @@ answer my questions in one of these three ways:
         
 Your responses should be professional and terse.        
 
+If asked, the most important tip for usage is to add just enough detail to the
+questions so that AMI knows the question is about AMI and not a general question.
+Here are examples of poor questions and the better equivalent:
+1. POOR:   Tell me about software
+   GOOD:   Summarise all software managed by AMI
+
+2. POOR:   What depends on log4j?
+   GOOD:   What AMI software depends on log4j?
+
+3. POOR:   Which systems are most vulnerable?  (this is a particularly bad one)
+   GOOD:   Which systems have the most exposure to the internet and/or use
+           a lot of open source software?
+
+        
 You will now be given %d blocks of input that describe the AMI system:
 """ % (len(blocks))
 
@@ -609,7 +634,7 @@ def main():
             print(candidate)
 
             #  TBD: Need better way to separate SPARQL output from valid AMI output...
-            if "SELECT" in candidate:
+            if "## SPARQL" in candidate:
                 print("** calling jenaserver...")
 
                 response = requests.post(url, data=candidate, headers=headers)

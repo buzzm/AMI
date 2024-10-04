@@ -38,8 +38,8 @@ therefore, the binary type for instances of jars is always simply "jar".
 ami:MEP a rdfs:Class ;
 	  rdfs:comment """
 MEP is an acronym for (m)essage (e)xchange (p)attern.
-It is used to describe both the shapes of data moving across an interface
-and the dynamics of the initiator and the responder.
+MEPs are found in the Component class and used to describe both the shapes of
+data moving across an interface and the dynamics of the initiator and the responder.
 The dynamics of the initiator and the responder are represented by the following enumerations
 in the "ami:meptype" property:
 1.  IO  :  This is the classic request/response MEP.
@@ -82,20 +82,19 @@ ami:Hardware a rdfs:Class;
     rdfs:comment """
 Hardware is any kind of unit of release of (ultimately) an execution platform.
 Hardware can be physical or virtual.  Hardware can be a virtual machine,
-an 8 processor on-prem server, a router, a file system, a storage device,
-or a network, for example.  We distinguish hardware from software (even though
+an 8 processor on-prem server, a router, a file system, or a storage device.
+We distinguish hardware from software (even though
 virtual machines are software) because common design idioms focus on different
 capabilities, scalability, costs, and support for each.
-An important property of Hardware is "implements" which declares the Software
-to have a particular Component as its interface.
 """ .
 
 ami:Shape a rdfs:Class;
     rdfs:subClassOf ami:Item ;
     rdfs:comment """
 A Shape is the definition of an arbitrarily complex record of data.  A Shape
-can be a single scalar or a complex, multi-level assembly of structures and
-arrays.  AMI Shapes are somewhat special in that they are instances of both
+can be a single scalar, a common rectangular columnar schema i.e. a table, or a
+complex, multi-level assembly of structures and arrays.
+AMI Shapes are somewhat special in that they are instances of both
 ami:Shape and the SHACL sh:NodeShape classes (e.g. multiple inheritance).
 This permits the AMI system to manage the Shapes consistently with Software
 and Hardware and other types but the overall definition framework is SHACL.
@@ -141,9 +140,28 @@ Actors are entities that interact directly with the technology whereas Vendors
 are suppliers.  Actors have entitlements require authentication; Vendors do not.
 """ .
 
-ami:Instance a rdfs:Class;
-    rdfs:subClassOf ami:Item .
 
+ami:Instance a rdfs:Class;
+    rdfs:subClassOf ami:Item ;
+    rdfs:comment """Not fully fleshed out yet, but an Instance is an actual
+running Component.  This is the runtime/live part of AMI.
+""" .
+
+
+ami:Report a rdfs:Class;
+    rdfs:subClassOf ami:Item ;
+    rdfs:comment """A Report is a saved query with a name and comments.
+Reports make it easier, better documented, and more controllable to perform
+repetitive or periodic queries.  Note that it is the actual SPARQL query that
+is saved, not the conversational narrative that might have led to it.  This
+ensures that the query will run exactly the same way every time.
+""" .
+
+ami:sparql a rdf:Property;
+    rdfs:label  "SPARQL query" ;
+    rdfs:comment """A SPARQL query *without* all the prefixes.""" ;
+    rdfs:domain ami:Report ;
+    rdfs:range xsd:string .
 
 
     
@@ -165,20 +183,21 @@ ami:Instance a rdfs:Class;
 #
 #  Control Properties
 #
-ami:systemdesc a rdf:Property;
-    rdfs:label  "system description" ;
-    rdfs:comment """
-Overall description of the scope and nature of the systems and data under management of
-this AMI system.""" ;
-    rdfs:domain ami:Control ;
-    rdfs:range xsd:string .
+#  TBD TBD
+# ami:systemdesc a rdf:Property;
+#     rdfs:label  "system description" ;
+#     rdfs:comment """
+# Overall description of the scope and nature of the systems and data under management of
+# this AMI system.""" ;
+#     rdfs:domain ami:Control ;
+#     rdfs:range xsd:string .
 
-ami:systemsize a rdf:Property;
-    rdfs:label  "system size" ;
-    rdfs:comment """
-Total number of triples under management. """ ;
-    rdfs:domain ami:Control ;
-    rdfs:range xsd:string .
+# ami:systemsize a rdf:Property;
+#     rdfs:label  "system size" ;
+#     rdfs:comment """
+# Total number of triples under management. """ ;
+#     rdfs:domain ami:Control ;
+#     rdfs:range xsd:string .
 
 
 #
@@ -411,8 +430,6 @@ The entryPoint Software entity is not necessarily the executable that is running
  *  A python or javascript script with a "main()" is not compiled at all. In
     these cases, the script itself is the releasable Software unit and
     is the entryPoint.
-
-
 """ .
 
 ami:listensFor rdf:type rdf:Property ;
@@ -463,8 +480,6 @@ in a database component without pairing it with an ami:shapeIn.
 
 
 
-# Define the ex:mep1 and ex:mep2 properties as blank nodes within the list
-# Assuming these are part of the structured listensFor property
 
 # Define the ami:connectsTo property
 ami:connectsTo rdf:type rdf:Property ;

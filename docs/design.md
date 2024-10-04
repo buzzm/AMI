@@ -72,29 +72,6 @@ Version is a blank node inside some classes; thus it is not a subclass of Item
 
 
 
-Cedric is CRO
-    Paul Capa  Growth North Am
-        Sean works for him
-
-    Boris
-        Joerg
-	Ian Greene
-	
-
-ex:mySoftware rdf:type ex:Software ;
-              ex:name "foo" ;
-              ex:version [
-                rdf:type ex:Version ;
-                ex:major 3 ;
-                ex:minor 0 ;
-                ex:patch 2
-              ] .
-
-
-
-
-
-
 
 
 

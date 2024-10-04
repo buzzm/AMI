@@ -155,9 +155,16 @@ def main():
                     pfx[ns] = q[1]
 
     if not rargs.nodb:    
+        #  TBD TBD   Need options on what kind of mode to load but for
+        #  now, hardcode mode 1.
         hdr = {
             '_id': 'SCHEME',
             'mode': 1,
+            'desc': """Colon-prefixed quasi-URIs make for vastly easier querying.
+Object strings that contain a colon should be interpreted as an URI unless the
+first char is the exclamation point in which case the object is a true string literal
+that happens to contain a colon.            
+All other object types are native e.g. datetimes are ISODate type.""" ,           
             'prefixes': [],
             'S': '_',
             'P': '_',

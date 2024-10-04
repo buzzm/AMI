@@ -36,7 +36,7 @@ public class jenaserver {
         uriToPrefixMap.put("http://moschetti.org/ami#", "ami");
 
 	// Internal AMI service...
-	uriToPrefixMap.put("http://moschetti.org/buzz#", "ex");
+	uriToPrefixMap.put("http://moschetti.org/buzz#", "dd");
         uriToPrefixMap.put("http://moschetti.org/compliance#", "exc");
 
 	// External AMI service:

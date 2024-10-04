@@ -62,7 +62,11 @@ def reconstruct_turtle(graph, target_shape):
 def main():
     # Set up command line argument parsing
     parser = argparse.ArgumentParser(description="""
-Read a file in N-triple format and convert it to Turtle format.    
+Read a file in N-triple format and convert it to Turtle format.
+N-triple is the full blown bulky representation:  URI URI URI|literal .
+<http://moschetti.org/buzz#myShape_002> <http://moschetti.org/ami#steward> <http://moschetti.org/buzz#actor7> .
+<http://moschetti.org/buzz#myShape_002> <http://moschetti.org/ami#owner> <http://moschetti.org/buzz#actor7> .
+<http://moschetti.org/buzz#myShape_002> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://moschetti.org/ami#Shape> .
     """)
 
     # Add the required positional arguments: filename and shapename
