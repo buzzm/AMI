@@ -52,11 +52,16 @@ def get_unique_identifier():
 # Example usage
 print("example: " , get_unique_identifier())
 
-for n in range(0,5):
+for n in range(0,100000000):
     unique_id = get_unique_identifier()
-    print(unique_id)
+    if n < 3:
+        print(unique_id)
+        
+    if unique_id == "2qt4uu":
+        print("Got",unique_id, "in",n,"tries")
+        break
+    
 #    if 0 == n % 10_000_000:
 #        print(n, "...")
 
-        
 print("done with", n, "tries")

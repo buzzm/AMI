@@ -17,8 +17,8 @@ PREFIX xts: <http://xts.com/xts#>
 SELECT *
 WHERE {
     ?actor a ami:Actor ;
-           rdfs:label ?label ;
-           rdfs:comment ?comment .
+           rdfs:label ?label .
+    OPTIONAL { ?actor rdfs:comment ?comment  . }
 }
 
 

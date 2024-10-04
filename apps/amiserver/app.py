@@ -22,10 +22,11 @@ class AMIServer:
         self.ami_cpt = rargs.ami_cpt
         self.local_cpt = rargs.local_cpt
         self.snippets = rargs.snippets
+        self.onectx = rargs.onectx
 
 
         # Ensure jena server is running....
-        self.jena_url = 'http://localhost:5656/query'
+        self.jena_url = 'http://localhost:5656/sparql'
         
         self.jena_headers = {
             'Content-Type': 'application/sparql-query',  # or 'application/x-www-form-urlencoded'
@@ -34,7 +35,7 @@ class AMIServer:
         try:
             probe = 'SELECT (1 AS ?test) WHERE {}'
             rr = requests.post(self.jena_url, data=probe, headers=self.jena_headers)
-            print("jena server OK at", self.jena_url)
+            print("jena server OK at", self.jena_url, ":",rr.text)
                   
         except:
             msg = "jena server not running or parsing module broken"
@@ -68,14 +69,17 @@ class AMIServer:
     def process_response(self, cr_delimited_string):
         '''Return a tuple of status,vars,data.
         vars and data may not exist...'''
-        
+
         # Split the input into lines and filter out blank lines
         lines = [line for line in cr_delimited_string.splitlines() if line.strip()]
-    
+
         # Parse the first non-blank line to check the status and get the 'vars' array
         status_line = json.loads(lines[0])
-        if status_line.get('status') != 'OK':
-            return (status_line, None, None)
+        print("STATUS LINE:", status_line)
+
+        status = status_line.get('status')
+        if status != 'OK':
+            return (status, None, None)
 
         results = []
 
@@ -86,25 +90,32 @@ class AMIServer:
             parsed_line = json.loads(line)
             results.append(parsed_line)
 
-        return (status_line, vars_list, results)
+        return (status, vars_list, results)
 
             
     def setup_routes(self):
         # Define routes here, wrapped inside the class
-        @self.app.route('/query', methods=['POST'])
+        @self.app.route('/sparql', methods=['POST'])
         def handle_query():
             user_id = session.get('user_id')
 
-            if user_id is None or user_id not in self.ami_contexts:
-                # Generate a new user ID and create a new AMI context if this is the first request
-                user_id = uuid.uuid4()
-                session['user_id'] = user_id
+            if self.onectx:
+                if 'XXX' not in self.ami_contexts:
+                    print("Generating onectx AMI...")
+                    self.ami_contexts['XXX'] = AMI(api_key=self.api_key, ami_cpt=self.ami_cpt, local_cpt=self.local_cpt, snippets=self.snippets)
+                ami_context = self.ami_contexts['XXX']
 
-                print("Generating new AMI...")
-                self.ami_contexts[user_id] = AMI(api_key=self.api_key, ami_cpt=self.ami_cpt, local_cpt=self.local_cpt, snippets=self.snippets)
-                
-    
-            ami_context = self.ami_contexts[user_id]
+            else:
+                if user_id is None or user_id not in self.ami_contexts:
+                    # Generate a new user ID and create a new AMI context if this is the first request
+                    user_id = uuid.uuid4()
+                    session['user_id'] = user_id
+                    
+                    print("Generating new AMI for", user_id, "...")
+                    self.ami_contexts[user_id] = AMI(api_key=self.api_key, ami_cpt=self.ami_cpt, local_cpt=self.local_cpt, snippets=self.snippets)
+                    print("ctx after:",self.ami_contexts)                 
+                ami_context = self.ami_contexts[user_id]    
+
             data = request.json
             question = data.get('question')
             system_size = data.get('systemSize')
@@ -129,15 +140,16 @@ class AMIServer:
                     rmsg['narrative'] = candidate
 
                     #  TBD: Need better way to separate SPARQL output from valid AMI output...
-                    if "SELECT" in candidate:
+                    if "## SPARQL" in candidate:
                         print("** calling jenaserver...")
 
                         try:
                             rr = requests.post(self.jena_url, data=candidate, headers=self.jena_headers)
                             (rmsg['status'],rmsg['vars'],rmsg['data']) = self.process_response(rr.text)
-                        except:
+                            print("rmsg",rmsg)
+                        except Exception as e:
                             rmsg['status'] = 'FAIL'
-                            rmsg['narrative'] = 'some exception'
+                            rmsg['narrative'] = 'exception' + str(e)
 
             return jsonify(rmsg)
 
@@ -198,17 +210,25 @@ def main():
 """
    )
     
-    parser.add_argument('--api_key', 
+    parser.add_argument('--api_key',
+                        required=True,
                         metavar='OpenAI API key')
     
-    parser.add_argument('--ami_cpt', 
+    parser.add_argument('--ami_cpt',
+                        required=True,
                         metavar='Filename containing core AMI metadata')
 
-    parser.add_argument('--local_cpt', 
+    parser.add_argument('--local_cpt',
+                        required=True,
                         metavar='Filename containing AMI extensions metadata')
 
-    parser.add_argument('--snippets', 
+    parser.add_argument('--snippets',
+                        required=True,
                         metavar='Filename containing SPARQL snippets')    
+
+    parser.add_argument('--onectx',
+                        action='store_true',
+                        help='Session mapping is disabled; a single AMI context is created and used by all.   Good for quick debugging.')
     
     rargs = parser.parse_args()
 

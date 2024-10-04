@@ -52,8 +52,11 @@ def turtle_recursive(graph, subject, depth=0):
     return output
 
 # Function to initiate Turtle reconstruction
-def reconstruct_turtle(graph, target_shape):
-    output = [f"{graph.namespace_manager.normalizeUri(target_shape)} a sh:NodeShape, ami:Shape ;"]
+def reconstruct_turtle(graph, target_shape, instance_types):
+
+    # make  "dd:shape1 a ami:Shape, sh:NodeShape" and then use THAT
+    # to init the output array which will be built up:
+    output = [ f"{graph.namespace_manager.normalizeUri(target_shape)} a " + ",".join([graph.namespace_manager.normalizeUri(x) for x in instance_types]) ]
     
     output.extend(turtle_recursive(graph, target_shape, 0))
     return "\n".join(output)
@@ -71,7 +74,7 @@ N-triple is the full blown bulky representation:  URI URI URI|literal .
 
     # Add the required positional arguments: filename and shapename
     parser.add_argument('filename', type=str, help='The name of the n-triple file to process')
-    parser.add_argument('shapename', type=str, help='The shape to be converted')
+    parser.add_argument('instancename', type=str, help='The instance to be converted e.g. http://moschetti.org/buzz#lib3 or http://moschetti.org/buzz#myShape_001')
 
     # Add an optional boolean argument: --force
     #parser.add_argument('--force', action='store_true', help='Force the operation even if it is not safe')
@@ -83,26 +86,34 @@ N-triple is the full blown bulky representation:  URI URI URI|literal .
 
     #  TBD TBD
     g.namespace_manager.bind("ami", Namespace("http://moschetti.org/ami#"))
-    g.namespace_manager.bind("ex", Namespace("http://moschetti.org/buzz#"))
+    g.namespace_manager.bind("dd", Namespace("http://moschetti.org/buzz#"))
 
     g.parse(args.filename, format="ntriples")
 
-    target_shape_uri = URIRef(args.shapename)
+    target_instance_uri = URIRef(args.instancename)
         
     # Check for existend 
-    def shapeExists(target_shape_uri):
-        for s, p, o in g.triples((target_shape_uri, None, None)):
-            return True  # got at least 1!
-        return False
-    
-    if False == shapeExists(target_shape_uri):
-        print("error: no such shape in n-triple file")
+    def instanceExists(target_instance_uri):
+
+#        http://moschetti.org/buzz#lib3 http://www.w3.org/1999/02/22-rdf-syntax-ns#type http://moschetti.org/ami#Software
+        type_uri = URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
+
+        tt = []
+        
+        for s, p, o in g.triples((target_instance_uri, type_uri, None)):
+            tt.append(o)
+        return tt
+
+    # types plural because could be multiple inheritance.
+    instance_types = instanceExists(target_instance_uri) 
+    if 0 == len(instance_types):
+        print("error: no such instance in n-triple file")
         return
         
     for prefix, namespace in list(g.namespace_manager.namespaces()):
         print(f"@prefix {prefix}: <{namespace}> .")    
 
-    turtle_output = reconstruct_turtle(g, target_shape_uri)
+    turtle_output = reconstruct_turtle(g, target_instance_uri, instance_types)
 
     print(turtle_output)
 

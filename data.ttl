@@ -31,7 +31,6 @@
 
 dd:actor1 a ami:Actor;
     rdfs:label "Steve Austin" ;
-    rdfs:comment "Steve Austin" ;    
     ami:salary   "10.09"^^xsd:decimal ;	
     ami:DID "A123" ;
     ami:firstname "Steve" ;
@@ -40,7 +39,6 @@ dd:actor1 a ami:Actor;
 
 dd:actor2 a ami:Actor;
     rdfs:label "Dave Spector" ;
-    rdfs:comment "Dave Spector" ;    
     ami:DID "A456" ;
     ami:firstname "Dave" ;
     ami:lastname "Spector" .
@@ -48,40 +46,34 @@ dd:actor2 a ami:Actor;
 
 dd:actorSys a ami:Actor;
     rdfs:label "System Daemon 7" ;
-    rdfs:comment "System Daemon 7" ;    
     ami:DID "S7" .
 
 dd:actor7 a ami:Actor;
     rdfs:label "Linda Shaw" ;
-    rdfs:comment "Linda Shaw" ;    
     ami:DID "A86" ;
     ami:firstname "Linda" ;
     ami:lastname "Shaw" .
 
 dd:actor9 a ami:Actor;
     rdfs:label "Druce Vertes" ;
-    rdfs:comment "Druce Vertes" ;    
     ami:DID "A999" ;
     ami:firstname "Druce" ;
     ami:lastname "Vertes" .    
 
 dd:actor10 a ami:Actor;
     rdfs:label "Jane Doe" ;
-    rdfs:comment "Jane Doe" ;    
     ami:DID "B87" ;
     ami:firstname "Jane" ;
     ami:lastname "Doe" .
 
 dd:actor44 a ami:Actor;
     rdfs:label "Marsha Brady" ;
-    rdfs:comment "Marsha Brady" ;    
     ami:DID "X0098" ;
     ami:firstname "Marsha" ;
     ami:lastname "Brady" .
 
 dd:actor55 a ami:Actor;
     rdfs:label "Robert Plant" ;
-    rdfs:comment "Robert Plant" ;    
     ami:DID "X0298" ;
     ami:firstname "Robert" ;
     ami:lastname "Plant" .

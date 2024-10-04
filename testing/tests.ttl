@@ -1,0 +1,40 @@
+@prefix tt: <http://moschetti.org/testsuite#> .
+
+@prefix ami: <http://moschetti.org/ami#> .
+@prefix amit: <http://moschetti.org/amit#> .
+
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+
+tt:test1	a amit:Test ;
+		rdfs:label "test1" ;
+		amit:q  """List all Actors.""" ;
+		amit:expect  "sparql" ;				
+		amit:response  """
+SELECT ?actor ?label ?comment
+WHERE {
+    ?actor a ami:Actor ;
+           rdfs:label ?label .
+    OPTIONAL { ?actor rdfs:comment ?comment . }
+}
+""" .		
+
+
+
+tt:test2	a amit:Test ;
+		rdfs:label "test2" ;
+		amit:q  """Show all Vendors.""" ;
+		amit:expect  "sparql" ;						
+		amit:response  """
+SELECT ?vendor ?label
+WHERE {
+    ?vendor a ami:Vendor ;
+           rdfs:label ?label .
+}
+""" .		
+
+
+		

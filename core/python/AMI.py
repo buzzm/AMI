@@ -237,7 +237,7 @@ instead of responding in a textual fashion.
     
  *  DO NOT use the clause `?item a ami:Item` in the construction of any query.
 
- *  ABSOLUTELY DO NOT invent RDF predicates in your SPARQL responses.
+ *  NEVER invent RDF predicates in your SPARQL responses.
     All predicates MUST come from the supplied 'ami:','sh:', 'exc:', or
     'exr:' prefixes.  If you cannot do so, you must respond <CANNOT ANSWER>
 
@@ -269,23 +269,43 @@ instead of responding in a textual fashion.
         Show everything that depends on software instance dd:lib77
 
     
- *  DO RELY on the 'rdfs:label' property as a general terse descriptor
-    of a software, hardware, component, or system instance.
+ *  ALWAYS RELY on the 'rdfs:label' property as a general terse descriptor
+    of a software, hardware, component, or system instance.  All instances
+    will ALWAYS have an 'rdfs:label' property.
 
  *  DO RELY on the 'rdfs:comment' property to provide very
     accurate textual detail of a entity, which will help you associate the
     question with the correct properties and classes to use in
     the SPARQL statement.
 
+ *  BEWARE that unlike `rdfs:label`, 'rdfs:comment' is not mandatory;
+    thus, when filtering on *other* properties and you
+    add 'rdfs:comment' to the output, ALWAYS make sure `rdfs:comment`
+    is OPTIONAL.  For example, if the question is "List all Actors",
+    you can safely include `rdfs:label` but make `rdfs:comment`
+    OPTIONAL because we do not want to restrict the output if the
+    `rdfs:comment` is not set:
+    ```
+        SELECT *
+        WHERE {
+            ?actor a ami:Actor ;
+                   rdfs:label ?label .
+            OPTIONAL { ?actor rdfs:comment ?comment  . }
+        }
+    ```
+   
  *  ALWAYS use the 'rdfs:comment' property when presented with very broad
     questions like:
         "What software is used for risk?"
         "Show me everything that makes graphics"
         "What systems are used for machine parts inventory management?"
+    
     Improve your chances of a match by canonicalizing 'rdfs:comment' to
     lowercase as follows (assuming ?comment is bound to 'rdfs:comment'):
         FILTER(CONTAINS(LCASE(?comment), "keyword"))
 
+    The hope is that the owner of the property will have made it descriptive
+    enough to include one or more good keywords.
     
  *  DO associate the noun "asset" with any of type 'ami:Software',
     'ami:Hardware', 'ami:Shape' , 'ami:Component', or 'ami:System'
@@ -640,7 +660,7 @@ def main():
                 response = requests.post(url, data=candidate, headers=headers)
                 #print("code", response.status_code)
 
-                #response_data = response.json()
+                #print("JSRV", response.json())
                     
                 response_data = response.text                
                 emitResponse(response_data)                
