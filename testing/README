@@ -1,0 +1,56 @@
+	  qq = """
+You will compare two SPARQL statements.  The first statement is ALWAYS the
+"target SPARQL" and the second is the "AMI SPARQL."  Your goal is
+to determine how much different the "AMI SPARQL" is from the target.
+Here now are the target and AMI SPARQL responses, separated by four dashes:
+
+%s
+----
+%s
+
+You are to compare the two statements and categorize the comparison in
+a score as follows:
+ *  "1" means exact match, although this is a rarity.
+ *  "2" means the SPARQL logic and the number of types output are the same but
+    potentially with different variable names
+ *  "3" means the SPARQL logic is the same but a different number of output
+    variables
+ *  "4" means the SPARQL logic is "mildly" not the same, most likely in terms
+    of different properties being examined.
+ *  "5" means the SPARQL logic is "definitely" not the same.  An example of
+    this is if statement #1 performs a one-or-more path walk
+    (e.g. `ami:linksWith+`) and statement #2 does not.
+You MUST provide narrative and explanations to support your
+categorization decision.
+You MUST make the output response of category and narrative in JSON so that
+a consumer can easily digest the response.
+Please perform the comparison and categorization now.
+""" % (target_resp, ami_resp)"""
+
+
+	  qq = """
+You will compare two textual statements.  The first statement is ALWAYS the
+"target statement" and the second is the "AMI statement."  Your goal is
+to determine how much different the "AMI statement" is from the target.
+Here now are the target and AMI SPARQL statements, separated by four dashes:
+
+%s
+----
+%s
+
+You are to compare the two statements and categorize the comparison in
+a score as follows:
+ *  "1" means exact match, although this is a rarity.
+ *  "2" means the statements are essentially the same but perhaps with
+    list and bullets in a different order or formatting or level or terseness.
+ *  "3" means the statements differ in a "mild" way, especially additions or
+    omissions from a target set 
+ *  "4" means the statements differ in a material way.
+    of different properties being examined.
+ *  "5" means the statements are clearly non-intersecting
+You MUST provide narrative and explanations to support your
+categorization decision.
+You MUST make the output response of category and narrative in JSON so that
+a consumer can easily digest the response.
+Please perform the comparison and categorization now.
+""" % (target_resp, ami_resp)"""

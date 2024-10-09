@@ -7,7 +7,7 @@ as follows.   Note that version MUST contain a "major" number but properties
 
 SELECT ?major ?minor ?patch ?btype ?released
 WHERE {
-    BIND(ex:lib3 AS ?software)  # use ex:lib3 as example of software instance.
+    BIND(ex:exampleInstance AS ?software)  
 
     ?software ami:version ?version .
 
@@ -43,30 +43,62 @@ WHERE {
       ?software a ami:Software ;
               ami:vendor ?vendor .
      ?vendor rdfs:label ?vendorLabel .
-     FILTER(CONTAINS(LCASE(?vendorLabel), "vendor name here")) .
+     FILTER(CONTAINS(LCASE(?vendorLabel), "exampleVendorName")) .
+}
+
+----
+
+* Get all software for a vendor
+* List all software for a vendor
+
+To find a vendor given a name, canonicalize the label to lowercase
+and use CONTAINS to find it anywhere in the name.  This may
+yield more than 1 vendor e.g. "Oracle USA" and "Oracle EU" but
+that is OK.  
+
+SELECT ?vendorLabel ?software ?desc
+WHERE {
+     ?software a ami:Software ;
+              ami:vendor ?vendor .
+     ?vendor rdfs:label ?vendorLabel .
+     
+     FILTER(CONTAINS(LCASE(?vendorLabel), "exampleVendorName")) .
+
+     ?software 	ami:vendor	?vendor .
+
+     # Remember: rdfs:comment is not required so if not present
+     # do not filter out the result!
+     OPTIONAL { ?software rdfs:comment    ?desc }
 }
 
 ====
 
-* Given a system, get all component dependencies recursively
+* Get all component dependencies recursively for a given system
+* Get all component dependencies recursively for a given component
 * Get all components for a system
 
 This SPARQL takes full advantage of the '+' operator that instructs the
-query engine to recursively follow the ami:connectsTo property from instance
-to instance.
+query engine to recursively follow the ami:connectsTo property from
+component instance to instance.
 It is a downstream dependency lookup.
 
 SELECT DISTINCT ?start ?end
 WHERE {
-  ex:exampleSystemInstance ami:components  ?components .
-  
+    # Get all top-level components declares for ex:exampleSystemInstance:
+    ex:exampleSystemInstance ami:components  ?components .
+
+    # .. Or just directly bind a component e.g.:
+    #  BIND(dd:exampleComponentInstance as ?components)
   {  
     ?components ami:connectsTo ?end .
     BIND(?components AS ?start)
   } UNION {
+    #  Note: In this block, ?start and ?end are both unbound so
+    #  lots of material gets picked up here...
     ?start ami:connectsTo ?end . 
     ?components ami:connectsTo+ ?start .
   }
+
 }
 
 ----
@@ -100,7 +132,12 @@ WHERE {
 * Given a component, find all systems that use it
 * Get all systems that, through dependency traversal, use a component
 
-SELECT  ?label ?dept ?desc 
+This SPARQL takes full advantage of the '+' operator that instructs the
+query engine to recursively follow the ami:connectsTo property from instance
+to instance.
+It is an upstream dependency lookup.
+
+SELECT  ?components ?label ?dept ?desc 
 WHERE {
     BIND(ex:exampleComponentInstance AS ?components)
 
@@ -142,6 +179,9 @@ WHERE {
 * Get all software that depends on a given piece of software
 * Get all upstream dependencies of a given piece of software
 
+This is an IMPORTANT snippet because it show us our overall exposure
+to a particular piece of software.
+
 This SPARQL takes full advantage of the '+' operator that instructs the
 query engine to recursively follow the ami:linkWith property from instance
 to instance.
@@ -150,7 +190,7 @@ It is an upstream dependency lookup.
 SELECT DISTINCT ?start ?end
 WHERE {
   # Bind variable ?sw to the target piece of software
-  #     BIND(ex:lib77 AS ?sw)
+  #     BIND(ex:exampleSoftwareInstance AS ?sw)
   # or perform a statement that populates `?sw` e.g.
   #     ?sw   a       ami:Software ;
   #           ami:EOL ?eol .
@@ -172,15 +212,19 @@ WHERE {
 ----
 
 * Get all components that depend on a piece of software.
+* What components depend on <some software description>?
 
-We must first find all upstream dependencies
-of software and then check to see if any components declare
-any one of those Software in the set to be an ami:entryPoint property.
+This is an IMPORTANT and very useful snippet.  In almost 100% of the
+cases, the expression "depends on" means *any* upstream dependency,
+not just an immediate parent dependency.  This means 
+we must first find *all* upstream recursive dependencies of software
+and only then check to see if any components declare any one of
+them to be an ami:entryPoint property.
 
 SELECT DISTINCT ?start ?end ?components
 WHERE {
   # Bind variable ?sw to the target piece of software
-  BIND(ex:lib4 AS ?sw)
+  BIND(ex:exampleSoftwareInstance AS ?sw)
 
 # or perform a statement that populates `?sw` e.g.
 #       ?sw   a       ami:Software ;
@@ -205,18 +249,20 @@ WHERE {
 
 ----
 
-* Get all system that depend on a piece of software.
+* Get all systems that depend on a piece of software.
 
-This takes the previous goal-SPARQL to the next level
-by finding upstream dependencies of components and checking to
-see if any are found in a system instance.
+This is an IMPORTANT snippet as it associates a piece of software with
+the administrative context that consumes it.  When inquiring about
+software, the first step is often to identify what systems use
+the software, then proceed to explore the underlying components.
 
 SELECT DISTINCT ?system ?dept ?desc
 WHERE {
-    # Find software with "log4j" in the label
+    # Use rdfs:label as general purpose filter.  Clearly it is
+    # best to use shorter "exampleSoftwareName" to match more items.
     ?software a ami:Software ;
               rdfs:label ?swLabel .
-    FILTER(CONTAINS(LCASE(?swLabel), "log4j"))
+    FILTER(CONTAINS(LCASE(?swLabel), "exampleSoftwareName"))
 
     # Find all upstream dependencies of the software
     {
@@ -254,19 +300,29 @@ WHERE {
 
 ====
 
-* Get owner and steward names.
-* Who is responsible for ...
-* Who manages for ...
+* Get owner and/or steward names for <something>
+* Who is responsible for <something>
+* Who manages <something>
 
 Questions will often not be specific about whether they seek the
 ami:owner name or the ami:steward name.  Although technically both
 are required properties for virtually every AMI type, sometimes one or both
-might be missing.  This is a good SPARQL query to fetch them:
+might be missing.  Also, the owner and steward object instances are not as
+immediately useful as the common names so we will extract them.
 
-SELECT ?owner 
+SELECT ?ownerName ?stewardName
 WHERE {
-      ?item ami:owner ?owner .
-      ?owner rfds:label owner .
+      BIND(ex:exampleInstance AS ?item)
+
+      OPTIONAL {
+            ?item ami:owner ?owner .
+	    ?owner rdfs:label ?ownerName .
+	    }
+
+      OPTIONAL {
+            ?item ami:steward ?steward .
+	    ?steward rdfs:label ?stewardName .
+	    }	    	   
 }
 
 ====

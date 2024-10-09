@@ -60,6 +60,12 @@ class AMIServer:
         # Store user-specific AMI contexts
         self.ami_contexts = {}
 
+        # Get this out of the way upon startup...
+        if self.onectx:        
+            print("Generating onectx AMI...")
+            self.ami_contexts['XXX'] = AMI(api_key=self.api_key, ami_cpt=self.ami_cpt, local_cpt=self.local_cpt, snippets=self.snippets)
+
+            
     def configure_app(self, config):
         # Load additional configuration if provided
         if config:
@@ -100,9 +106,7 @@ class AMIServer:
             user_id = session.get('user_id')
 
             if self.onectx:
-                if 'XXX' not in self.ami_contexts:
-                    print("Generating onectx AMI...")
-                    self.ami_contexts['XXX'] = AMI(api_key=self.api_key, ami_cpt=self.ami_cpt, local_cpt=self.local_cpt, snippets=self.snippets)
+
                 ami_context = self.ami_contexts['XXX']
 
             else:
@@ -123,6 +127,7 @@ class AMIServer:
             rmsg = {
                 'status':'OK',
                 'narrative':"",
+                'source':"",                
                 'vars':[],
                 'data':[]
             }
@@ -130,15 +135,18 @@ class AMIServer:
             if question[0] == '!':
                 print("FFF")
                 rmsg['narrative'] = ami_context.askGeneral(question)
+                rmsg['source'] = "global"
             else:
                 candidate = ami_context.askAMI(question)
 
-                if candidate == "<CANNOT ANSWER>":
+                if candidate == "<CANNOT_ANSWER>":
                     print("** AMI cannot answer; asking global")
                     rmsg['narrative'] = ami_context.askGeneral(question)
+                    rmsg['source'] = "global"                    
                 else:
                     rmsg['narrative'] = candidate
-
+                    rmsg['source'] = "ami"
+                    
                     #  TBD: Need better way to separate SPARQL output from valid AMI output...
                     if "## SPARQL" in candidate:
                         print("** calling jenaserver...")
@@ -151,6 +159,7 @@ class AMIServer:
                             rmsg['status'] = 'FAIL'
                             rmsg['narrative'] = 'exception' + str(e)
 
+            print("RMSG:", rmsg)
             return jsonify(rmsg)
 
 

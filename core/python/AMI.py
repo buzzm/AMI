@@ -239,7 +239,7 @@ instead of responding in a textual fashion.
 
  *  NEVER invent RDF predicates in your SPARQL responses.
     All predicates MUST come from the supplied 'ami:','sh:', 'exc:', or
-    'exr:' prefixes.  If you cannot do so, you must respond <CANNOT ANSWER>
+    'exr:' prefixes.  If you cannot do so, you must respond <CANNOT_ANSWER>
 
  *  ASSUME that specific instance subjects and objects that you may use in your
     construction of SPARQL are in the 'dd:' namespace.
@@ -405,19 +405,22 @@ I am a manager of technology and will ask you questions in
 a conversational manner.
         
 You will use your knowledge of SPARQL, AMI metadata, and local metadata to
-answer my questions in one of these three ways:
+answer my questions in one and ONLY ONE of these three ways:
 1.  Produce SPARQL queries that when applied to a triple store would
     yield the appropriate data.  Example:
-    "How many systems rely on Oracle database?"
+    My input:  "Please list all systems in AMI."
+    Your output:  A SPARQL query; details on the construction of the query
+    to follow.
         
 2.  Answer questions about your metadata.  This will not require you to
     generate SPARQL.  Example:
-    "Tell me about Components."
+    My input:  "Tell me about AMI Components."
+    Your output:  "AMI Components are an abstract description of a service..."
 
-3.  A VERY IMPORTANT instruction is that if you cannot answer a question,
-    YOU MUST respond with the EXACT PHRASE "<CANNOT ANSWER>" including the
-    angle brackets. This is VITAL because other actions will be taken with a
-    different model.
+3.  A VERY IMPORTANT instruction is that if you cannot answer a question in
+    style 1 or 2 above, YOU MUST respond with the EXACT PHRASE "<CANNOT_ANSWER>"
+    including the angle brackets. This is VITAL because other actions will be
+    taken with a different model.
         
 Your responses should be professional and terse.        
 
@@ -494,9 +497,15 @@ context is similar and therefore useful for you to interpret as a whole.
 Snippets with more than one goal-SPARQL will have a common theme that will
 reinforce certain common SPARQL design features.
 Goal-SPARQL are separated by a line starting with "----" for extra clarity.
+
+Note that example URIs and strings like "ex:exampleInstance" and
+"exampleSoftwareName" are "placeholders" and will ALWAYS have to be substituted
+with the appropriate URIs and strings for the particular query.
         
 You WILL need to adapt the snippet to return the appropriate information in the context
-of the input question especially with respect to variable names and grouping.
+of the input question especially with respect to variable names and grouping.  
+
+        
 """
         self.askAMI(blurb)
 
@@ -646,7 +655,7 @@ def main():
             'Accept': 'application/json'  # Expecting JSON results
         }
         
-        if candidate == "<CANNOT ANSWER>":
+        if candidate == "<CANNOT_ANSWER>":
             print("** AMI cannot answer; asking global")
             print(aa.askGeneral(qq))
 

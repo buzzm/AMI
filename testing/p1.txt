@@ -1,0 +1,61 @@
+
+You will compare two SPARQL statements bounded by triple backticks.
+The first statement is ALWAYS the "target SPARQL" and the second is the "AMI SPARQL."
+Your goal is to determine how much different the "AMI SPARQL" is from the target.
+You MUST IGNORE all comments (lines starting with `#`); they are not relevant
+to comparing the SPARQL itself.
+
+Here now are the target and AMI SPARQL responses:
+
+```
+SELECT DISTINCT ?start ?end
+WHERE {
+
+#  Manual setting of components
+   BIND(ex:myApp AS ?components)
+#
+
+#  All components for a system; useful!
+#  ex:system_001  ami:components  ?components .
+
+#  Gets ALL components!  Less useful
+#   ?components	a	ami:Component .
+  
+  {  
+    ?components ami:connectsTo ?end .
+    BIND(?components AS ?start)
+  } UNION {
+    ?start ami:connectsTo ?end . 
+    ?components ami:connectsTo+ ?start .
+  }
+
+}
+
+```
+```
+SELECT DISTINCT ?ss ?end
+WHERE {
+    ?components ami:connectsTo ?end .
+    BIND(?components AS ?ss)
+}
+
+```
+
+You are to compare the two statements and categorize the comparison in
+a score as follows:
+ *  "1" means exact match, although this is a rarity.
+ *  "2" means the SPARQL logic and the number of types output are the same but
+    potentially with different variable names
+ *  "3" means the SPARQL logic is the same but a different number of output
+    variables
+ *  "4" means the SPARQL logic is "mildly" not the same, most likely in terms
+    of different properties being examined.
+ *  "5" means the SPARQL logic is "definitely" not the same.  An example of
+    this is if statement #1 performs a one-or-more path walk
+    (e.g. `ami:linksWith+`) and statement #2 does not.
+You MUST provide narrative and explanations to support your
+categorization decision.
+You MUST make the output response of category and narrative in JSON so that
+a consumer can easily digest the response.
+Please perform the comparison and categorization now.
+

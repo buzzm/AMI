@@ -9,32 +9,121 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 
+#  Test categorization 
+#  1 is exact match
+#  5 is no match
+#  X is FAIL
+#  maxcat is <= "worst match" i.e. if maxcat is 2 and the AMI response turns out
+#  to be 1, then OK.  If AMI response is 2, OK.  But 3 or higher is not OK.
+
+
 tt:test1	a amit:Test ;
 		rdfs:label "test1" ;
-		amit:q  """List all Actors.""" ;
-		amit:expect  "sparql" ;				
-		amit:response  """
+
+		amit:ask [
+ 		    amit:q  """List all Actors.""" ;
+		    amit:expect  "sparql" ;
+ 	            amit:source  "ami" ;
+		    amit:maxcategory  2 ;
+		    amit:target  """
 SELECT ?actor ?label ?comment
 WHERE {
     ?actor a ami:Actor ;
            rdfs:label ?label .
+	   
     OPTIONAL { ?actor rdfs:comment ?comment . }
 }
-""" .		
+""" ;
+		] .
+		
 
+tt:test76	a amit:Test ;
+		rdfs:label "test76" ;
+
+		amit:ask [
+ 		    amit:q  """List all AMI Actors.""" ;
+		    amit:expect  "sparql" ;
+ 	            amit:source  "ami" ;
+		    amit:maxcategory  2		     ;
+		    amit:target  """
+SELECT ?actor ?label
+WHERE {
+    ?actor a ami:Actor ;
+           rdfs:label ?label .
+}
+""" ;
+		] ;
+
+		amit:ask [
+ 		    amit:q  """Please add first and lastnames to the output if possible.""" ;
+		    amit:expect  "sparql" ;
+ 	            amit:source  "ami" ;
+		    amit:maxcategory  2		     ;
+		    amit:target  """
+SELECT ?actor ?label ?first ?last
+WHERE {
+    ?actor a ami:Actor ;
+           rdfs:label ?label .
+    OPTIONAL { ?actor ami:firstname ?first }
+    OPTIONAL { ?actor ami:lastname ?last }    
+}
+""" ;
+		] .
+
+		
 
 
 tt:test2	a amit:Test ;
 		rdfs:label "test2" ;
-		amit:q  """Show all Vendors.""" ;
-		amit:expect  "sparql" ;						
-		amit:response  """
+
+		amit:ask [
+		    amit:q  """Show all Vendors.""" ;
+		    amit:expect  "sparql" ;						
+		    amit:source  "ami" ;
+		    amit:maxcategory  2		     ;
+		    amit:target  """
 SELECT ?vendor ?label
 WHERE {
     ?vendor a ami:Vendor ;
            rdfs:label ?label .
 }
-""" .		
+""" ;
+		] .
 
 
-		
+tt:test77	a amit:Test ;
+		rdfs:label "test77" ;
+
+		amit:ask [
+		    amit:q  """Show all Systems that depend on component dd:service7.""" ;
+		    amit:expect  "sparql" ;						
+		    amit:source  "ami" ;
+		    amit:maxcategory  2		     ;
+		    amit:target  """
+SELECT DISTINCT ?components ?system ?label ?dept ?desc
+WHERE {
+    BIND(dd:service7 AS ?components)
+
+    {
+      ?start ami:connectsTo ?components .
+       BIND(?components AS ?end)
+    }
+    UNION
+    {
+      ?start ami:connectsTo ?intermediate .
+      ?intermediate ami:connectsTo+ ?components .
+      BIND(?intermediate AS ?end)
+    }
+
+    ?system     ami:components  ?start .
+
+    # System object by itself is not so useful in this context
+    # so get descriptive properties and return those too:
+    ?system     rdfs:label ?label ;
+                rdfs:comment ?desc ;
+                ami:dept ?dept .
+}
+""" ;
+		] .
+
+

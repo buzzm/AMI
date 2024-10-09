@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .query {
+            width: 30%;
+        }
+        .response, .ami-response {
+            width: 25%;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.9em; /* Smaller font for response columns */
+        }
+        .narrative {
+            font-style: italic;
+            font-size: 0.9em;
+        }
+        .spanned-row td {
+            border-top: 0; /* Remove top border of spanned narrative row */
+        }
+    </style>
+    <title>Table Example</title>
+</head>
+<body>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>#</th>
+        <th class="query">Query</th>
+        <th class="response">Target Response</th>
+        <th class="ami-response">AMI Response</th>
+        <th>Cat</th>
+    </tr>
+    <tr>
+        <td rowspan="2">test1</td>
+        <td rowspan="2">1</td>
+        <td class="query">Show me all Vendors</td>
+        <td class="response">SELECT ?vendor ?label<br>WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;?vendor a ami:Vendor ;<br>&nbsp;&nbsp;&nbsp;&nbsp;rdfs:label ?label .<br>}</td>
+        <td class="ami-response">SELECT ?vendor ?label<br>WHERE {<br>&nbsp;&nbsp;&nbsp;&nbsp;?vendor a ami:Vendor ;<br>&nbsp;&nbsp;&nbsp;&nbsp;rdfs:label ?label .<br>}</td>
+        <td>3</td> <!-- "Cat" column only appears in this row -->
+    </tr>
+    <tr class="spanned-row">
+        <td colspan="5" class="narrative">The target SPARQL statement retrieves three variables: ?actor, ?label, and ?comment, while the AMI SPARQL statement retrieves only two variables: ?actor and ?label. The logic of both queries is fundamentally the same, as they both lead to a categorization score of 3.</td>
+    </tr>
+</table>
+
+</body>
+</html>

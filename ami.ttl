@@ -124,12 +124,15 @@ ami:System a rdfs:Class;
     rdfs:comment """
 A System is named collection of one or more components.  It is not necessary
 for a system to define all the components upon which it depends.  A simple
-example is a system could contain a single application component.  The AMI
-engine can then use the component definitions to recursively name all
-"downstream" dependencies.  Systems also have a number of administrative
+example is a system could contain a single application component.  AMI
+can then use the component definitions to recursively name all
+"downstream" component dependencies; this creates the familiar system
+topology graph i.e. Component A connects to Component B connects to Component C,
+etc.
+Systems also have a number of administrative
 properties to facilitate management including department and audit information.
 Business users understand the business purpose of systems, not individual
-components and certainly not software or hardware.
+components and likely not underlying software or hardware.
 """ .
 
 ami:Vendor a rdfs:Class;

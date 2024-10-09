@@ -9,10 +9,73 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 
-tt:test51	a amit:Test ;
-		rdfs:label "test51" ;
-		amit:q  """List all AMI classes.""" ;
-		amit:expect  "narrative" ;				
-		amit:response  """We should see a number of things
-like software, hardware, etc.
-""" .		
+
+# tt:testX	a amit:Test ;
+# 		rdfs:label "testX" ;
+
+# 		amit:ask [
+#  		    amit:q  """!What is the capital of California?.""" ;
+# 		    amit:expect  "narrative" ;
+# 		    amit:source  "global" ;
+# 		    amit:maxcategory  2		     ;
+# 		    amit:target  """
+# The capital of California, USA, is Sacramento.
+# """ ;
+# 		] .
+
+# tt:testX2	a amit:Test ;
+# 		rdfs:label "testX2" ;
+
+# 		amit:ask [
+#  		    amit:q  """!What is the capital of New York?.""" ;
+# 		    amit:expect  "narrative" ;
+# 		    amit:source  "global" ;
+# 		    amit:maxcategory  2		     ;
+# 		    amit:target  """
+# The capital of New York, USA, is Buffalo.
+# """ ;
+# 		] .
+
+
+tt:testX3	a amit:Test ;
+		rdfs:label "testX3" ;
+
+		amit:ask [
+ 		    amit:q  """What is the capital of Nevada?.""" ;
+		    amit:expect  "narrative" ;
+		    amit:source  "global" ;
+		    amit:maxcategory  2		     ;
+		    amit:target  """
+The capital of Nevada is Carson City.
+""" ;
+		] .
+
+
+
+# tt:test1	a amit:Test ;
+# 		rdfs:label "test1" ;
+
+# 		amit:ask [
+#  		    amit:q  """You cannot answer this.""" ;
+# 		    amit:expect  "cannot_answer" ;
+# 		] .
+
+
+# tt:test2	a amit:Test ;
+# 		rdfs:label "test2" ;
+
+# 		amit:ask [
+#  		    amit:q  """How many moons orbit Jupiter?.""" ;
+# 		    amit:expect  "cannot_answer" ;
+# 		] .
+
+
+
+# tt:test3	a amit:Test ;
+# 		rdfs:label "test3" ;
+
+# 		amit:ask [
+#  		    amit:q  """What is the most expensive software vended by Adobe?.""" ;
+# 		    amit:expect  "cannot_answer" ;
+# 		] .
+

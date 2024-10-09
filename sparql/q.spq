@@ -14,12 +14,34 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 PREFIX xts: <http://xts.com/xts#>
 
-SELECT *
+
+SELECT DISTINCT ?start ?end
 WHERE {
-    ?actor a ami:Actor ;
-           rdfs:label ?label .
-    OPTIONAL { ?actor rdfs:comment ?comment  . }
+    BIND(dd:myApp AS ?components)
+
+  {  
+    ?components ami:connectsTo ?end .
+    BIND(?components AS ?start)
+  } UNION {
+    ?start ami:connectsTo ?end . 
+    ?components ami:connectsTo+ ?start .
+  }
+
 }
+
+#     {
+#         ?start ami:connectsTo ?component .
+#         BIND(?component AS ?end)
+#     }
+#     UNION
+#     {
+#         ?start ami:connectsTo ?intermediate .
+#         ?intermediate ami:connectsTo+ ?component .
+#         BIND(?intermediate AS ?end)
+#     }
+
+
+
 
 
 # SELECT ?desc ?owner ?dept ?ownerName ?steward ?stewardName

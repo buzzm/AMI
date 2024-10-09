@@ -114,6 +114,12 @@ dd:mongocorp	    a ami:Vendor ;
 		    rdfs:comment "The spawn of Dwight and Eliot" .
 		    
 
+dd:pgcorp	    a ami:Vendor ;
+		    ami:owner dd:actor55 ;  # Robert Plant
+		    rdfs:label "postgres" ;
+		    rdfs:comment "Popular and performant relation DB from postgres.org" .
+
+
 dd:program1   a ami:Software ;
 	      rdfs:label "report server";
 	      ami:version [ a ami:Version; ami:major 1; ami:minor 0; ami:bintype "jar" ];	      
@@ -180,7 +186,7 @@ The postgres database engine.
 """;    
 
      ami:slang "c++" ;
-      ami:vendor dd:mongocorp ;
+      ami:vendor dd:pgcorp ;
     ami:version [ a ami:Version;
         ami:major 16; ami:minor 3;
 	ami:released "2024-01-01T00:00:00Z"^^xsd:dateTime ;	

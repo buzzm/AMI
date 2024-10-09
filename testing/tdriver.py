@@ -12,15 +12,21 @@ class TestDriver:
         def __init__(self, api_key, ami_cpt, local_cpt, snippets):
             pass
 
-        def askAMI(self, lbl, test_query):
-            print("dummy askAMI():","\n",test_query)
-            return "foo"
+        def askAMI(self, test_query):
+            return "<CANNOT_ANSWER>"
+            
+            return """## SPARQL
+#
+select * WHERE {
+            ?s a ami:Vendor .
+            }
+            """
 
         def askGeneral(self, test_query):
-            return("""{"category":0, "narrative":"dummy"}""")
+            return("""{"computed_category":0, "narrative":"dummy"}""")
 
     class AMIServer:
-        def __init__(self, api_key, ami_cpt, local_cpt, snippets):
+        def __init__(self):
             pass
 
         def askAMI(self, test_query):
@@ -29,21 +35,38 @@ class TestDriver:
             hdrs = { 'Content-Type': 'application/json' }
 
             data = json.dumps({"question": test_query,"systemSize": "Simple"})
-            
+
+            # POST returns "old" format; GET returns SPARQL 1.1. SERVICE compatible format
             response = requests.post(url, data=data, headers=hdrs)
 
+            #print("RAW AMI RESPONSE:", response.text)
+            
             narrative = "<CANNOT_ANSWER>"
             if response.status_code == 200:
                 qq = response.json()
+                print("AMI RESP:", qq)
                 narrative = qq['narrative']
             return narrative
 
         def askGeneral(self, test_query):
+            #print("ASK GENERAL:", test_query)
             return self.askAMI("!" + test_query)  # oooo!
     
 
-    def __init__(self, api_key, ami_cpt, local_cpt, snippets, inputfile):
-        self.aa = self.AMIServer(api_key=api_key, ami_cpt=ami_cpt, local_cpt=local_cpt, snippets=snippets)
+    def __init__(self, api_key, ami_cpt, local_cpt, snippets, inputfile, outputfile):
+        self.graph = rdflib.Graph()
+        self.graph.parse(inputfile, format="ttl")
+
+        n_asks = 0
+        for test_case in self.graph.subjects(rdflib.RDF.type, rdflib.URIRef('http://moschetti.org/amit#Test')):
+            for ask_block in self.graph.objects(test_case, rdflib.URIRef('http://moschetti.org/amit#ask')):
+                n_asks += 1
+
+        secs = (n_asks * 5) 
+        print("** About 12 seconds to init AI, then about",secs,"seconds to perform",n_asks,"asks")
+        
+        
+        self.aa = self.AMIServer()
         #self.aa = AMI(api_key=api_key, ami_cpt=ami_cpt, local_cpt=local_cpt, snippets=snippets)
         #self.aa = self.dummyAMI(api_key=api_key, ami_cpt=ami_cpt, local_cpt=local_cpt, snippets=snippets)
 
@@ -56,86 +79,145 @@ formatting or markdown as follows:
         
 Please perform the comparison and categorization now."""
 
+
+        self.outfd = open(outputfile, "w")
         
-        self.graph = rdflib.Graph()
-        self.graph.parse(inputfile, format="ttl")
+    def close(self):
+        self.outfd.close()
+        
+    def groom_result(self, rez):
+        ss = json.dumps(rez)
+        self.outfd.write(ss)
+        self.outfd.write("\n")
+        
 
     def run_tests(self):
+        self.results = [];
 
-        results = [];
+        def l2s(ee, item):
+            vv = self.graph.value(ee, item)
+            if vv is None:
+                print("? item",item,"missing")
+                return ""
+            return vv.toPython()
+            
         
         # Loop over instances of amit:Test
         for test_case in self.graph.subjects(rdflib.RDF.type, rdflib.URIRef('http://moschetti.org/amit#Test')):
 
-            def l2s(test_case, item):
-                return self.graph.value(test_case, item).toPython()
-            
-            tobj = {
-                'label': l2s(test_case, rdflib.RDFS.label),
-                'query': l2s(test_case, rdflib.URIRef('http://moschetti.org/amit#q')),
-                'extype': l2s(test_case, rdflib.URIRef('http://moschetti.org/amit#expect')),
-                'response': l2s(test_case, rdflib.URIRef('http://moschetti.org/amit#response'))
-            }
-
-            label = tobj['label']
+            label = l2s(test_case, rdflib.RDFS.label)
             print("running", label)
+            
+            # Now loop over all amit:ask blocks within this test case
+            n = 0
+            for ask_block in self.graph.objects(test_case, rdflib.URIRef('http://moschetti.org/amit#ask')):
+                n += 1
+                
+                print("  ask", n)
+                
+                def check_test_config(ask_block):
+                    aobj = {}
+
+                    #  These 2 are always required:
+                    ss = self.graph.value(ask_block, rdflib.URIRef('http://moschetti.org/amit#expect')).toPython()
+                    aobj['extype'] = ss
+                    aobj['query'] = self.graph.value(ask_block, rdflib.URIRef('http://moschetti.org/amit#q')).toPython()
+                    
+                    if ss != 'cannot_answer':
+                        for v in [
+                              ('source', 'http://moschetti.org/amit#source'),
+                              ('maxcat', 'http://moschetti.org/amit#maxcategory'),
+                              ('target', 'http://moschetti.org/amit#target')
+                              ]:
+                            vv = self.graph.value(ask_block, rdflib.URIRef(v[1]))
+                            if vv is None:
+                                print("FAIL: test case misconfig;", v[1], "not found; continuing")
+                                return None
+                            else:
+                                aobj[v[0]] = vv.toPython()
+                                
+                    return aobj
+
+                aobj = check_test_config(ask_block)
+                if aobj is None:
+                    continue 
+                
+
+                # Call AMI with the test question:
+                qqq = ""
+                if n == 1:
+                    qqq = "RESET the conversation.\n"
+
+                qqq += aobj['query']
+
+                ami_resp = self.aa.askAMI(qqq)
+                #ami_resp = self.aa.askAMI(tobj['label'],tobj['query'])            
+                resp_type = self.derive_response_type(ami_resp)
+
+                extype = aobj['extype']
+
+                #print("expect", extype, "; ami_resp", ami_resp, "; derived", resp_type)
+                
+                
+                if resp_type == 'cannot_answer' and extype == resp_type:
+                    rez = {'name':label, 'ask': n,
+                           'query': aobj['query'],
+                           'target_response':'cannot_answer',
+                           'status':'OK',
+                           'msg':'AMI properly indicated it could not answer the question.',
+                           'ami_response':ami_resp}
+                    self.groom_result(rez)
+                    continue
+                
+                src = aobj['source']            
+
+                print(extype, src)
+
+                rez = {'name':label, 'ask': n,
+                       'query': aobj['query'],
+                       'source':src,
+                       'target_response':aobj['target'],
+                       'target_cat':aobj['maxcat'],                       
+                       'ami_response':ami_resp}
+                
+                # Validate response type
+                if resp_type != extype:
+                    rez['status'] = 'FAIL'
+                    rez['msg'] = f"Error: expected {extype} response but got {resp_type}" 
+                    self.groom_result(rez)
+                    continue
+                
+            
+                # Compare responses
+                if extype == "sparql":
+                    comp_json = self.compare_sparql(aobj['target'], ami_resp)
+                elif extype == "narrative":
+                    comp_json = self.compare_narrative(aobj['target'], ami_resp)
+                else:
+                    print("?!?  unknown extype: ", extype)
+                    
+                try:
+                    gg = json.loads(comp_json)
+                    rez['status'] = 'OK'
+                    if 'narrative' in gg:
+                        rez['msg'] = gg['narrative']
+                        rez['computed_cat'] = gg['category']
                         
-            # Call AMI with the test question
-            ami_resp = self.aa.askAMI(tobj['query'])
-            #ami_resp = self.aa.askAMI(tobj['label'],tobj['query'])            
-            resp_type = self.derive_response_type(ami_resp)
+                except Exception as e:
+                    print("json.loads(",comp_json,") fails:", e)
+                    rez['status'] = 'FAIL'
+                    rez['msg'] = str(e)
 
-            extype = tobj['extype']
+                self.groom_result(rez)
+            
 
-
-            rez = {'name':label }
-                
-            # Validate response type
-
-            for et in ['sparql','narrative','cannot_answer']:
-                 if extype == et and resp_type != et:
-                     rez['status'] = 'FAIL'
-                     rez['msg'] = f"Error: expected {et} response but got {resp_type}" 
-                     results.append(rez)
-                     continue
-                
-            # if extype == "sparql" and resp_type != "sparql":
-            #     print(f"Error: expected SPARQL response but got {resp_type}")
-            #     continue
-            # elif extype == "narrative" and resp_type != "narrative":
-            #     print(f"Error: expected narrative response but got {resp_type}")
-            #     continue
-            # elif extype == "cannot_answer" and resp_type != "cannot_answer":
-            #     print(f"Error: expected cannot_answer response but got {resp_type}")
-            #     continue            
-
-            # Compare responses
-            if extype == "sparql":
-                comp_json = self.compare_sparql(tobj['response'], ami_resp)
-            elif extype == "narrative":
-                comp_json = self.compare_narrative(tobj['response'], ami_resp)
-
-            try:
-                gg = json.loads(comp_json)
-                rez['status'] = 'OK'
-                if 'narrative' in gg:
-                    rez['msg'] = gg['narrative']
-                    rez['category'] = gg['category']                    
-                
-            except Exception as e:
-                print("json.loads(",comp_json,") fails:", e)
-                rez['status'] = 'FAIL'
-                rez['msg'] = str(e)
-
-            results.append(rez)
-
-        print("RESULTS","\n",results)
+        #print("RESULTS","\n",results)
                       
     def derive_response_type(self, response):
         """Derive whether the response is SPARQL or narrative."""
         if response.startswith("## SPARQL"):
             return "sparql"
-        elif response == "<CANNOT ANSWER>":
+        elif response == "<CANNOT_ANSWER>":
             return "cannot_answer"
         else:
             return "narrative"
@@ -161,7 +243,8 @@ The first statement is ALWAYS the "target SPARQL" and the second is the "AMI SPA
 Your goal is to determine how much different the "AMI SPARQL" is from the target.
 You MUST IGNORE all comments (lines starting with `#`); they are not relevant
 to comparing the SPARQL itself.
-
+Differences in non-string whitespace e.g. extra newlines or differences in
+tab and/or space formatting should ALSO be IGNORED as they do not effect syntax.
 Here now are the target and AMI SPARQL responses:
 ```
 %s
@@ -226,8 +309,11 @@ if __name__ == "__main__":
     parser.add_argument('--local_cpt', type=str, required=True, help="Local component for the test driver")
     parser.add_argument('--snippets', type=str, required=True, help="Path to snippets")
     parser.add_argument('--inputfile', type=str, required=True, help="Turtle input file for tests")
+    parser.add_argument('--outputfile', type=str, required=True, help="JSON results")    
 
     rargs = parser.parse_args()
 
-    driver = TestDriver(api_key=rargs.api_key, ami_cpt=rargs.ami_cpt, local_cpt=rargs.local_cpt, snippets=rargs.snippets, inputfile=rargs.inputfile)
+    driver = TestDriver(api_key=rargs.api_key, ami_cpt=rargs.ami_cpt, local_cpt=rargs.local_cpt, snippets=rargs.snippets, inputfile=rargs.inputfile, outputfile=rargs.outputfile)
     driver.run_tests()
+
+    driver.close()
