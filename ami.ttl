@@ -144,10 +144,10 @@ are suppliers.  Actors have entitlements require authentication; Vendors do not.
 """ .
 
 
-ami:Instance a rdfs:Class;
+ami:Exec a rdfs:Class;
     rdfs:subClassOf ami:Item ;
-    rdfs:comment """Not fully fleshed out yet, but an Instance is an actual
-running Component.  This is the runtime/live part of AMI.
+    rdfs:comment """Not fully fleshed out yet, but an Exec is an actual instance
+of a running Component.  This is the runtime/live part of AMI.
 """ .
 
 

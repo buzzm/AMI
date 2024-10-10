@@ -181,9 +181,7 @@ The MongoDB database engine.
 
 dd:pgdbx a ami:Software;
     rdfs:label "postgres";
-    rdfs:comment """
-The postgres database engine.
-""";    
+    rdfs:comment "The postgres database engine.";    
 
      ami:slang "c++" ;
       ami:vendor dd:pgcorp ;
@@ -193,7 +191,6 @@ The postgres database engine.
         ami:bintype "arm64"; ami:platform "macOS"
     ];
     ami:EOL "2028-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
-    
     ami:swtype	"service" ;    
     ami:owner dd:actor1 ;
     ami:steward dd:actor1 .    
@@ -419,16 +416,23 @@ dd:sw004	dd:linksWith	dd:sw005 .
 
 dd:vm1	a		ami:Hardware ;
 	ami:steward dd:actor7 ;
-	ami:owner dd:actor7 ;	
+	ami:owner dd:actor7 ;
+	rdfs:label "2CPU-32G-Linux" ;		
 	ami:vendor	dd:mscorp ;
+	ami:ncpus	2 ;
+	ami:RAM		32 ;
 	ami:vmtype	"Standard_D2" .
+
 
 
 dd:vm2	a		ami:Hardware ;
 	ami:steward dd:actor7 ;
 	ami:owner dd:actor7 ;	
 	ami:vmtype	"Standard_D2" ;
-
+	rdfs:label "4CPU-32G-Linux" ;
+	ami:ncpus	4 ;
+	ami:RAM		32 ;
+	
 	# Just like in AWS:
 	ami:secgroup	dd:sg456 ;
 
@@ -625,11 +629,76 @@ releasable unit hence it has no links.
 """ .    				
 
 
+#
+#  Hello World as we might see it in AMI.
+#  The boilerplate stuff like owner, steward, label, and comment are not there
+#  to make the example more compact but in practice we definitely would
+#  want those properties set -- esp. label and comment, which are great for
+#  the LLM to chew on.
+#
+dd:hello123	a ami:Software ;
+		ami:swtype	"exec" ;    
+		ami:version [ a ami:Version; ami:major 1; ami:bintype "x86_64"; ami:platform "ubuntu" ];
+		rdfs:comment "The famous hello world program." .
 
-dd:foosvr   a ami:Software ;
+
+
+#  The helloWorld component opens no ports, doesn't read or write any files,
+#  so is very simple -- just an entryPoint:
+dd:hc4		a ami:Component ;
+		ami:entryPoint	dd:hello123 .
+
+#  Fire up a VM...
+dd:run423	a ami:Runner ;
+		ami:platform	dd:vm1 ;  # see dd:vm1 above...
+		ami:IP4		"192.3.4.5" .
+
+#  ...and start dd:hc4.  Of course, a real hello world would finish
+#  in 4 milliseconds and this entry would be stale but assume it
+#  prints "hello world" in a loop with a 5 second timer.  ;-)
+dd:hw534	a ami:Exec ;
+		ami:runner  dd:run423 ;
+		ami:component  dd:hc4 ;
+		ami:PID  3752 .
+
+
+
+
+dd:babyscript	a ami:Software ;
+		ami:swtype	"exec" ;
+		ami:version [ a ami:Version ;
+			    ami:major 1; ami:minor 0; ami:bintype "python" ] .
+
+dd:babyc	a ami:Component ;
+		ami:connectsTo	dd:pgdbx ; # some postgres component
+		ami:connectsTo	dd:genfs . # ah HA!
+
+dd:genfs	a ami:Component ;
+		rdfs:label  "generic filesystem" ;
+		rdfs:comment  """
+Components that write files should create target filesystem components that
+are a little more specific to the context of program but one can always use
+this generic component as a placeholder.  
+""" .
+
+
+
+dd:foosrv   a ami:Software ;
 	      rdfs:label "foo server";
-            ami:swtype	"service" ;    		      
-	      ami:linksWith	dd:lib3 .	      
+	      ami:linksWith	dd:lib3 .
+
+dd:foosrvc   a ami:Component ;
+	      rdfs:label "foo server";
+	      ami:swtype	"service" ;
+	      ami:entryPoint	dd:foosvr .
+
+dd:foosrvi   a ami:Exec ;
+	      rdfs:label "foo server running!" ;
+	      ami:component  dd:foosrvc ; 
+	      ami:platform  dd:vm1 ;
+	      ami:PID  62533 ;
+	      ami:IP4  "192.0.3.4" .
+	      
 
 
 #
@@ -683,7 +752,7 @@ dd:foosvr_001	a	ami:Instance ;
 dd:rpt3		a	ami:Report ;
 		ami:owner dd:actor55 ;  
 		ami:steward dd:actor55 ;
-		rdfs:label "report" ;
+		rdfs:label "EOL report 1" ;
 		rdfs:comment """This report
 shows the software that has the smallest amount of time from when
 it is released to when it is declared EOL. """ ;

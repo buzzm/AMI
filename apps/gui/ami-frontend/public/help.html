@@ -90,8 +90,7 @@ labels and comments, combined with LLM, allows us to ask:
 
 
 
-
-<H3>Important Consideration When Querying AMI</H3>
+<H3>Important Tips When Querying AMI</H3>
 When AMI generates SPARQL, that SPARQL if executed over and over, will produce
 the same results every time.  However, it is possible that in trying to make
 a SPARQL query, AMI will misinterpret what you wanted and produce a different
@@ -100,6 +99,8 @@ are asking for system descriptions hoping to get the rdfs:comment field for
 each instance of an AMI System class, occasionally your conversation context
 will trigger the LLM to instead fashion SPARQL that include the
 ami:systemdesc property because it has an rdfs:label of "system description".
+
+
 
 
 <H3>Entities in AMI</H3>

@@ -23,7 +23,7 @@ faker = Faker()
 # Namespaces
 SH = rdflib.Namespace("http://www.w3.org/ns/shacl#")
 RDFS = rdflib.Namespace("http://www.w3.org/2000/01/rdf-schema#")
-EX = rdflib.Namespace("http://example.org/ex#")
+DD = rdflib.Namespace("http://moschetti.org/dd#")
 
 def parse_rdf_file(rdf_file):
     g = rdflib.Graph()

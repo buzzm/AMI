@@ -1,119 +1,50 @@
 .App {
-  text-align: center;
-  padding: 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.main-container {
+    display: flex;
+    flex: 1;
+    padding: 10px;
+}
+
+.left-box, .right-box {
+    flex: 1;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+}
+
+.left-box {
+    margin-right: 20px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}
+
+.right-box {
+    overflow: auto;
+}
+
+.input-container {
+    display: flex;
+    padding: 10px;
+    position: sticky;
+    bottom: 0;
+    background-color: white;
 }
 
 .input-box {
-  margin: 20px;
-  display: flex;
-  justify-content: center;
+    flex: 1;
+    height: 50px;
+    margin-right: 10px;
 }
 
-textarea {
-  width: 40%; /* Half the width */
-  height: 100px;
+.go-button {
+    padding: 10px 20px;
 }
 
-button {
-  margin-left: 10px;
-  padding: 10px 20px;
-  align-self: flex-start; /* Align the submit button to the top right of the input box */
-}
-
-.output-section {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 20px;
-  flex-wrap: wrap; /* Allow wrapping of elements for smaller screens */
-}
-
-/* Narrative Box: label, word-wrap, no horizontal scroll */
-.output-section .narrative-box {
-  width: 30%;
-  padding: 10px;
-  background-color: #f9f9f9;
-}
-
-.narrative-box .label {
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.narrative-box {
-  border: 1px solid #ddd;
-  padding: 10px;
-  background-color: #f9f9f9;
-  height: 150px;
-  overflow-y: auto; /* Enable vertical scrolling */
-  overflow-x: auto; /* Enable horizontal scrolling */
-  white-space: pre-wrap; /* This ensures word wrapping but maintains new lines */
-}
-
-
-
-/* SPARQL Box: label, word-wrap, horizontal scroll for long lines */
-.output-section .sparql-box {
-  width: 20%;
-  padding: 10px;
-  background-color: #f9f9f9;
-}
-
-.sparql-box .label {
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.sparql-box pre {
-  border: 1px solid #ddd;
-  padding: 10px;
-  background-color: #fff;
-  max-height: 200px;
-  text-align: left;  
-  white-space: pre; 
-  overflow-x: auto; /* Allow horizontal scrolling for long lines */
-  overflow-y: auto; /* vert scroll */
-}
-
-/* Data Box: label, double height */
-.output-section .data-box {
-  width: 30%;
-  padding: 10px;
-  background-color: #f9f9f9;
-  overflow-y: auto;
-}
-
-.data-box .label {
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.data-box .content {
-  border: 1px solid #ddd;
-  padding: 10px;
-  background-color: #fff;
-  max-height: 400px; /* Double the height */
-  overflow-y: auto; /* Enable vertical scrolling */
-}
-
-.data-box .data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.data-box .data-table th,
-.data-box .data-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
-}
-
-.data-box .data-table th {
-  background-color: #f2f2f2;
-  font-weight: bold;
-}
-
-/* Stash Prompt: move under Data Table */
 .stash-prompt {
-  margin-top: 20px;
-  padding: 10px;
+    padding: 10px;
 }

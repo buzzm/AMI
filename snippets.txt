@@ -163,6 +163,31 @@ WHERE {
 
 ----
 
+* Find all components that are *not* part of any system
+* Find orphaned components
+
+This SPARQL will find any Component that has no transitive connection
+to a system definition.  This is not necessarily a fault, but in general
+such unused components should be pruned from the AMI database.
+
+SELECT ?component
+WHERE {
+  #  Get ALL components:
+  ?component a ami:Component .
+  
+  # Step 2: Filter out components that are part of any system (directly or transitively)
+  FILTER NOT EXISTS {
+    ?system a ami:System ;
+            ami:components ?initialComponent .
+    ?initialComponent (ami:connectsTo)* ?connectedComponent .
+    
+    # Exclude components that are part of the transitive closure from any system
+    FILTER (?connectedComponent = ?component)
+  }
+}
+
+----
+
 * Find all components
 * List all components
 

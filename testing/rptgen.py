@@ -1,3 +1,4 @@
+import argparse
 import json
 import re
 
@@ -26,17 +27,9 @@ def get_category_class(category):
     else:
         return 'category-other'
 
-    
-def main():
+def process(fd):
     """
-If target cat <= computed cat, we are green.
-If computed cat > target cat AND < 5, we are yellow.
-If computed cat > 5, we are red
-If computed cat is X, we are red
-
 Light Blue: #e6f7ff
-Light Yellow: 
-
     """
     
     print("""
@@ -146,8 +139,7 @@ Light Yellow:
         <th>Cat<br>Max/Calc</th>
     </tr>""")
     
-    with open("z.json","r") as fd:
-        for line in fd:
+    for line in fd:
             doc = json.loads(line)
 
             cat_str = ""
@@ -210,7 +202,26 @@ Light Yellow:
 
     
     print("""</BODY></HTML>""")            
-            
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Convert AMI Test Suite JSON output into pretty HTML")
+    parser.add_argument('testdata', help='JSON test run output')
+#                        nargs='+')
+
+    #parser.add_argument('--api_key', type=str, required=True, help="API key for AMI")
+    #parser.add_argument('--ami_cpt', type=str, required=True, help="AMI component for the test driv    
+
+    rargs = parser.parse_args()
+
+    try:
+        fd = open(rargs.testdata,"r")
+        process(fd)
+        fd.close()
+    except Exception as e:
+        print("error:", e)
+        return
+    
 if __name__ == "__main__":
     main()
     

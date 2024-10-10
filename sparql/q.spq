@@ -14,32 +14,41 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 PREFIX xts: <http://xts.com/xts#>
 
+# SELECT ?component
+# WHERE {
+#   ?system a ami:System ;
+#           ami:components ?initialComponent .
+  
+#   # Recursively find all components connected via 'ami:connectsTo'
+#   ?initialComponent (ami:connectsTo)* ?component .
 
-SELECT DISTINCT ?start ?end
+#   # Step 2: Find components that are not in the set of connected components
+  
+# #  FILTER NOT EXISTS {
+# #    ?system a ami:System ;
+# #            ami:components ?initialComponent2 .
+# #    ?initialComponent2 (ami:connectsTo)* ?component .
+# #  }
+
+## SPARQL
+# This query retrieves all components that use the specified AMI Shape.
+# It checks for the shape in both shapeIn and shapeOut properties of MEPs.
+SELECT ?component ?label ?mep
 WHERE {
-    BIND(dd:myApp AS ?components)
+      {
+      dd:myShape_001 ami:shapeIn ?mepEntry .
+          ?mepEntry ?mep ?component .
 
-  {  
-    ?components ami:connectsTo ?end .
-    BIND(?components AS ?start)
+      # Get the label for the component
+          ?component rdfs:label ?label .
   } UNION {
-    ?start ami:connectsTo ?end . 
-    ?components ami:connectsTo+ ?start .
-  }
+    dd:myShape_001 ami:shapeOut ?mepEntry .
+    ?mepEntry ?mep ?component .
 
+    # Get the label for the component
+    ?component rdfs:label ?label .
+    }
 }
-
-#     {
-#         ?start ami:connectsTo ?component .
-#         BIND(?component AS ?end)
-#     }
-#     UNION
-#     {
-#         ?start ami:connectsTo ?intermediate .
-#         ?intermediate ami:connectsTo+ ?component .
-#         BIND(?intermediate AS ?end)
-#     }
-
 
 
 

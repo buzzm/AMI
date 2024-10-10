@@ -11,25 +11,116 @@
 
 tt:test51	a amit:Test ;
 	rdfs:label "test51" ;
-	amit:chain [
-	   amit:foo "bar" ;
 
-	   amit:seq [
-		amit:q  """List all classes.""" ;
-		amit:expect  "narrative" ;
-		amit:source  "ami" ;						
-		amit:response  """We should see a number of things
-like software, hardware, etc.""" ;
-	   ] ;
+	amit:ask [
+ 		    amit:q  """List all AMI components.""" ;
+		    amit:expect  "sparql" ;
+ 	            amit:source  "ami" ;
+		    amit:maxcategory  2		     ;
+		    amit:target  """
+SELECT ?component ?label ?comment
+WHERE {
+    ?component a ami:Component ;
+               rdfs:label ?label .
+    OPTIONAL { ?component rdfs:comment ?comment . }
+}
+""" ;
+		] ;
 
-	   amit:seq [
-		amit:q  """Not that one.""" ;
-		amit:expect  "narrative" ;
-		amit:source  "ami" ;						
-		amit:response  """We should see a number of things
-like software, hardware, etc.""" ;
-	   ] ;
+	amit:ask [
+ 		    amit:q  """List all AMI components that are not part of any AMI system.""" ;
+		    amit:expect  "sparql" ;
+ 	            amit:source  "ami" ;
+		    amit:maxcategory  2		     ;
+		    amit:target  """
+SELECT ?component
+WHERE {
+    ?component a ami:Component .
+    FILTER NOT EXISTS {
+        ?system a ami:System ;
+                ami:components ?initialComponent .
+        ?initialComponent (ami:connectsTo)* ?connectedComponent .
+        FILTER (?connectedComponent = ?component)
+    }
+}
+""" ;
+		] ;
 
-	] .
+	amit:ask [
+ 		    amit:q  """Please add descriptions to these components.""" ;
+		    amit:expect  "sparql" ;
+ 	            amit:source  "ami" ;
+		    amit:maxcategory  2		     ;
+		    amit:target  """
+SELECT ?component ?description
+WHERE {
+    ?component a ami:Component .
+    OPTIONAL { ?component rdfs:comment ?description . }
+    FILTER NOT EXISTS {
+        ?system a ami:System ;
+                ami:components ?initialComponent .
+        ?initialComponent (ami:connectsTo)* ?connectedComponent .
+        FILTER (?connectedComponent = ?component)
+    }
+}
+""" ;
+		] ;
+
+	amit:ask [
+ 		    amit:q  """Please add owner names these components.""" ;
+		    amit:expect  "sparql" ;
+ 	            amit:source  "ami" ;
+		    amit:maxcategory  2		     ;
+		    amit:target  """
+SELECT ?component ?ownerName
+WHERE {
+    ?component a ami:Component .
+    OPTIONAL {
+        ?component ami:owner ?owner .
+        ?owner rdfs:label ?ownerName .
+    }
+    FILTER NOT EXISTS {
+        ?system a ami:System ;
+                ami:components ?initialComponent .
+        ?initialComponent (ami:connectsTo)* ?connectedComponent .
+        FILTER (?connectedComponent = ?component)
+    }
+}
+""" ;
+		] ;
 	
+	amit:ask [
+ 		    amit:q  """Keep the owner names and add back in the descriptions.""" ;
+		    amit:expect  "sparql" ;
+ 	            amit:source  "ami" ;
+		    amit:maxcategory  2		     ;
+		    amit:target  """
+SELECT ?component ?ownerName ?description
+WHERE {
+    ?component a ami:Component .
+    OPTIONAL {
+        ?component ami:owner ?owner .
+        ?owner rdfs:label ?ownerName .
+    }
+    OPTIONAL { ?component rdfs:comment ?description . }
+    FILTER NOT EXISTS {
+        ?system a ami:System ;
+                ami:components ?initialComponent .
+        ?initialComponent (ami:connectsTo)* ?connectedComponent .
+        FILTER (?connectedComponent = ?component)
+    }
+}
+""" ;
+		] ;
+
+	amit:ask [
+ 		    amit:q  """
+What would Howard think about these results?""" ;
+		    amit:expect  "narrative" ;
+ 	            amit:source  "ami" ;
+		    amit:maxcategory  2		     ;
+		    amit:target  """
+More examples, more input from others.
+""" ;
+		] .
 		

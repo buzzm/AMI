@@ -32,11 +32,16 @@ class AMIServer:
             'Content-Type': 'application/sparql-query',  # or 'application/x-www-form-urlencoded'
             'Accept': 'application/json'  # Expecting JSON results
         }
+        
         try:
             probe = 'SELECT (1 AS ?test) WHERE {}'
             rr = requests.post(self.jena_url, data=probe, headers=self.jena_headers)
-            print("jena server OK at", self.jena_url, ":",rr.text)
-                  
+            if "OK" in rr.text and rr.status_code == 200:
+                print("jena server OK at", self.jena_url, ":", rr)
+            else:
+                print("ERROR: jena server NOT OK at", self.jena_url, ":", rr.text)
+                raise Exception(msg)
+            
         except:
             msg = "jena server not running or parsing module broken"
             print("ERROR:",msg)
@@ -132,6 +137,9 @@ class AMIServer:
                 'data':[]
             }
 
+            #  TBD TBD  What if the question is blank?  Do we
+            #  return nothing or a suggestion?
+            
             if question[0] == '!':
                 print("FFF")
                 rmsg['narrative'] = ami_context.askGeneral(question)
@@ -180,21 +188,29 @@ class AMIServer:
             conclusion = "Add this output to our dialogue as dataset %d; we will refer to it later.\nPlease respond in brief." % self.stash_count
     
             # Combine all parts
-            result = intro + rmsg['narrative'] + table_intro + header + rows + conclusion
+            result = intro + rmsg['narrative'] + "\n\n" + table_intro + header + rows + conclusion
             return result
 
         
         @self.app.route('/stash', methods=['POST'])
         def handle_stash():
             user_id = session.get('user_id')
-            if user_id is None or user_id not in self.ami_contexts:
+
+            if self.onectx:
+
+                ami_context = self.ami_contexts['XXX']
+
+            else:
+                #  No way to stash without first having established
+                #  a context so unlike /sparql, this is a fail:
+                print("cannot establish context for user_id [", user_id, "]")
                 return jsonify({'error': 'Session not found'}), 400
 
-            ami_context = self.ami_contexts[user_id]
             
             rmsg = request.json
 
             self.stash_count += 1
+            
             nnt = create_stash_narrative(rmsg)
 
             rmsg2 = {
