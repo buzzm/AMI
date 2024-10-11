@@ -84,6 +84,13 @@ function App() {
 
     return (
         <div className="App">
+            <div className="header-area">
+                <div className="title">AMI: Asset Management & Intelligence</div>
+                <div className="links">
+                    <a href="/help.html">Help</a>
+                    <a href="/contact.html">Contact</a>
+                </div>
+            </div>
             <div className="main-container">
                 <div className="left-side">
                     <div className="left-box">
@@ -99,15 +106,19 @@ function App() {
                         <button onClick={handleSubmit} className="go-button">GO</button>
                     </div>
                 </div>
-                <div className="right-box">
-                    {renderTable()}
-                    {stashPrompt && (
-                        <div className="stash-prompt">
-                            <p>Do you want to stash the data?</p>
-                            <button onClick={() => handleStashResponse('yes')}>Yes</button>
-                            <button onClick={() => handleStashResponse('no')}>No</button>
-                        </div>
-                    )}
+                <div className="right-side">
+                    <div className="right-box">
+                        {renderTable()}
+                    </div>
+                    <div className="actions-area">
+                        {stashPrompt && (
+                            <>
+                                <p>Do you want to stash the data?</p>
+                                <button onClick={() => handleStashResponse('yes')}>Yes</button>
+                                <button onClick={() => handleStashResponse('no')}>No</button>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

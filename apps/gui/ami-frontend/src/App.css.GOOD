@@ -4,23 +4,51 @@
     height: 100vh;
 }
 
+.header-area {
+    height: 60px; /* Fixed height for the HEADER AREA */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+}
+
+.header-area .title {
+    font-weight: bold;
+    font-size: 1.5em; /* Larger font for the title */
+}
+
+.header-area .links {
+    display: flex;
+    gap: 20px; /* Space between Help and Contact links */
+}
+
+.header-area .links a {
+    text-decoration: none;
+    font-size: 1em;
+    color: blue;
+}
+
 .main-container {
     display: flex;
     flex: 1;
     padding: 10px;
+    overflow: hidden; /* Prevent the main container from scrolling */
 }
 
 .left-side {
     display: flex;
     flex-direction: column;
     width: calc(50% - 10px); /* 50% width minus buffer */
+    height: 100%; /* Make sure it takes up the full height */
 }
 
 .left-box {
     flex: 1;
     padding: 10px;
     border: 1px solid #ddd;
-    overflow-y: auto;
+    overflow-y: auto; /* Enable vertical scrolling */
     white-space: pre-wrap;
     word-wrap: break-word;
 }
@@ -28,6 +56,7 @@
 .input-container {
     display: flex;
     margin-top: 10px;
+    height: auto;
 }
 
 .input-box {
@@ -41,20 +70,52 @@
     width: 80px;
 }
 
+/* RIGHT SIDE (Right Box + Actions Area) */
+.right-side {
+    display: flex;
+    flex-direction: column;
+    width: calc(50% - 10px); /* The right side takes 50% of screen width minus the buffer */
+    height: 100%; /* Fill the available height */
+}
+
 .right-box {
     flex: 1;
     padding: 10px;
     border: 1px solid #ddd;
-    margin-left: 20px;
-    overflow: auto;
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: auto; /* Allow horizontal scrolling for the table */
 }
 
-.stash-prompt {
-    margin-top: 20px;
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ddd; /* Thin outer border */
+}
+
+.data-table th, .data-table td {
+    border: 1px solid #ddd; /* Thin border between cells */
+    padding: 8px;
+    text-align: left; /* Keep text left-aligned */
+    vertical-align: top; /* Vertically align all cells to the top */
+}
+
+.data-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.actions-area {
+    height: 100px; /* Fixed height for the ACTIONS AREA */
     padding: 10px;
+    border-top: 1px solid #ddd;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f9f9f9;
+    position: sticky;
+    bottom: 0;
+    right: 0;
+    width: 100%; /* Allow it to expand horizontally with the right box */
 }
 
 /* Styling for echoed user input */

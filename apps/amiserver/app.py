@@ -182,8 +182,8 @@ class AMIServer:
             header = "|".join(rmsg['vars']) + "\n"
     
             # Construct the data rows
-            rows = "\n".join("|".join(row[var] for var in rmsg['vars']) for row in rmsg['data']) + "\n"
-    
+            rows = "\n".join("|".join(row.get(var,"") for var in rmsg['vars']) for row in rmsg['data']) + "\n"            
+            
             # Add the final text indicating the dataset and brief response
             conclusion = "Add this output to our dialogue as dataset %d; we will refer to it later.\nPlease respond in brief." % self.stash_count
     

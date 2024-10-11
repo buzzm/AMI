@@ -33,21 +33,11 @@ PREFIX xts: <http://xts.com/xts#>
 ## SPARQL
 # This query retrieves all components that use the specified AMI Shape.
 # It checks for the shape in both shapeIn and shapeOut properties of MEPs.
-SELECT ?component ?label ?mep
+SELECT *
 WHERE {
-      {
-      dd:myShape_001 ami:shapeIn ?mepEntry .
-          ?mepEntry ?mep ?component .
+      ?s  ami:shapeOut ?o .
 
-      # Get the label for the component
-          ?component rdfs:label ?label .
-  } UNION {
-    dd:myShape_001 ami:shapeOut ?mepEntry .
-    ?mepEntry ?mep ?component .
-
-    # Get the label for the component
-    ?component rdfs:label ?label .
-    }
+      ?parents (sh:property|sh:node)* ?s  .
 }
 
 
