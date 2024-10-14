@@ -70,7 +70,8 @@ JENAJ=$JL/jena-mongodb-5.1.jar\
 
 OTHER=$JL/json-20240303.jar
 
-JAVA="java -Xms4000m -Xmx4000m"
+#JAVA="java -Xms4000m -Xmx4000m"
+JAVA="java"
 
 #JAVA="jdb -sourcepath .:/Users/buzz/java/org.moschetti/jena-mongodb/src/main:/Users/buzz/git/jena/jena-core/src/main/java:/Users/buzz/git/jena/jena-arq/src/main/java:/Users/buzz/git/jena/jena-base/src/main/java"
 
