@@ -16,7 +16,7 @@ fi
 # REACT_APP_AMI_URL=https://localhost:5001
 
 # REACT_APP_AMI_URL=https://dynIP:8080
-# EIP  Elastic IP!
+# EIP  Elastic IP is permanently bound -- but no DNS name.
 #  	 50.112.191.129
 AMI_HOST=http://50.112.191.129:8080
 
@@ -24,6 +24,9 @@ CWD=`pwd`
 
 #  jenaserver goes first:
 (cd apps/jenacli ; nohup sh jena.runt jenaserver ami5 "mongodb://$MDB@test0-shard-00-00-rrpjf.mongodb.net:27017,test0-shard-00-01-rrpjf.mongodb.net:27017,test0-shard-00-02-rrpjf.mongodb.net:27017/semantic?ssl=true&replicaSet=test0-shard-0&authSource=admin&retryWrites=true&w=majority" > "$CWD/jenaserver.log" 2>&1 &)
+
+printf "wait 3 seconds for jenaserver to come up because AMI server will check...\n"
+sleep 3
 
 #  next is amiserver:
 source venv.1/bin/activate
