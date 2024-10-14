@@ -24,6 +24,9 @@ def groom(text: str) -> str:
     
     # Then, replace any remaining single '\n' with a space
     text = text.replace(r'\n', ' ')
+
+    # lightrdf turns " into \" so undo that...
+    text = text.replace(r'\"', '"')
     
     # Finally, strip any leading or trailing spaces/newlines
     return text.strip()
@@ -187,12 +190,12 @@ All other object types are native e.g. datetimes are ISODate type.""" ,
     for f in fnames:
         print(f,"...")
         for triple in rdfp.parse(f, base_iri=None):
+
             z2 = []
             for ns in triple:
                 if ns[0] == '<':
                     ns = ns[1:-1]
                 z2.append(substitute_namespace(pfx, ns))
-
 
             # Check for literal objects; lightrdf will wrap them with doublequotes
             if z2[2][0] == '"':

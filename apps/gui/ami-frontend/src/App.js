@@ -40,6 +40,40 @@ function App() {
     };
 
     const processResponse = (rmsg) => {
+	let narrative = rmsg.narrative;
+
+	// Check if the narrative starts with "## SPARQL"
+	if (!narrative.startsWith("## SPARQL")) {
+            // Break the narrative into lines of approximately 100 characters
+            let formattedNarrative = "";
+            let words = narrative.split(" ");
+            let lineLength = 0;
+
+            words.forEach(word => {
+		if (lineLength + word.length + 1 > 100) {
+                    // If adding this word exceeds 100 characters, start a new line
+                    formattedNarrative += "\n";
+                    lineLength = 0;
+		}
+		formattedNarrative += word + " ";
+		lineLength += word.length + 1;
+            });
+
+            narrative = formattedNarrative.trim(); // Trim any trailing space
+	}
+
+	// Append the formatted narrative to the left box content
+	setLeftBoxContent(prev => `${prev}\n<span class="response blue-text">${narrative}</span>`);
+	
+	if (rmsg.vars.length > 0) {
+            setVars(rmsg.vars);  
+            setDataOutput(rmsg.data.length > 0 ? rmsg.data : []);
+            setStashPrompt(true);  
+	}
+    };
+    
+    /*
+      const processResponse = (rmsg) => {
         setLeftBoxContent(prev => `${prev}\n<span class="response blue-text">${rmsg.narrative}</span>`);
         if (rmsg.vars.length > 0) {
             setVars(rmsg.vars);
@@ -47,7 +81,8 @@ function App() {
             setStashPrompt(true);
         }
     };
-
+    */
+    
     const handleStashResponse = async (answer) => {
         if (answer === 'yes' && lastRmsg) {
             try {

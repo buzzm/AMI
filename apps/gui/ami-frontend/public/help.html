@@ -55,7 +55,7 @@ information, at your discretion, in a general purpose LLM.
       in 2024."  AMI knows about the concept of "Software" and "EOL" in its
       metadata and together with the word "my", AMI will construct SPARQL
       and call the CMDB.
-    </li>
+    </li><br>
     <li>Questions that are ambiguous regarding association with local CMDB
       data or the general knowledge pool:  Example:  "What is the most
       popular software?" or "What software uses log4j?"  AMI can come up with
@@ -63,12 +63,12 @@ information, at your discretion, in a general purpose LLM.
       the narrative and possibly SPARQL response.  Just 1 or 2 extra words
       or punctuation will significantly help AMI, e.g. What software in my
       catalog uses "ex:log4j"?  will certainly generate a SPARQL/CMDB result.
-    </li>
+    </li><br>
     <li>Questions that clearly cannot be answered by the AMI CMDB.  Example:
       "What are the corporate headquarters for my vendors?"
     </li>
   </ol>
-  The key concept to bridging the data is through the use of stashing.
+  The key concept to bridging the data is through the use of <b>stashing</b>.
   Of course, upon startup if you so desired, you can certainly begin an AI chat
   e.g. "What is the diameter of the moon?" which the backend will clearly
   vector to the general purpose LLM ; no SPARQL here!  But the more common use

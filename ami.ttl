@@ -6,9 +6,14 @@
 
 
 ami:Control a rdfs:Class ;
+	  rdfs:label "control" ;
 	  rdfs:comment """
-The Control class holds general information about the AMI system
-itself.""" .
+The Control class holds general information about this AMI system instance.  One
+AMI system instance manages a domain of data that contains many systems and many
+components and software.  For a number reasons, however, it is sometimes wise to
+segregate data into a different domains including testing, sensitive data
+isolation, etc.
+""" .
 
 ami:Actor a rdfs:Class ;
 	  rdfs:comment """
@@ -36,6 +41,7 @@ therefore, the binary type for instances of jars is always simply "jar".
 
 
 ami:MEP a rdfs:Class ;
+	  rdfs:label "MEP" ;
 	  rdfs:comment """
 MEP is an acronym for (m)essage (e)xchange (p)attern.
 MEPs are found in the Component class and used to describe both the shapes of

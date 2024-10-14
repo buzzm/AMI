@@ -1,28 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 
 function App() {
-    const targURL = "http://localhost:5001";
-    
-    const [input, setInput] = useState('');  
-    const [leftBoxContent, setLeftBoxContent] = useState(''); 
-    const [vars, setVars] = useState([]);    
-    const [dataOutput, setDataOutput] = useState([]); 
-    const [stashPrompt, setStashPrompt] = useState(false); 
-    const [lastRmsg, setLastRmsg] = useState(null); 
+    const targURL = process.env.REACT_APP_TARG_URL || "http://localhost:5001"; // Configurable target URL
+
+    const [input, setInput] = useState('');
+    const [leftBoxContent, setLeftBoxContent] = useState('');
+    const [vars, setVars] = useState([]);
+    const [dataOutput, setDataOutput] = useState([]);
+    const [stashPrompt, setStashPrompt] = useState(false);
+    const [lastRmsg, setLastRmsg] = useState(null);
+    const [systemSize, setSystemSize] = useState('simple'); // New state for system size
+
+    const leftBoxRef = useRef(null);
+
+    useEffect(() => {
+        // Auto scroll to bottom when content changes
+        if (leftBoxRef.current) {
+            leftBoxRef.current.scrollTop = leftBoxRef.current.scrollHeight;
+        }
+    }, [leftBoxContent]);
 
     const handleSubmit = async () => {
+        const sizeCode = systemSize;  // Fetch selected system size value
         setLeftBoxContent(prev => `${prev}\n\n<span class="user-input">${input}</span>\n\n`);
         try {
             const response = await fetch(targURL + '/sparql', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question: input, systemSize: 'Simple' }),  
+                body: JSON.stringify({ question: input, systemSize: sizeCode }),  // Pass selected system size
                 credentials: 'include'
             });
             const data = await response.json();
             processResponse(data);
-            setLastRmsg(data); 
+            setLastRmsg(data);
         } catch (error) {
             setLeftBoxContent(prev => `${prev}\n<span class="response blue-text">Error retrieving data.</span>`);
         }
@@ -31,9 +42,9 @@ function App() {
     const processResponse = (rmsg) => {
         setLeftBoxContent(prev => `${prev}\n<span class="response blue-text">${rmsg.narrative}</span>`);
         if (rmsg.vars.length > 0) {
-            setVars(rmsg.vars);  
+            setVars(rmsg.vars);
             setDataOutput(rmsg.data.length > 0 ? rmsg.data : []);
-            setStashPrompt(true);  
+            setStashPrompt(true);
         }
     };
 
@@ -86,21 +97,34 @@ function App() {
         <div className="App">
             <div className="header-area">
                 <div className="title">AMI: Asset Management & Intelligence</div>
-                <div className="links">
-                    <a href="/help.html">Help</a>
-                    <a href="/contact.html">Contact</a>
+                <div className="system-size-dropdown">
+                    <label htmlFor="system-size">System Size:</label>
+                    <select
+                        id="system-size"
+                        value={systemSize}
+                        onChange={(e) => setSystemSize(e.target.value)}
+                    >
+                        <option value="simple">Simple</option>
+                        <option value="standard">Standard</option>
+                        <option value="complex">Complex</option>
+                    </select>
                 </div>
+                <div className="links">
+                    <a href="/help.html" target="_blank">Help</a>
+                    <a href="/contact.html" target="_blank">Contact</a>
+                </div>
+		
             </div>
             <div className="main-container">
                 <div className="left-side">
-                    <div className="left-box">
-                        <pre dangerouslySetInnerHTML={{__html: leftBoxContent}}></pre>
+                    <div className="left-box" ref={leftBoxRef}>
+                        <pre dangerouslySetInnerHTML={{ __html: leftBoxContent }}></pre>
                     </div>
                     <div className="input-container">
                         <textarea
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            placeholder="Enter your query"
+                            placeholder='Enter your query e.g. "Show all AMI software."'
                             className="input-box"
                         />
                         <button onClick={handleSubmit} className="go-button">GO</button>
