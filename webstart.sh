@@ -18,7 +18,7 @@ fi
 # REACT_APP_AMI_URL=https://dynIP:8080
 # EIP  Elastic IP!
 #  	 50.112.191.129
-
+AMI_HOST=http://50.112.191.129:8080
 
 CWD=`pwd`
 
@@ -31,7 +31,7 @@ source venv.1/bin/activate
 (cd apps/amiserver ; nohup python3 -u app.py --api_key $OPENAI_API_KEY --ami_cpt ../../ami.cpt  --local_cpt ../../local.cpt --snippets ../../snippets.txt > "$CWD/amiserver.log" 2>&1 &)
 
 #  last is node:
-(cd apps/gui/ami-frontend/src ; PORT=3000 REACT_APP_AMI_URL=https://dynIP:8080 nohup npm start > "$CWD/node.log" 2>&1 &)
+(cd apps/gui/ami-frontend/src ; PORT=3000 REACT_APP_AMI_URL=$AMI_HOST nohup npm start > "$CWD/node.log" 2>&1 &)
 
 
 
