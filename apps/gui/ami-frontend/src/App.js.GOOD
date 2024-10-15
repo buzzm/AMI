@@ -11,6 +11,7 @@ function App() {
     const [stashPrompt, setStashPrompt] = useState(false);
     const [lastRmsg, setLastRmsg] = useState(null);
     const [systemSize, setSystemSize] = useState('simple'); // New state for system size
+    const [loading, setLoading] = useState(false); // New state for loading spinner
 
     const leftBoxRef = useRef(null);
 
@@ -22,6 +23,7 @@ function App() {
     }, [leftBoxContent]);
 
     const handleSubmit = async () => {
+        setLoading(true); // Activate the loading spinner
         const sizeCode = systemSize;  // Fetch selected system size value
         setLeftBoxContent(prev => `${prev}\n\n<span class="user-input">${input}</span>\n\n`);
         try {
@@ -36,16 +38,44 @@ function App() {
             setLastRmsg(data);
         } catch (error) {
             setLeftBoxContent(prev => `${prev}\n<span class="response blue-text">Error retrieving data.</span>`);
+        } finally {
+            setLoading(false); // Deactivate the loading spinner
         }
     };
 
     const processResponse = (rmsg) => {
-        setLeftBoxContent(prev => `${prev}\n<span class="response blue-text">${rmsg.narrative}</span>`);
-        if (rmsg.vars.length > 0) {
-            setVars(rmsg.vars);
-            setDataOutput(rmsg.data.length > 0 ? rmsg.data : []);
-            setStashPrompt(true);
+        let narrative = rmsg.narrative;
+
+        if (!narrative.startsWith("## SPARQL")) {
+            let formattedNarrative = "";
+            let words = narrative.split(" ");
+            let lineLength = 0;
+
+            words.forEach(word => {
+                if (lineLength + word.length + 1 > 100) {
+                    formattedNarrative += "\n";
+                    lineLength = 0;
+                }
+                formattedNarrative += word + " ";
+                lineLength += word.length + 1;
+            });
+
+            narrative = formattedNarrative.trim();
         }
+
+        setLeftBoxContent(prev => `${prev}\n<span class="response blue-text">${narrative}</span>`);
+        
+        if (rmsg.vars.length > 0) {
+            setVars(rmsg.vars);  
+            setDataOutput(rmsg.data.length > 0 ? rmsg.data : []);
+            setStashPrompt(true);  
+        }
+    };
+
+    const handleSystemSizeChange = (e) => {
+        const newSize = e.target.value;
+        setSystemSize(newSize);
+        setLeftBoxContent(prev => `${prev}\n<span class="response blue-text">Switching to domain ${newSize.charAt(0).toUpperCase() + newSize.slice(1)}.</span>`);
     };
 
     const handleStashResponse = async (answer) => {
@@ -102,7 +132,7 @@ function App() {
                     <select
                         id="system-size"
                         value={systemSize}
-                        onChange={(e) => setSystemSize(e.target.value)}
+                        onChange={handleSystemSizeChange} // Updated event handler
                     >
                         <option value="simple">Simple</option>
                         <option value="standard">Standard</option>
@@ -113,7 +143,6 @@ function App() {
                     <a href="/help.html" target="_blank">Help</a>
                     <a href="/contact.html" target="_blank">Contact</a>
                 </div>
-		
             </div>
             <div className="main-container">
                 <div className="left-side">
@@ -127,7 +156,9 @@ function App() {
                             placeholder='Enter your query e.g. "Show all AMI software."'
                             className="input-box"
                         />
-                        <button onClick={handleSubmit} className="go-button">GO</button>
+                        <button onClick={handleSubmit} className="go-button" disabled={loading}>
+                            {loading ? <span className="spinner"></span> : 'GO'} {/* Spinner */}
+                        </button>
                     </div>
                 </div>
                 <div className="right-side">

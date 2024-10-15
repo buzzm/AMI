@@ -21,9 +21,9 @@
 
 
   <BODY>
-<H2>AMI Guide</H2>
+<H1>AMI Guide</H1>
 
-<H3>TL;DR</H3>
+<H2>TL;DR</H2>
 Type each of the following lines separately into the input box:
 <ol>
   <li>Show me all my software and vendor names.</li>
@@ -32,6 +32,7 @@ Type each of the following lines separately into the input box:
   <li>(Stash the data)</li>
 </ol>
 
+<H2>Contents</H2>
 
 <H3>Overview</H3>
 Asset Management & Intelligence (AMI) is a hybrid AI/configuration management
@@ -53,31 +54,205 @@ information, at your discretion, in a general purpose LLM.
     <li>Questions it can reasonably infer are associated directly with specific
       CMDB data.  Example: "Show all my software that is going EOL
       in 2024."  AMI knows about the concept of "Software" and "EOL" in its
-      metadata and together with the word "my", AMI will construct SPARQL
-      and call the CMDB.
+      metadata and together with the word "my", AMI will construct SPARQL, 
+      call the CMDB, and display the results in tabular form.
     </li><br>
     <li>Questions that are ambiguous regarding association with local CMDB
       data or the general knowledge pool:  Example:  "What is the most
       popular software?" or "What software uses log4j?"  AMI can come up with
       a variety of interpretations and the user must be vigilant to review
       the narrative and possibly SPARQL response.  Just 1 or 2 extra words
-      or punctuation will significantly help AMI, e.g. What software in my
-      catalog uses "ex:log4j"?  will certainly generate a SPARQL/CMDB result.
+      or punctuation will significantly help AMI, e.g. <tt>What software in my
+      catalog uses dd:log4j?</tt> will certainly generate a SPARQL/CMDB result.
     </li><br>
     <li>Questions that clearly cannot be answered by the AMI CMDB.  Example:
-      "What are the corporate headquarters for my vendors?"
+      "What are the corporate headquarters for my vendors?" or "What is the
+      diameter of the moon?"
     </li>
   </ol>
   The key concept to bridging the data is through the use of <b>stashing</b>.
-  Of course, upon startup if you so desired, you can certainly begin an AI chat
-  e.g. "What is the diameter of the moon?" which the backend will clearly
+  Of course, upon startup if you so desired, you can certainly begin an AMI
+  engagement with "What is the diameter of the moon?" which the backend will clearly
   vector to the general purpose LLM ; no SPARQL here!  But the more common use
-  is to ask CMDB-targetted questions, get data results, and then add this data
+  is to ask CMDB-targeted questions, get data results, and then add this data
   to the LLM via stashing.   Stashing is made to be an optional step because
   especially as you are iteratively enhancing a question/query, it doesn't
   help the LLM to keep ingesting intermediate stages of data.  When you are
   pleased with the progress, then it's time to stash the results.
 </p>  
+
+
+<H3>The Simple Domain and Basic AMI Concepts</H3>
+The Simple Domain is the "training ground" for AMI.  It allows you to explore
+these important interaction concepts:
+<ul>
+  <li>The incrementally iterative UI/UX of AMI i.e. you can use just a few words to
+    enhance the results of the previous query.
+    
+  <li>The relationship between the <tt>ami:Software</tt> and <tt>ami:Component</tt>
+    classes.
+    
+  <li>The relationship between the <tt>ami:Component</tt> and
+    <tt>ami:Runner</tt> and    <tt>ami:Exec</tt> classes.
+
+  <li>The definition of <tt>ami:owner</tt>, <tt>ami:steward</tt>,
+    <tt>rdfs:label</tt>, and <tt>rdfs:comment></tt></li>
+</ul>
+
+<p>
+  In the input window, type:
+  <div class="QQQ"><pre>
+      List all owner and steward names.
+  </pre></div>
+  This is a fairly wide open query but AMI has been conditioned to be extra
+  sensitive to the words owner and steward and you should get back a table listing
+  Steve and Dave as owner and steward.
+</p>
+<p>
+  Here is tip #1:  Don't assume AMI will give you more than what you asked for.
+  The query gave you exactly what you asked for -- and we don't know what assets
+  Dave and Steve own/steward.<br>
+  Which leads to tip #2:  Think about incremental refinement of what you are
+  looking for.  Try this in the input window:
+  <div class="QQQ"><pre>
+      Keep the current output but add a description of the item.
+  </pre></div>
+</p>
+<P>
+  Let's begin with "The Big Four".  All things in AMI must have these four:
+  <ul>
+    <li><tt>ami:owner</tt><br>
+      The <tt>ami:owner</tt> is the administrative manager of a thing, typically a
+      manager in the IT department.  The owner is responsible for the correct
+      information associated with a thing.  The owner can also be the steward and
+      visa versa.  The owner is not as important from a functional perspective as
+      the steward.
+    </li><br>
+    <li><tt>ami:steward</tt><br>
+      The <tt>ami:steward</tt>
+      is the operational manager of a thing, typically a developer or DBA or
+      perhaps someone in a release/monitoring role.
+      It is important to differentiate that the steward is tasked with the
+      operational update of a thing but it is the
+      owner that is ultimately responsible for the correct information.
+      The steward is the most important Actor engaged with a thing because it is
+      assumed that they actually know how it works.
+      The steward can of course also be the owner and visa versa.  
+    </li><br>    
+    <li><tt>rdfs:label</tt><br>
+      The <tt>rdfs:label</tt> property
+      is an industry-recognized (very) terse description of a thing.  It is
+      very important within the AMI framework because it acts as a tag
+      and helps the AI/LLM "home on things" in a general way.
+    </li><br>
+    <li><tt>rdfs:comment</tt><br>
+      The <tt>rdfs:comment</tt> property
+      is an industry-recognized verbose description of a thing.  Arguably,
+      for open-ended discovery of material within AMI, the <tt>rdfs:comment</tt>
+      property is the most important because the verbosity helps the AI/LLM
+      select candidate material.  At a minimum, <tt>rdfs:comment</tt> should be
+      the same value as <tt>rdfs:label</tt> but ideally it is <i>much</i> more
+      verbose
+    </li><br>        
+  </ul>
+</p>
+
+
+<H4>Software and Components</H4>
+<p>
+  In the AMI information architecture, <b>Software</b> is defined as versioned release
+of a thing. 
+  <div class="QQQ"><pre>
+      List all AMI Software.
+  </pre></div>
+  Again note that we hint to the LLM that it is the AMI domain of software we
+  are interested in, not <i>all</i> the software it knows about (which is a lot).
+</p>
+<p>
+  <div class="QQQ"><pre>
+      List all AMI Components.
+  </pre></div>  
+  A <b>Component</b> is an (ultimately) executable thing that presents interfaces
+  to which other Components may connect, and it declares the Components upon which
+  it depends.   Whereas Software is mostly concerned with version, vendor, and
+  compile and runtime dependencies, Components are more concerned with data flow.
+  A crucial connection between Software and Components is the <tt>entryPoint</tt>
+  property of Component.  
+</p>
+<p>
+  <div class="QQQ"><pre>
+      What is an AMI Component?
+  </pre></div>  
+  AMI is a self-documenting system.  The definition of the classes and the
+  labels and comments therein -- essentially, the AMI metadata -- can be examined
+  by the LLM to produce textual answers.
+</p>
+
+
+  
+<H3>AMI Information Architecture Cheat Sheet</H3>
+Mainline Classes:
+<ul>
+  <li>Software is versioned unit of release of something like <tt>log4j</tt> or <tt>postgres 16.3</tt>.</li>
+  <li>Software has a property <tt>linksWith</tt> whose values are also Software; this enables
+    AMI to create a dependency chain, both up and downstream.
+  </li>  
+  <li>Components are logical building blocks for systems.  Components declare interfaces
+    and the protocols and shapes of data that pass through them.  They also declare
+    other Components upon which they depend via the <tt>connectsTo</tt> property; this
+    enables AMI to create a dependency chain, both up and downstream.
+  </li>
+  <li>Hardware is a specification for a platform that can run Components; it is not the
+    actual running instance.  Virtual machines are considered Hardware.
+  </li>
+  <li>A Runner is an activated instance of Hardware.  Many active instances can refer
+    to the same Hardware spec e.g. 10 instances of AWS <tt>t2.medium</tt>.
+  </li>
+  <li>An Exec is a running Component on a Runner.  This is the "top" of the AMI information
+    architecture.
+  </li>
+</ul>  
+
+Management/Administrative Classes:
+<ul>
+  <li>A System is a named set of at least one Component.  A System provides
+    context to the business and IT i.e. it is a reference point for some domain
+    of activity.
+    A System does not need to name all dependent Components; almost always it is
+    only the top-most Components like GUI applications that are listed.  All
+    downstream dependencies are derived from transitive closure on the
+    Component <tt>connectsTo</tt> property.
+    Because Systems are basically just labels, they can overlap e.g.
+    System A contains components X, Y, and Z and System B contains X.
+    Systems have department and other administrative properties which make
+    them typically the starting point for inquires e.g. "What systems do
+    I have that use Oracle 12?"
+  </li>
+  <li>An Actor is an entity that engages with resources managed by AMI.
+    Actors can be real people or system processes.  The <tt>ami:owner</tt>
+    and <tt>ami:steward</tt> properties appear in all mainline classes
+    and are vital for analyzing who is interacting with the technology
+    footprint and how.
+  </li>
+  <li>The Control class contains properties of the overall AMI system
+    itself.
+  </li>
+</ul>
+
+The Shape Class:
+<ul>
+  <li>Shapes are special because they inherit from the industry standard spec
+    called SHACL.  Shapes are also significantly more rich in structure
+    than the more scalar property oriented Software and Hardware classes.
+  </li>
+</ul>
+
+Other Classes:
+<ul>    
+  <li>Version</li>
+  <li>MEP</li>  
+</ul>
+
 
 <H3>Self-Documentation and The Power of LLM</H3>
 RDF hyperdenormalization gives us the opportunity to label and comment every

@@ -194,6 +194,7 @@ public class jenaserver {
 		    List<String> vars = results.getResultVars();
 		    
 		    // If you got here, it worked.
+		    // There might be zero rows, but the query exec'd OK.
 		    exchange.sendResponseHeaders(200, NOT_FIXED_LENGTH);
 		    
 		    OutputStream os = exchange.getResponseBody();

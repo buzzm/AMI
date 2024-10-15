@@ -129,6 +129,8 @@ class AMIServer:
             question = data.get('question')
             system_size = data.get('systemSize')
 
+            print("system_size:", system_size)
+            
             rmsg = {
                 'status':'OK',
                 'narrative':"",

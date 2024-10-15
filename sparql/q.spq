@@ -30,20 +30,29 @@ PREFIX xts: <http://xts.com/xts#>
 # #    ?initialComponent2 (ami:connectsTo)* ?component .
 # #  }
 
-## SPARQL
-# This query retrieves all components that use the specified AMI Shape.
-# It checks for the shape in both shapeIn and shapeOut properties of MEPs.
-SELECT *
-WHERE {
-      ?s  ami:shapeOut ?o .
 
-      ?parents (sh:property|sh:node)* ?s  .
+# SELECT *
+# WHERE {
+# #?steward a ami:Actor .
+# #?steward rdfs:label ?name .
+# #FILTER(!CONTAINS(LCASE(?name), "jane"))
+# ?sub	 ami:steward ?obj .
+# ?obj rdfs:label ?name .
+# }
+
+SELECT ?steward ?name
+WHERE {
+
+?steward a ami:Actor .
+
+?sub	 ami:steward ?obj .
+
+#ami:steward ?steward .
+#  ?steward rdfs:label ?name .
+#  FILTER(!CONTAINS(LCASE(?name), "jane"))
 }
 
 
-
-
-# SELECT ?desc ?owner ?dept ?ownerName ?steward ?stewardName
 # WHERE {
 #     ?system a ami:System ;
 #             ami:systemdesc ?desc ;
