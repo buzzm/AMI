@@ -43,6 +43,7 @@ function App() {
         }
     };
 
+    /*
     const processResponse = (rmsg) => {
         let narrative = rmsg.narrative;
 
@@ -70,7 +71,52 @@ function App() {
             setDataOutput(rmsg.data.length > 0 ? rmsg.data : []);
             setStashPrompt(true);  
         }
+	};
+    */
+
+    const processResponse = (rmsg) => {
+	let narrative = rmsg.narrative;
+
+	// Check if the narrative starts with "## SPARQL"
+	if (!narrative.startsWith("## SPARQL")) {
+            // Split the narrative by existing newlines first
+            let lines = narrative.split("\n");
+            let formattedNarrative = "";
+
+            lines.forEach(line => {
+		let words = line.split(" ");
+		let newLine = "";
+		let lineLength = 0;
+
+		words.forEach(word => {
+                    if (lineLength + word.length + 1 > 100) {
+			// If the current line length + the new word exceeds 100 chars, start a new line
+			formattedNarrative += newLine.trim() + "\n";  // Add the current line to the narrative
+			newLine = "";  // Reset for the next line
+			lineLength = 0;
+                    }
+
+                    newLine += word + " ";  // Add the word to the current line
+                    lineLength += word.length + 1;  // Update the line length
+		});
+
+		// Add any remaining words in the line
+		formattedNarrative += newLine.trim() + "\n";
+            });
+
+            narrative = formattedNarrative.trim(); // Clean up extra whitespace or newlines
+	}
+
+	// Append the formatted narrative to the left box content
+	setLeftBoxContent(prev => `${prev}\n<span class="response blue-text">${narrative}</span>`);
+	
+	if (rmsg.vars.length > 0) {
+            setVars(rmsg.vars);
+            setDataOutput(rmsg.data.length > 0 ? rmsg.data : []);
+            setStashPrompt(true);
+	}
     };
+
 
     const handleSystemSizeChange = (e) => {
         const newSize = e.target.value;
