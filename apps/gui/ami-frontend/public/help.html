@@ -16,6 +16,13 @@
 .rev {
    font-size: 12 ; 
 }
+
+.indented-block {
+    margin-left: 20px; /* Adjust the value to control the amount of indentation */
+    /* Alternatively, you can use padding if you prefer */
+    padding-left: 20px;
+}
+
 </style>
 </HEAD>
 
@@ -24,16 +31,24 @@
 <H1>AMI Guide</H1>
 
 <H2>TL;DR</H2>
-Type each of the following lines separately into the input box:
+Type each of the following lines separately into the input box followed by GO:
 <ol>
   <li>Show me all my software and vendor names.</li>
   <li>Group by vendor name and show me totals.</li>
   <li>Just the top 3.</li>
   <li>(Stash the data)</li>
+  <li>Describe the relationship between AMI Software and AMI Components.
 </ol>
 
 <H2>Contents</H2>
+<ol>
+  <li><a href="#overview">Overview</A></li>
+  <li><a href="#simple">Getting started with The Simple Domain</A></li>
+  <li><a href="#cheat">AMI Cheat Sheet</A></li>    
+</ol>
 
+
+<A NAME="overview"></A>	 
 <H3>Overview</H3>
 Asset Management & Intelligence (AMI) is a hybrid AI/configuration management
 database ("CMDB") that allows you to explore your technology footprint both
@@ -82,24 +97,24 @@ information, at your discretion, in a general purpose LLM.
 </p>  
 
 
+<A NAME="simple"></A>	 
 <H3>The Simple Domain and Basic AMI Concepts</H3>
 The Simple Domain is the "training ground" for AMI.  It allows you to explore
 these important interaction concepts:
 <ul>
   <li>The incrementally iterative UI/UX of AMI i.e. you can use just a few words to
-    enhance the results of the previous query.
+    enhance the results of the previous query.</li>
     
   <li>The relationship between the <tt>ami:Software</tt> and <tt>ami:Component</tt>
-    classes.
+    classes.</li>
     
-  <li>The relationship between the <tt>ami:Component</tt> and
-    <tt>ami:Runner</tt> and    <tt>ami:Exec</tt> classes.
-
-  <li>The definition of <tt>ami:owner</tt>, <tt>ami:steward</tt>,
-    <tt>rdfs:label</tt>, and <tt>rdfs:comment></tt></li>
+  <li>The ability of AMI to answer questions about itself ("self-documentation")</li>
+    
 </ul>
-
 <p>
+  The raw data backing the simple domain can be
+  <a href="simple_data.ttl">viewed here</a>; note that actual data being queried
+  by SPARQL is in a real triplestore.  But let's start using the GUI.
   In the input window, type:
   <div class="QQQ"><pre>
       List all owner and steward names.
@@ -107,6 +122,7 @@ these important interaction concepts:
   This is a fairly wide open query but AMI has been conditioned to be extra
   sensitive to the words owner and steward and you should get back a table listing
   Steve and Dave as owner and steward.
+  Note that the SPARQL used to generate the data appears in the conversation.
 </p>
 <p>
   Here is tip #1:  Don't assume AMI will give you more than what you asked for.
@@ -118,8 +134,148 @@ these important interaction concepts:
       Keep the current output but add a description of the item.
   </pre></div>
 </p>
+
+<p>
+  Tip #3:  If you want to "change direction", help AMI by explicitly stating
+  to start over:
+  <div class="QQQ"><pre>
+      Reset the conversation.
+  </pre></div>
+</p>
+
+There are two general approaches to interrogating AMI:
+<ol>
+  <li>Top-down from System level e.g. "What is in System X?".  This is popular
+    because IT assets are often organized by system to facilitate understanding
+    of function and a common set of terms for IT And the business to share.</li>
+  <li>Bottom-up from Software e.g. "What depends on Oracle?".  This is popular
+    because understanding dependency chains greatly aids risk management
+    and strategic transformation</li>  
+</ol>
+
+Let's start with a top-down approach.
+  <div class="QQQ"><pre>
+      List all AMI systems.
+  </pre></div>
+  The simple domain has one system, "Hello World."  Let's find the components
+  of that system:
+  <div class="QQQ"><pre>
+      Show me all Components of AMI system dd:sy2iu3uy.
+  </pre></div>  
+  The hello world Component appears in the data output area.
+  Tip #4:  If you are dealing with specific items like a particular system or
+  component or piece of software, it greatly helps AMI generate a good query if
+  you use the entity ids e.g. <tt>dd:sy2iu3uy</tt>.  However, in the cases
+  where the context/intent is very clear, the conversational nature of AMI
+  will work too, as follows:
+  
+  <div class="QQQ"><pre>
+  What AMI software is used in these components?
+  </pre></div>  
+  The data table will show <tt>dd:sw0r5i28</tt> which is actual piece of
+  software.
+
+  <div class="QQQ"><pre>
+Tell me everything about dd:sw0r5i28
+  </pre></div>
+  Coming back to tip #1, the data output does not recursively dig through
+  the Actor or Version objects.   Let's add that now:
+
+
+  <div class="QQQ"><pre>
+      Keep all the output except expand ami:version for all its fields,
+      and expand ami:steward and ami:owner to include names.
+  </pre></div>
+  It is highly likely that AMI has made a mistake here and interpreted
+  "expand" to mean some sort of a union-like operation.   Let's go back:
+  <div class="QQQ"><pre>
+      That is not correct.  Please revert to the prior query.
+  </pre></div>
+  OK.  Let's try a more direct query:
+  <div class="QQQ"><pre>
+      Good.  Please show owner and steward names and version detail for dd:sw0r5i28.
+  </pre></div>
+  <div class="QQQ"><pre>
+Keep the current output and add ami:slang.
+  </pre></div>
+  Now, let's stash this data.   Press YES under the data output and this should
+  appear in the conversation window:
+  <pre class="indented-block">
+Got it! I've noted the output as dataset 1. If you need to refer to it or have any questions, just let me know!
+    </pre>
+
+  <div class="QQQ"><pre>
+Can you tell me anything interesting about dataset 1?
+  </pre></div>
+  AMI is now in "general LLM mode" and will attempt to create narrative and
+  should produce something like this:
+  <pre class="indented-block">
+Dataset 1 includes information about a technology asset with the following details:
+
+- **Owner Name**: Steve Austin
+- **Steward Name**: Dave Spector
+- **Version**: Major version 8, Minor version 2, Patch version 3
+- **Binary Type**: x86_64
+- **Release Date**: January 1, 2006
+- **Slang**: c
+
+An interesting aspect is that the slang "c" likely refers to the C programming language, which is 
+known for its efficiency and is widely used in system programming. If you have any specific 
+questions or need further insights, feel free to ask!
+</pre>
+
+Let's dig deeper on that insight:
+  <div class="QQQ"><pre>
+What is the future of the C programming language?
+  </pre></div>  
+  <pre class="indented-block">
+The future of the C programming language looks promising, despite the emergence of many newer 
+languages. Here are a few key points about its future:
+
+1. **Legacy Systems**: C is deeply embedded 
+in many legacy systems, especially in operating systems, embedded systems, and high-performance 
+...    
+  </pre>
+
+
+  
+<H4>Software and Components</H4>
+<p>
+  In the AMI information architecture, <b>Software</b> is defined as versioned release
+of a thing. 
+  <div class="QQQ"><pre>
+      List all AMI Software.
+  </pre></div>
+  Again note that we hint to the LLM that it is the AMI domain of software we
+  are interested in, not <i>all</i> the software it knows about (which is a lot).
+</p>
+<p>
+  <div class="QQQ"><pre>
+      List all AMI Components.
+  </pre></div>  
+  A <b>Component</b> is an (ultimately) executable thing that presents interfaces
+  to which other Components may connect, and it declares the Components upon which
+  it depends.   Whereas Software is mostly concerned with version, vendor, and
+  compile and runtime dependencies, Components are more concerned with data flow.
+  A crucial connection between Software and Components is the <tt>entryPoint</tt>
+  property of Component.  
+</p>
+<p>
+  <div class="QQQ"><pre>
+      What is an AMI Component?
+  </pre></div>  
+  AMI is a self-documenting system.  The definition of the classes and the
+  labels and comments therein -- essentially, the AMI metadata -- can be examined
+  by the LLM to produce textual answers.
+</p>
+
+
+
+
+<A NAME="cheat"></A>	   
+<H3>AMI Information Architecture Cheat Sheet</H3>
 <P>
-  Let's begin with "The Big Four".  All things in AMI must have these four:
+  Essential properties:
   <ul>
     <li><tt>ami:owner</tt><br>
       The <tt>ami:owner</tt> is the administrative manager of a thing, typically a
@@ -153,44 +309,14 @@ these important interaction concepts:
       select candidate material.  At a minimum, <tt>rdfs:comment</tt> should be
       the same value as <tt>rdfs:label</tt> but ideally it is <i>much</i> more
       verbose
+    </li><br>
+    <li><tt>ami:linksWith</tt><br>
+    </li><br>
+    <li><tt>ami:connectsTo</tt><br>
     </li><br>        
   </ul>
 </p>
 
-
-<H4>Software and Components</H4>
-<p>
-  In the AMI information architecture, <b>Software</b> is defined as versioned release
-of a thing. 
-  <div class="QQQ"><pre>
-      List all AMI Software.
-  </pre></div>
-  Again note that we hint to the LLM that it is the AMI domain of software we
-  are interested in, not <i>all</i> the software it knows about (which is a lot).
-</p>
-<p>
-  <div class="QQQ"><pre>
-      List all AMI Components.
-  </pre></div>  
-  A <b>Component</b> is an (ultimately) executable thing that presents interfaces
-  to which other Components may connect, and it declares the Components upon which
-  it depends.   Whereas Software is mostly concerned with version, vendor, and
-  compile and runtime dependencies, Components are more concerned with data flow.
-  A crucial connection between Software and Components is the <tt>entryPoint</tt>
-  property of Component.  
-</p>
-<p>
-  <div class="QQQ"><pre>
-      What is an AMI Component?
-  </pre></div>  
-  AMI is a self-documenting system.  The definition of the classes and the
-  labels and comments therein -- essentially, the AMI metadata -- can be examined
-  by the LLM to produce textual answers.
-</p>
-
-
-  
-<H3>AMI Information Architecture Cheat Sheet</H3>
 Mainline Classes:
 <ul>
   <li>Software is versioned unit of release of something like <tt>log4j</tt> or <tt>postgres 16.3</tt>.</li>
