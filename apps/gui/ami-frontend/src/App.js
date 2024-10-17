@@ -12,8 +12,27 @@ function App() {
     const [lastRmsg, setLastRmsg] = useState(null);
     const [systemSize, setSystemSize] = useState('simple'); // New state for system size
     const [loading, setLoading] = useState(false); // New state for loading spinner
+    const [introContent, setIntroContent] = useState('');  // To store /intro content
 
     const leftBoxRef = useRef(null);
+
+    useEffect(() => {
+        const fetchIntroContent = async () => {
+            try {
+                const response = await fetch(targURL + '/intro', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'text/html' },
+                    credentials: 'include'
+                });
+                const htmlContent = await response.text();
+                setIntroContent(htmlContent);  // Set the intro content in the state
+            } catch (error) {
+                setIntroContent('<p>Error loading introduction.</p>');
+            }
+        };
+
+        fetchIntroContent();
+    }, [targURL]);
 
     useEffect(() => {
         // Auto scroll to bottom when content changes
@@ -192,9 +211,12 @@ function App() {
             </div>
             <div className="main-container">
                 <div className="left-side">
+		    
                     <div className="left-box" ref={leftBoxRef}>
+			<div dangerouslySetInnerHTML={{ __html: introContent }} className="intro-content" />			
                         <pre dangerouslySetInnerHTML={{ __html: leftBoxContent }}></pre>
                     </div>
+		    
                     <div className="input-container">
                         <textarea
                             value={input}

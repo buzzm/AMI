@@ -11,7 +11,7 @@ class TCLI:
 
     class AMIServer:
         def __init__(self):
-            pass
+            self.session = requests.Session()
 
         def askAMI(self, test_query):
             url = 'http://localhost:5001/sparql'
@@ -21,7 +21,7 @@ class TCLI:
             data = json.dumps({"question": test_query,"systemSize": "Simple"})
 
             # POST returns "old" format; GET returns SPARQL 1.1. SERVICE compatible format
-            response = requests.post(url, data=data, headers=hdrs)
+            response = self.session.post(url, data=data, headers=hdrs)
 
             print("RAW AMI RESPONSE:", response.text)
             
