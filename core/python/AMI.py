@@ -56,7 +56,7 @@ class AMI():
         self.ami_conversation = self.init_llm()
         self.general_conversation = self.init_llm()        
 
-        #self.init_system()
+        self.init_system()
         
 
     def askAMI(self, blurb,echo=False):

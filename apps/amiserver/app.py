@@ -1,3 +1,4 @@
+import os
 import uuid
 import argparse
 import threading
@@ -16,6 +17,8 @@ from flask_session import Session
 from AMI import AMI  # Assuming your AMI class is in a module
 
 class AMIServer:
+    expensive_initialized = False  # Class-level flag to track initialization
+    
     def __init__(self, rargs, config=None):
         self.app = Flask(__name__)
 
@@ -63,12 +66,13 @@ class AMIServer:
         CORS(self.app, supports_credentials=True)
 
         #  Because initializing the LLM with prompts and such takes such a long
-        #  time, upon startup we pre-allocate a bunch of them.
+        #  time, upon startup we pre-allocate a bunch of them -- and
+        #  only ONCE:
+        
         self.ami_contexts = [None] * self.numctx
         self.slot_assign = [None] * self.numctx  # Initially, array of None       
         self.ami_context_usage = [None] * self.numctx  # An array of timestamps....
 
-        
         # Get this out of the way upon startup...
         if self.onectx:        
             print("Generating onectx AMI...")
@@ -77,6 +81,7 @@ class AMIServer:
             self.initialize_contexts()
             # Start the background timer for releasing inactive slots
             self.start_slot_timer()
+
             
 
     def initialize_contexts(self):
@@ -188,16 +193,16 @@ class AMIServer:
                     
             html = """
 <HTML>
-Hello! I am AMI.  You can ask me questions about a technology footprint such as "What AMI software is going EOL this year?"
+Hello! I am AMI.  You can ask me questions about a technology footprint such as "What software in AMI is going EOL this year?" or "What systems depend on postgres 16.3?"
             
 <p>
-There are %d open context slots out of total of %d.
+Due the resource-intense nature of LLM processing and with an eye toward frugality, there is a current max of %d simultaneous users.  If such a "slot is available, you will be assigned to the slot.  Note that your session context (and your conversational history) will be lost after 2 minutes of inactivity.  There are currently %d open slots.               
+
 <br>            
-If no slots are available, try again in a few minutes.
+If no slots are available, try pressing 'GO' again in a few minutes.
 <p>
-If you get a slot, your session context (and your conversational history) will be lost after 2 minutes.            
 </HTML>
-""" % (n_open, self.numctx)           
+""" % (self.numctx, n_open)           
             return html
         
             
@@ -384,6 +389,9 @@ def main():
 
     
     server = AMIServer(rargs, config={'DEBUG': True})  # You can pass additional config here
+
+    print("** server created")
+    
     server.run(host='0.0.0.0', port=5001)
 
     
