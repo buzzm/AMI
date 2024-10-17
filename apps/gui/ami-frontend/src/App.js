@@ -27,7 +27,7 @@ function App() {
                 const htmlContent = await response.text();
                 setIntroContent(htmlContent);  // Set the intro content in the state
             } catch (error) {
-                setIntroContent('<p>Error loading introduction.</p>');
+                setIntroContent('<p>AMI Server is likely undergoing maintenance or an upgrade.</p>');
             }
         };
 

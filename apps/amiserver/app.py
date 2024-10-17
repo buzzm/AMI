@@ -16,10 +16,13 @@ from flask_session import Session
 
 from AMI import AMI  # Assuming your AMI class is in a module
 
+from AMIResources import AMIResources
+
 class AMIServer:
-    expensive_initialized = False  # Class-level flag to track initialization
     
-    def __init__(self, rargs, config=None):
+    def __init__(self, rargs, ami_resources, config=None):
+        print("AMIServer.__init__")
+        
         self.app = Flask(__name__)
 
         self.api_key = rargs.api_key
@@ -31,7 +34,6 @@ class AMIServer:
 
         # Ensure jena server is running....
         self.jena_url = 'http://localhost:5656/sparql'
-        
         self.jena_headers = {
             'Content-Type': 'application/sparql-query',  # or 'application/x-www-form-urlencoded'
             'Accept': 'application/json'  # Expecting JSON results
@@ -65,30 +67,18 @@ class AMIServer:
         # Enable CORS with credentials
         CORS(self.app, supports_credentials=True)
 
-        #  Because initializing the LLM with prompts and such takes such a long
-        #  time, upon startup we pre-allocate a bunch of them -- and
-        #  only ONCE:
-        
-        self.ami_contexts = [None] * self.numctx
-        self.slot_assign = [None] * self.numctx  # Initially, array of None       
-        self.ami_context_usage = [None] * self.numctx  # An array of timestamps....
+        #self.xx = ami_resources
 
-        # Get this out of the way upon startup...
-        if self.onectx:        
-            print("Generating onectx AMI...")
-            self.ami_contexts['XXX'] = AMI(api_key=self.api_key, ami_cpt=self.ami_cpt, local_cpt=self.local_cpt, snippets=self.snippets)
-        else:
-            self.initialize_contexts()
-            # Start the background timer for releasing inactive slots
-            self.start_slot_timer()
+        self.ami_contexts = ami_resources.ami_contexts
+        self.slot_assign = ami_resources.slot_assign
+        self.ami_context_usage = ami_resources.ami_context_usage
+
+        
+        # Start the background timer for releasing inactive slots
+        self.start_slot_timer()
 
             
 
-    def initialize_contexts(self):
-        print(f"Preallocating {self.numctx} AMI contexts...")
-        for i in range(self.numctx):
-            self.ami_contexts[i] = AMI(api_key=self.api_key, ami_cpt=self.ami_cpt, local_cpt=self.local_cpt, snippets=self.snippets)
-            self.ami_context_usage[i] = time.time()  # Track the initial allocation time
 
     def start_slot_timer(self):
         def monitor_slots():
@@ -196,7 +186,7 @@ class AMIServer:
 Hello! I am AMI.  You can ask me questions about a technology footprint such as "What software in AMI is going EOL this year?" or "What systems depend on postgres 16.3?"
             
 <p>
-Due the resource-intense nature of LLM processing and with an eye toward frugality, there is a current max of %d simultaneous users.  If such a "slot is available, you will be assigned to the slot.  Note that your session context (and your conversational history) will be lost after 2 minutes of inactivity.  There are currently %d open slots.               
+Due the resource-intense nature of LLM processing and with an eye toward frugality, there is a current max of %d simultaneous users.  If such a "slot" is available, you will be assigned to the slot.  Note that your session context (and your conversational history) will be lost after 2 minutes of inactivity and the slot reclaimed.  There are currently %d open slots.               
 
 <br>            
 If no slots are available, try pressing 'GO' again in a few minutes.
@@ -387,11 +377,11 @@ def main():
     
     rargs = parser.parse_args()
 
-    
-    server = AMIServer(rargs, config={'DEBUG': True})  # You can pass additional config here
 
-    print("** server created")
+
+    expensives = AMIResources(rargs)
     
+    server = AMIServer(rargs, expensives, config={'DEBUG': True})  # You can pass additional config here
     server.run(host='0.0.0.0', port=5001)
 
     
