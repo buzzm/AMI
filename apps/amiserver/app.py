@@ -67,6 +67,7 @@ class AMIServer:
         # Session configuration
         self.app.config['SECRET_KEY'] = 'supersecretkey'
         self.app.config['SESSION_TYPE'] = 'filesystem'
+        self.app.config['SESSION_COOKIE_SECURE'] = False
         Session(self.app)
 
         # Enable CORS with credentials
