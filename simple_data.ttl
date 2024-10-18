@@ -1,0 +1,99 @@
+#  Our instance namespace:
+@prefix dd: <http://moschetti.org/buzz#> .
+
+#  The foundation AMI namespace:
+@prefix ami: <http://moschetti.org/ami#> .
+
+#  Industry standards:
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+
+dd:xx7ey4sh  a	ami:Control ;
+	     rdfs:label "simple" ;
+	     rdfs:comment """
+This is a simple domain of data.  It shows how people ("Actors"), software,
+and hardware come together in AMI.  This domain has a single system that
+has a single program: the venerable Hello World.  Although Hello World does
+not highlight many more exciting capavilities of AMI, it helps a newcomer
+understand the important relationship between software, components, and
+runtimes which is a key design feature of AMI.  Hello World has no inputs
+and no practical outputs and therefore there is also no declaration of Shapes
+in the system, another important AMI class -- but we will tackle these
+concepts in a different domain.
+""" .
+
+
+#  Set up 2 Actors
+dd:ac1bf4e4 a ami:Actor;
+    rdfs:label "Steve Austin" ;
+    ami:salary   "10.09"^^xsd:decimal ;	
+    ami:DID "A123" ;
+    ami:firstname "Steve" ;
+    ami:lastname "Austin" .
+    
+dd:ac78a6qz a ami:Actor;
+    rdfs:label "Dave Spector" ;
+    ami:DID "A456" ;
+    ami:firstname "Dave" ;
+    ami:lastname "Spector" .
+
+
+dd:vn6et9uh	    a ami:Vendor ;
+		    ami:owner dd:ac1bf4e4 ;
+		    ami:steward dd:ac78a6qz ;
+		    ami:LEI "C003" ;
+		    rdfs:label "My Company Inc." ;
+		    rdfs:comment """
+My Company Inc. specializes in extremely simple software.  They are the prime
+vendor of Hello World.
+""" .
+
+
+dd:sw0r5i28   a ami:Software ;
+	      ami:owner dd:ac1bf4e4 ;
+	      ami:steward dd:ac78a6qz ;
+	      ami:vendor dd:vn6et9uh ;
+	      ami:version [ a ami:Version; ami:major 8; ami:minor 2; ami:patch 3;
+      		  ami:released "2006-01-01T00:00:00Z"^^xsd:dateTime ;
+                  ami:bintype "x86_64"; ami:platform "ubuntu" ];
+	      ami:slang "c" ;
+	      ami:EOL "2024-12-10T12:00:00.000Z"^^xsd:dateTime ;
+	      rdfs:label "hello world";
+	      rdfs:comment """
+The time-honored "hello world" program, in the original C language.
+""" .
+	      
+
+
+dd:hw6jw4o1	a		ami:Hardware ;
+      ami:owner dd:ac1bf4e4 ;
+      ami:steward dd:ac78a6qz ;
+      rdfs:label "2CPU-32G-Linux" ;		
+      ami:vendor	dd:mscorp ;
+      ami:ncpus	2 ;
+      ami:RAM		32 ;
+      ami:vmtype	"Standard_D2" .
+
+
+dd:co1aa2bb     a    ami:Component ;
+		ami:owner dd:ac1bf4e4 ;
+		ami:steward dd:ac78a6qz ;
+		ami:entryPoint	dd:sw0r5i28 ;
+		rdfs:label "hello world" ;
+		rdfs:comment """The venerable "hello world" program.""" .
+	     
+dd:sy2iu3uy	a	ami:System ;
+		ami:owner dd:ac1bf4e4 ;
+		ami:steward dd:ac78a6qz ;
+		ami:macrotype "distributed" ;		
+		rdfs:label "Hello World System";
+		ami:dept	"ABC" ;
+		ami:components  dd:co1aa2bb ;
+		rdfs:comment """
+A system with a single component: the hello world program.
+""" .    		
+
+
