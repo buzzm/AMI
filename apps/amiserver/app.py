@@ -35,6 +35,8 @@ class AMIServer:
         self.snippets = rargs.snippets
         self.numctx = rargs.numctx
 
+        self.qcount = 0
+
         # Ensure jena server is running....
         self.jena_url = 'http://localhost:5656/sparql'
         self.jena_headers = {
@@ -171,7 +173,7 @@ class AMIServer:
         print("user_id is NONE; slot search yields", available_slot)
             
         if available_slot != -1:
-            user_id = uuid.uuid4()
+            user_id = str(uuid.uuid4())
                         
             # Assign the user to the available slot
             self.slot_assign[available_slot] = user_id
@@ -222,7 +224,8 @@ If no slots are available, try pressing 'GO' again in a few minutes.
 
                 if index != -1:
                     print("matched user_id", user_id)
-                    
+                    self.logger.info(f"returning user {user_id}")
+        
                     # Update the context's last used time
                     self.ami_context_usage[index] = time.time()
                     
@@ -231,16 +234,19 @@ If no slots are available, try pressing 'GO' again in a few minutes.
 
                 else:
                     print("user_id OK", user_id, "but unmatched; likely timed out; create new one")
+                    self.logger.info(f"returning user {user_id} but likely timed out; create new")
                     ami_context = self.assign_ami_ctx() 
                         
             else:
                 print("user_id is NONE; initiate slot search...")
+                self.logger.info(f"new user; search for slot")                
                 ami_context = self.assign_ami_ctx()
 
                     
             if ami_context == None:
                 # No available slots
                 print("no slots; try later")                        
+                self.logger.info(f"no slots available")                
                 return jsonify({
                     'status': 'FAIL',
                     'narrative': f"All {self.numctx} slots are currently being used; try again later.",
@@ -262,6 +268,10 @@ If no slots are available, try pressing 'GO' again in a few minutes.
                 'data':[]
             }
 
+            self.qcount += 1
+            
+            self.logger.info("Q", extra={'data':{'question':question,'n':self.qcount,'user':user_id}})
+                
             #  TBD TBD  What if the question is blank?  Do we
             #  return nothing or a suggestion?
             
@@ -292,7 +302,9 @@ If no slots are available, try pressing 'GO' again in a few minutes.
                             rmsg['status'] = 'FAIL'
                             rmsg['narrative'] = 'exception' + str(e)
 
-            print("RMSG:", rmsg)
+            rmsg['n'] = self.qcount
+            
+            self.logger.info("A", extra={'data':rmsg})
             return jsonify(rmsg)
 
 
@@ -348,6 +360,8 @@ If no slots are available, try pressing 'GO' again in a few minutes.
                 'data':[]
             }
             rmsg2['narrative'] = ami_context.askGeneral(nnt)
+
+            self.logger.info("S", extra={'data':rmsg2})            
                     
             return jsonify(rmsg2)
         
