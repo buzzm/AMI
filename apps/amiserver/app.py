@@ -1,6 +1,9 @@
 import os
 import uuid
+import logging
 import argparse
+import datetime
+import decimal
 import threading
 import time
 import json
@@ -16,20 +19,20 @@ from flask_session import Session
 
 from AMI import AMI  # Assuming your AMI class is in a module
 
-from AMIResources import AMIResources
 
 class AMIServer:
     
-    def __init__(self, rargs, ami_resources, config=None):
+    def __init__(self, rargs, config=None):
         print("AMIServer.__init__")
-        
+
+        self.logger = logging.getLogger('custom_json_logger')  # Reuse the global logger
+         
         self.app = Flask(__name__)
 
         self.api_key = rargs.api_key
         self.ami_cpt = rargs.ami_cpt
         self.local_cpt = rargs.local_cpt
         self.snippets = rargs.snippets
-        self.onectx = rargs.onectx
         self.numctx = rargs.numctx
 
         # Ensure jena server is running....
@@ -67,17 +70,27 @@ class AMIServer:
         # Enable CORS with credentials
         CORS(self.app, supports_credentials=True)
 
-        #self.xx = ami_resources
 
-        self.ami_contexts = ami_resources.ami_contexts
-        self.slot_assign = ami_resources.slot_assign
-        self.ami_context_usage = ami_resources.ami_context_usage
+        self.ami_contexts = [None] * self.numctx
+        self.slot_assign = [None] * self.numctx  # Initially, array of None       
+        self.ami_context_usage = [None] * self.numctx  # An array of timestamps....
 
+        self.initialize_contexts()
         
         # Start the background timer for releasing inactive slots
         self.start_slot_timer()
 
-            
+        
+    def initialize_contexts(self):
+        #print(f"Preallocating {self.numctx} AMI contexts...")
+        self.logger.info(f"Preallocating {self.numctx} AMI contexts...")        
+
+        for i in range(self.numctx):
+            self.ami_contexts[i] = AMI(api_key=self.api_key, ami_cpt=self.ami_cpt, local_cpt=self.local_cpt, snippets=self.snippets)
+
+        t = time.time()  
+        for i in range(self.numctx):
+            self.ami_context_usage[i] = t
 
 
     def start_slot_timer(self):
@@ -91,7 +104,9 @@ class AMIServer:
                     # 2 minutes of inactivity -- but if the slot is ALREADY None,
                     # leave it alone!
                     if current_time - last_used > 120 and self.slot_assign[idx] is not None:
-                        print(f"Releasing inactive slot {idx}...")
+                        uid = self.slot_assign[idx]
+                        
+                        print(f"Releasing inactive slot {idx} user {uid}...")
                         self.slot_assign[idx] = None
 
                         # This is key!  Rebuild a completely NEW API context.
@@ -183,10 +198,10 @@ class AMIServer:
                     
             html = """
 <HTML>
-Hello! I am AMI.  You can ask me questions about a technology footprint such as "What software in AMI is going EOL this year?" or "What systems depend on postgres 16.3?"
+Hello! I am AMI.  I am a hybrid LLM/RDF CMDB.  You can ask me questions about a sample technology footprint such as "What software in AMI is going EOL this year?" or "What systems depend on postgres 16.3?".  I don't hallucinate because I generate actual queries that work reliably and deterministically every time -- but sometimes I will not understand exactly what you want and will create the wrong query.  That's OK; you can ask me to modify the query.
             
 <p>
-Due the resource-intense nature of LLM processing and with an eye toward frugality, there is a current max of %d simultaneous users.  If such a "slot" is available, you will be assigned to the slot.  Note that your session context (and your conversational history) will be lost after 2 minutes of inactivity and the slot reclaimed.  There are currently %d open slots.               
+Due the resource-intense nature of LLM processing, there is a current max of %d simultaneous users.  If a "slot" is available at the time you press the GO button, you will be assigned to the slot.  Your session context (and your conversational history) will be lost after 2 minutes of inactivity and the slot reclaimed.<br><b>There are currently %d open slots.</b>               
 
 <br>            
 If no slots are available, try pressing 'GO' again in a few minutes.
@@ -201,29 +216,26 @@ If no slots are available, try pressing 'GO' again in a few minutes.
 
             user_id = session.get('user_id')
 
-            if self.onectx:
-                ami_context = self.ami_contexts['XXX']
-            else:
-                index = -1
-                if user_id is not None:
-                    index = self.slot_assign.index(user_id) if user_id in self.slot_assign else -1
+            index = -1
+            if user_id is not None:
+                index = self.slot_assign.index(user_id) if user_id in self.slot_assign else -1
 
-                    if index != -1:
-                        print("matched user_id", user_id)
+                if index != -1:
+                    print("matched user_id", user_id)
                     
-                        # Update the context's last used time
-                        self.ami_context_usage[index] = time.time()
+                    # Update the context's last used time
+                    self.ami_context_usage[index] = time.time()
+                    
+                    # ALWAYS produces valid AMI context:
+                    ami_context = self.ami_contexts[index] 
 
-                        # ALWAYS produces valid AMI context:
-                        ami_context = self.ami_contexts[index] 
-
-                    else:
-                        print("user_id OK", user_id, "but unmatched; likely timed out; create new one")
-                        ami_context = self.assign_ami_ctx() 
-                        
                 else:
-                    print("user_id is NONE; initiate slot search...")
-                    ami_context = self.assign_ami_ctx()
+                    print("user_id OK", user_id, "but unmatched; likely timed out; create new one")
+                    ami_context = self.assign_ami_ctx() 
+                        
+            else:
+                print("user_id is NONE; initiate slot search...")
+                ami_context = self.assign_ami_ctx()
 
                     
             if ami_context == None:
@@ -242,8 +254,6 @@ If no slots are available, try pressing 'GO' again in a few minutes.
             question = data.get('question')
             system_size = data.get('systemSize')
 
-            print("ami_context:", ami_context)
-            
             rmsg = {
                 'status':'OK',
                 'narrative':"",
@@ -311,16 +321,19 @@ If no slots are available, try pressing 'GO' again in a few minutes.
         def handle_stash():
             user_id = session.get('user_id')
 
-            if self.onectx:
+            index = self.slot_assign.index(user_id) if user_id in self.slot_assign else -1
 
-                ami_context = self.ami_contexts['XXX']
-
-            else:
+            if index == -1:
                 #  No way to stash without first having established
-                #  a context so unlike /sparql, this is a fail:
+                #  a valid context so unlike /sparql, this is a fail:
                 print("cannot establish context for user_id [", user_id, "]")
                 return jsonify({'error': 'Session not found'}), 400
 
+            # Update the context's last used time
+            self.ami_context_usage[index] = time.time()
+                    
+            # ALWAYS produces valid AMI context:
+            ami_context = self.ami_contexts[index] 
             
             rmsg = request.json
 
@@ -343,8 +356,61 @@ If no slots are available, try pressing 'GO' again in a few minutes.
         self.app.run(**kwargs)
 
 # Instantiate and run the server with additional config if needed
-def main():
 
+
+
+
+
+
+# Custom JSON formatter
+class CustomJSONFormatter(logging.Formatter):
+
+    @staticmethod
+    def mkdt(dt):
+        return dt.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+    
+    class CustomJSONEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, decimal.Decimal):
+                return float(obj)
+            elif isinstance(obj, datetime.datetime):
+                return CustomJSONFormatter.mkdt(obj)
+            return super().default(obj)
+    
+    def format(self, record):
+        log_entry = {
+            'msg': record.getMessage(),
+            'level': record.levelname,
+            'ts': CustomJSONFormatter.mkdt(datetime.datetime.utcnow())
+        }
+        
+        # Check if there is additional data passed in `extra` argument
+        if hasattr(record, 'data'):
+            log_entry['data'] = record.data
+        
+        # Convert the log entry to JSON
+        return json.dumps(log_entry, cls=CustomJSONFormatter.CustomJSONEncoder)
+
+# Function to create and configure the logger
+def get_custom_logger(name='custom_json_logger', log_file=None):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+    
+    # Create the handler
+    if log_file:
+        handler = logging.FileHandler(log_file)  # Log to a file
+    else:
+        handler = logging.StreamHandler()  # Log to console
+    
+    # Use the custom formatter
+    formatter = CustomJSONFormatter()
+    handler.setFormatter(formatter)
+    
+    logger.addHandler(handler)
+    return logger
+
+
+def main():
     parser = argparse.ArgumentParser(description=
 """AMI server.
 """
@@ -366,23 +432,27 @@ def main():
                         required=True,
                         metavar='Filename containing SPARQL snippets')    
 
-    parser.add_argument('--onectx',
-                        action='store_true',
-                        help='Session mapping is disabled; a single AMI context is created and used by all.   Good for quick debugging.')
-
     parser.add_argument('--numctx',
                         required=True,
                         type=int,
                         help='Number of slots to preallocate.')
+
+    parser.add_argument('--log',
+                        help='Log file.')    
     
     rargs = parser.parse_args()
 
-
-
-    expensives = AMIResources(rargs)
+    # Initialize the custom JSON logger with the specified log file
+    logger = get_custom_logger(log_file=rargs.log)  # OK for rargs.log to be None
+    #logger = get_custom_logger() 
     
-    server = AMIServer(rargs, expensives, config={'DEBUG': True})  # You can pass additional config here
-    server.run(host='0.0.0.0', port=5001)
+    logger.info("hello")
+    logger.info("bye", extra={'data': {'corm':'dog', 'td':datetime.datetime(2024,2,2) }})
+
+    server = AMIServer(rargs, config={'DEBUG': True})  # You can pass additional config here
+    #server.run(host='0.0.0.0', port=5001)
+    # Reloader really has no point and it complicates startup.
+    server.run(host='0.0.0.0', port=5001, use_reloader=False)
 
     
 

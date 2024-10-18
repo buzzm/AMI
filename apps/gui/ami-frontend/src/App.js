@@ -27,7 +27,7 @@ function App() {
                 const htmlContent = await response.text();
                 setIntroContent(htmlContent);  // Set the intro content in the state
             } catch (error) {
-                setIntroContent('<p>AMI Server is likely undergoing maintenance or an upgrade.</p>');
+                setIntroContent('<p>Hello!  The AMI Server is undergoing maintenance or an upgrade now; try again soon!</p>');
             }
         };
 
@@ -56,46 +56,23 @@ function App() {
             processResponse(data);
             setLastRmsg(data);
         } catch (error) {
-            setLeftBoxContent(prev => `${prev}\n<span class="response blue-text">Error retrieving data.</span>`);
+	    setLeftBoxContent(prev => `${prev}\n<span class="response blue-text">Error retrieving data: ${error.message}</span>`);
+            console.error('Error details:', error);  // Log the full error for debugging
+   
+            // setLeftBoxContent(prev => `${prev}\n<span class="response blue-text">Error retrieving data.</span>`);
         } finally {
             setLoading(false); // Deactivate the loading spinner
         }
     };
 
-    /*
-    const processResponse = (rmsg) => {
-        let narrative = rmsg.narrative;
-
-        if (!narrative.startsWith("## SPARQL")) {
-            let formattedNarrative = "";
-            let words = narrative.split(" ");
-            let lineLength = 0;
-
-            words.forEach(word => {
-                if (lineLength + word.length + 1 > 100) {
-                    formattedNarrative += "\n";
-                    lineLength = 0;
-                }
-                formattedNarrative += word + " ";
-                lineLength += word.length + 1;
-            });
-
-            narrative = formattedNarrative.trim();
-        }
-
-        setLeftBoxContent(prev => `${prev}\n<span class="response blue-text">${narrative}</span>`);
-        
-        if (rmsg.vars.length > 0) {
-            setVars(rmsg.vars);  
-            setDataOutput(rmsg.data.length > 0 ? rmsg.data : []);
-            setStashPrompt(true);  
-        }
-	};
-    */
 
     const processResponse = (rmsg) => {
 	let narrative = rmsg.narrative;
 
+	// Always reset to false because narrative AFTER SPARQL will
+	// get picked up and is not what screen actually reflects...
+        setStashPrompt(false);
+	
 	// Check if the narrative starts with "## SPARQL"
 	if (!narrative.startsWith("## SPARQL")) {
             // Split the narrative by existing newlines first
@@ -199,9 +176,8 @@ function App() {
                         value={systemSize}
                         onChange={handleSystemSizeChange} // Updated event handler
                     >
-                        <option value="simple">Simple</option>
+                        <option value="simple">Hello World</option>
                         <option value="standard">Standard</option>
-                        <option value="complex">Complex</option>
                     </select>
                 </div>
                 <div className="links">

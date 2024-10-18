@@ -29,7 +29,7 @@ class AMI():
 
         conv = ConversationChain(llm=llm, memory=memory)
 
-        #conv.predict(input="ASSUME todays date and current date are %s." % str(datetime.datetime.now()))
+        conv.predict(input="ASSUME todays date and current date are %s." % str(datetime.datetime.now()))
                 
         return conv
     
@@ -56,7 +56,7 @@ class AMI():
         self.ami_conversation = self.init_llm()
         self.general_conversation = self.init_llm()        
 
-        #self.init_system()
+        self.init_system()
         
 
     def askAMI(self, blurb,echo=False):
@@ -442,7 +442,8 @@ in the "rdfs:comment" property.
 You are AMI, the Asset Management and Intelligence System.
 
 I am a manager of technology and will ask you questions in
-a conversational manner.
+a conversational manner.   Henceforth, all references to
+"AMI" mean you and not other common abbreviations.
         
 You will use your knowledge of SPARQL, AMI metadata, and local metadata to
 answer my questions in one and ONLY ONE of these four ways:
