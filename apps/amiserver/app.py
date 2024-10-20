@@ -99,8 +99,8 @@ class AMIServer:
 
             e = time.time()                
             delta = e - b  # time - time = seconds as a float so big fractional part!
+            est = (self.numctx-1) * delta
             if i == 0 and (self.numctx-1) > 0:
-                est = (self.numctx-1) * delta
                 self.logger.info(f"prealloc {delta:.1f}s/ctx; est {est:.1f}s remaining")
 
             self.logger.info(f"prealloc ctx {i}: {delta:.1f}s")
