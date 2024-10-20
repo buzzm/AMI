@@ -13,12 +13,10 @@ fi
 #    exit 1
 #fi
 
-# REACT_APP_AMI_URL=https://localhost:5001
 
-# REACT_APP_AMI_URL=https://dynIP:8080
-# EIP  Elastic IP is permanently bound -- but no DNS name.
+# EIP  Elastic IP is permanently bound to my subdomain!
 #  	 50.112.191.129
-AMI_HOST=http://50.112.191.129:8080
+AMI_HOST=https://ami.moschetti.org
 
 CWD=`pwd`
 
@@ -31,7 +29,7 @@ sleep 3
 #  next is amiserver:
 source venv.1/bin/activate
 
-(cd apps/amiserver ; nohup python3 -u app.py --api_key $OPENAI_API_KEY --ami_cpt ../../ami.cpt  --local_cpt ../../local.cpt --snippets ../../snippets.txt  --numctx 1 --log "$CWD/amiserver.log" > /dev/null  2>&1 &)
+(cd apps/amiserver ; nohup python3 -u app.py --api_key $OPENAI_API_KEY --ami_cpt ../../ami.cpt  --local_cpt ../../local.cpt --snippets ../../snippets.txt  --numctx 1 --log "$CWD/amiserver.log" > "$CWD/amis2.log"   2>&1 &)
 
 #  last is node:
 (cd apps/gui/ami-frontend/src ; PORT=3000 REACT_APP_TARG_URL=$AMI_HOST nohup npm start > "$CWD/node.log" 2>&1 &)
