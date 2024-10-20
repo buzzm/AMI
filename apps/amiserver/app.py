@@ -87,16 +87,30 @@ class AMIServer:
         
     def initialize_contexts(self):
         #print(f"Preallocating {self.numctx} AMI contexts...")
-        self.logger.info(f"Preallocating {self.numctx} AMI contexts...")        
+        self.logger.info(f"prealloc {self.numctx} AMI contexts...")        
 
         for i in range(self.numctx):
+            b = time.time()
+            if i == 0:
+                first_b = b
             self.ami_contexts[i] = AMI(api_key=self.api_key, ami_cpt=self.ami_cpt, local_cpt=self.local_cpt, snippets=self.snippets)
+            e = time.time()                
+            delta = e - b  # time - time = seconds as a float so big fractional part!
+            if i == 0 and self.numctx-1 != 0:
+                est = (self.numctx-1) * delta
+                self.logger.info(f"prealloc {delta:.1f}s/ctx; est {est:.1f}s remaining")
+
+            self.logger.info(f"prealloc ctx {i}: {delta:.1f}s")
 
         t = time.time()  
         for i in range(self.numctx):
             self.ami_context_usage[i] = t
 
+        full_delta = e - first_b
+        
+        self.logger.info("prealloc complete", extra={'data':{'est':est,'full':full_delta}})
 
+        
     def start_slot_timer(self):
         def monitor_slots():
             while True:
