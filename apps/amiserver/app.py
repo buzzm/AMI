@@ -93,10 +93,13 @@ class AMIServer:
             b = time.time()
             if i == 0:
                 first_b = b
+
+            # The Juice:
             self.ami_contexts[i] = AMI(api_key=self.api_key, ami_cpt=self.ami_cpt, local_cpt=self.local_cpt, snippets=self.snippets)
+
             e = time.time()                
             delta = e - b  # time - time = seconds as a float so big fractional part!
-            if i == 0 and self.numctx-1 != 0:
+            if i == 0 and (self.numctx-1) > 0:
                 est = (self.numctx-1) * delta
                 self.logger.info(f"prealloc {delta:.1f}s/ctx; est {est:.1f}s remaining")
 
